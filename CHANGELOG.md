@@ -2,6 +2,45 @@
 
 All notable changes to the AIA Assessment MCP Server project are documented in this file.
 
+## [1.2.0] - 2025-09-10
+
+### 🛡️ Hallucination Prevention
+
+#### Enhanced Tool Descriptions
+- **Fixed LLM hallucination issue** where Claude Desktop was inventing information about AIA
+- **Root Cause**: Generic tool descriptions lacked sufficient context about Canada's AIA framework
+- **Solution**: Enhanced all tool descriptions with explicit Canadian government context
+
+#### Tool Description Improvements
+- **assess_project**: Now prefixed with "CANADA'S ALGORITHMIC IMPACT ASSESSMENT (AIA)"
+- **analyze_project_description**: Added "CANADA'S AIA FRAMEWORK" prefix
+- **get_questions**: Explicitly mentions "Treasury Board Directive" and "NOT generic AI assessment questions"
+- **functional_preview**: Emphasizes "Canadian federal compliance"
+- **export_assessment_report**: References "Canada's official framework"
+
+#### Prevention Strategies Implemented
+- **Explicit Framework Identification**: Every tool clearly identifies the Canadian context
+- **Scope Clarification**: Explicitly states what AIA is NOT to prevent confusion
+- **Authority References**: Mentions official government sources and Treasury Board Directive
+- **Context Repetition**: Reinforces Canadian government context throughout all descriptions
+- **Negative Assertions**: Prevents misinterpretation by stating what AIA is NOT
+
+### 📚 New Documentation
+- **AIA_HALLUCINATION_PREVENTION.md**: Comprehensive documentation of the problem, solution, and best practices
+- **Enhanced server docstring**: Added explicit context about Canada's AIA framework
+- **Best practices guide**: Recommendations for preventing hallucination in other MCP servers
+
+### ✅ Verification
+- **Tested enhanced descriptions**: All 5 tools now display proper Canadian AIA context
+- **Validated prevention**: LLM clients receive clear, authoritative context about AIA framework
+- **Confirmed accuracy**: Eliminates risk of clients inventing information about AIA
+
+### 🎯 Impact
+- **Prevents Hallucination**: LLM clients now have clear, authoritative context about what AIA is
+- **Reduces Confusion**: Explicit statements about what AIA is NOT prevent misinterpretation
+- **Provides Authority**: References to official government sources establish credibility
+- **Maintains Accuracy**: Consistent messaging across all tools ensures coherent understanding
+
 ## [1.1.0] - 2025-09-09
 
 ### 🔧 Critical Fixes

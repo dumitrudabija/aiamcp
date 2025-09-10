@@ -14,6 +14,7 @@ This MCP server provides tools for conducting algorithmic impact assessments bas
 - **Intelligent Workflow**: Guided assessment process with proper tool sequencing
 - **Scoring Accuracy**: Fixed critical scoring issues for reliable results
 - **Claude Desktop Integration**: Seamless integration with enhanced workflow guidance
+- **Hallucination Prevention**: Enhanced tool descriptions prevent LLM clients from inventing information about AIA
 
 ## Quick Start
 
