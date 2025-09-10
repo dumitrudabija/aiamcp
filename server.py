@@ -485,8 +485,9 @@ class MCPServer:
                 'reasoning': 'Could not be determined from project description - requires manual input'
             })
         
-        # Calculate partial assessment
-        completion_percentage = round((len(auto_responses) / summary['total_questions']) * 100)
+        # Calculate partial assessment - only count scoring questions for completion percentage
+        scoring_questions_count = len([q for q in self.aia_processor.scorable_questions if max(choice.get('score', 0) for choice in q.get('choices', [])) > 0])
+        completion_percentage = round((len(auto_responses) / scoring_questions_count) * 100)
         score_percentage = round((preliminary_score / summary['max_possible_score']) * 100, 2)
         
         return {
