@@ -1,0 +1,55 @@
+{
+  "name": "medium_risk",
+  "target_score": 45,
+  "estimated_score": 22,
+  "responses": [
+    {
+      "question_id": "businessDrivers5",
+      "selected_values": [
+        "item1-2"
+      ]
+    },
+    {
+      "question_id": "businessDrivers11",
+      "selected_values": [
+        "item1-2"
+      ]
+    },
+    {
+      "question_id": "projectAuthority1",
+      "selected_values": [
+        "item1-2"
+      ]
+    },
+    {
+      "question_id": "aboutSystem5",
+      "selected_values": [
+        "item3-2"
+      ]
+    },
+    {
+      "question_id": "aboutSystem6",
+      "selected_values": [
+        "item2-2"
+      ]
+    },
+    {
+      "question_id": "riskProfile4",
+      "selected_values": [
+        "item3-4"
+      ]
+    },
+    {
+      "question_id": "aboutSystem11",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact30",
+      "selected_values": [
+        "item1-4"
+      ]
+    }
+  ]
+}

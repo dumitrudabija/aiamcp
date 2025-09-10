@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "aia-assessment": {
+      "command": "/usr/bin/python3",
+      "args": ["server.py"],
+      "cwd": "/home/$USER/Documents/aia-assessment-mcp",
+      "env": {
+        "PYTHONPATH": "/home/$USER/Documents/aia-assessment-mcp",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

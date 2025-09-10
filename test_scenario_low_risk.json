@@ -1,0 +1,49 @@
+{
+  "name": "low_risk",
+  "target_score": 15,
+  "estimated_score": 9,
+  "responses": [
+    {
+      "question_id": "businessDrivers9",
+      "selected_values": [
+        "item2-1"
+      ]
+    },
+    {
+      "question_id": "riskProfile3",
+      "selected_values": [
+        "item1-1"
+      ]
+    },
+    {
+      "question_id": "riskProfile8",
+      "selected_values": [
+        "item1-1"
+      ]
+    },
+    {
+      "question_id": "aboutSystem3",
+      "selected_values": [
+        "item3-1"
+      ]
+    },
+    {
+      "question_id": "aboutSystem4",
+      "selected_values": [
+        "item3-1"
+      ]
+    },
+    {
+      "question_id": "businessDrivers5",
+      "selected_values": [
+        "item1-2"
+      ]
+    },
+    {
+      "question_id": "businessDrivers11",
+      "selected_values": [
+        "item1-2"
+      ]
+    }
+  ]
+}

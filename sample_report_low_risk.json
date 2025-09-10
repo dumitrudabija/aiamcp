@@ -1,0 +1,1673 @@
+{
+  "export_metadata": {
+    "export_timestamp": "2025-09-09T11:21:28.999232",
+    "framework_version": "Canada AIA v1.0",
+    "export_format_version": "1.0",
+    "generated_by": "AIA Assessment MCP Server"
+  },
+  "assessment_report": {
+    "assessment_summary": {
+      "project_name": "Simple Internal File Organization Tool",
+      "project_description": "Simple internal file organization tool with no user data. Helps employees organize documents in shared folders with basic categorization features.",
+      "assessment_date": "2025-09-09T11:21:28.999209",
+      "total_score": 3,
+      "max_possible_score": 298,
+      "score_percentage": 1.0,
+      "impact_level": 1,
+      "level_name": "Level I - Very Low Impact",
+      "level_description": "Minimal oversight required. Standard operational procedures apply."
+    },
+    "automation_summary": {
+      "total_questions": 162,
+      "auto_populated_count": 0,
+      "manual_required_count": 44,
+      "automation_rate": 0.0
+    },
+    "auto_populated_answers": [],
+    "manual_input_required": [
+      {
+        "question_id": "riskProfile8",
+        "question_title": "Have potential issues or harms with the existing service delivery approach been raised by clients or their representatives, the media, audits or parliamentary committees?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "riskProfile9",
+        "question_title": "Will you be submitting a concept case to TBS and presenting the project to the Government of Canada Enterprise Architecture Review Board?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-0",
+            "text": "Yes",
+            "score": 0
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "riskProfile10",
+        "question_title": "Have you submitted a concept case to TBS and presented the project to the Government of Canada Enterprise Architecture Review Board?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-0",
+            "text": "Yes",
+            "score": 0
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "impact4A",
+        "question_title": "Will this project have major impacts on staff, either in terms of their numbers or their roles?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "impact6",
+        "question_title": "Are the impacts resulting from the decision reversible?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Reversible",
+            "score": 1
+          },
+          {
+            "value": "item2-2",
+            "text": "Likely reversible",
+            "score": 2
+          },
+          {
+            "value": "item3-3",
+            "text": "Difficult to reverse",
+            "score": 3
+          },
+          {
+            "value": "item4-4",
+            "text": "Irreversible",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "question_id": "impact7",
+        "question_title": "How long could impacts from the decision last?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Impacts are most likely to be brief",
+            "score": 1
+          },
+          {
+            "value": "item2-2",
+            "text": "Some impacts may last a matter of months, but some lingering impacts may last longer",
+            "score": 2
+          },
+          {
+            "value": "item3-3",
+            "text": "Impacts can last years",
+            "score": 3
+          },
+          {
+            "value": "item4-4",
+            "text": "Most impacts are perpetual",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "question_id": "impact9",
+        "question_title": "The impacts that the decision could have on the rights or freedoms of individuals may be:",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Little to no impact",
+            "score": 1
+          },
+          {
+            "value": "item2-2",
+            "text": "Moderate impact",
+            "score": 2
+          },
+          {
+            "value": "item3-3",
+            "text": "High impact",
+            "score": 3
+          },
+          {
+            "value": "item4-4",
+            "text": "Very high impact",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "question_id": "impact24",
+        "question_title": "The impacts that the decision could have on the equality, dignity, privacy, and autonomy of individuals may be: ",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Little to no impact",
+            "score": 1
+          },
+          {
+            "value": "item2-2",
+            "text": "Moderate impact",
+            "score": 2
+          },
+          {
+            "value": "item3-3",
+            "text": "High impact",
+            "score": 3
+          },
+          {
+            "value": "item4-4",
+            "text": "Very high impact",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "question_id": "impact11",
+        "question_title": "The impacts that the decision could have on the health and well-being of individuals may be:",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Little to no impact",
+            "score": 1
+          },
+          {
+            "value": "item2-2",
+            "text": "Moderate impact",
+            "score": 2
+          },
+          {
+            "value": "item3-3",
+            "text": "High impact",
+            "score": 3
+          },
+          {
+            "value": "item4-4",
+            "text": "Very high impact",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "question_id": "impact13",
+        "question_title": "The impacts that the decision could have on the economic interests of individuals may be:",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Little to no impact",
+            "score": 1
+          },
+          {
+            "value": "item2-2",
+            "text": "Moderate impact",
+            "score": 2
+          },
+          {
+            "value": "item3-3",
+            "text": "High impact",
+            "score": 3
+          },
+          {
+            "value": "item4-4",
+            "text": "Very high impact",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "question_id": "impact27",
+        "question_title": "Could not being subject to the use of the tool have a negative impact on an individual or groups of individuals?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign22A",
+        "question_title": "Will you undertake training on appropriate use and awareness of risks associated with automation bias?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation22A",
+        "question_title": "Have you undertaken training on appropriate use and awareness of risks associated with automation bias?",
+        "category": "impact_risk",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "projectDetailsDepartment-NS",
+        "question_title": "Department",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "001",
+            "text": "Agriculture and Agri-Food (Department of)",
+            "score": 0
+          },
+          {
+            "value": "002",
+            "text": "Office of the Auditor General",
+            "score": 0
+          },
+          {
+            "value": "004",
+            "text": "Public Service Commission",
+            "score": 0
+          },
+          {
+            "value": "005",
+            "text": "Foreign Affairs, Trade and Development (Department of)",
+            "score": 0
+          },
+          {
+            "value": "006",
+            "text": "Finance (Department of)",
+            "score": 0
+          },
+          {
+            "value": "007",
+            "text": "Environment (Department of the)",
+            "score": 0
+          },
+          {
+            "value": "008",
+            "text": "Office of the Governor General's Secretary",
+            "score": 0
+          },
+          {
+            "value": "009",
+            "text": "Senate",
+            "score": 0
+          },
+          {
+            "value": "011",
+            "text": "Office of the Superintendent of Financial Institutions",
+            "score": 0
+          },
+          {
+            "value": "012",
+            "text": "Economic Development Agency of Canada for the Regions of Quebec",
+            "score": 0
+          },
+          {
+            "value": "013",
+            "text": "Justice (Department of)",
+            "score": 0
+          },
+          {
+            "value": "014",
+            "text": "Employment and Social Development (Department of)",
+            "score": 0
+          },
+          {
+            "value": "015",
+            "text": "Office of the Chief Electoral Officer",
+            "score": 0
+          },
+          {
+            "value": "016",
+            "text": "Canadian Radio-television and Telecommunications Commission",
+            "score": 0
+          },
+          {
+            "value": "017",
+            "text": "Library of Parliament",
+            "score": 0
+          },
+          {
+            "value": "018",
+            "text": "National Defence (Department of)",
+            "score": 0
+          },
+          {
+            "value": "019",
+            "text": "Office of the Director of Public Prosecutions",
+            "score": 0
+          },
+          {
+            "value": "021",
+            "text": "Veterans Affairs (Department of)",
+            "score": 0
+          },
+          {
+            "value": "022",
+            "text": "Health (Department of)",
+            "score": 0
+          },
+          {
+            "value": "023",
+            "text": "Atlantic Canada Opportunities Agency",
+            "score": 0
+          },
+          {
+            "value": "024",
+            "text": "International Joint Commission (Canadian Section)",
+            "score": 0
+          },
+          {
+            "value": "025",
+            "text": "Privy Council Office",
+            "score": 0
+          },
+          {
+            "value": "027",
+            "text": "Natural Sciences and Engineering Research Council",
+            "score": 0
+          },
+          {
+            "value": "030",
+            "text": "Royal Canadian Mounted Police",
+            "score": 0
+          },
+          {
+            "value": "032",
+            "text": "Immigration and Refugee Board",
+            "score": 0
+          },
+          {
+            "value": "033",
+            "text": "Industry (Department of)",
+            "score": 0
+          },
+          {
+            "value": "034",
+            "text": "Transport (Department of)",
+            "score": 0
+          },
+          {
+            "value": "035",
+            "text": "National Research Council of Canada",
+            "score": 0
+          },
+          {
+            "value": "037",
+            "text": "Telefilm Canada",
+            "score": 0
+          },
+          {
+            "value": "038",
+            "text": "Canada Border Services Agency - (Administered Activities)",
+            "score": 0
+          },
+          {
+            "value": "039",
+            "text": "National Film Board",
+            "score": 0
+          },
+          {
+            "value": "040",
+            "text": "Canadian Transportation Agency",
+            "score": 0
+          },
+          {
+            "value": "041",
+            "text": "Natural Resources (Department of)",
+            "score": 0
+          },
+          {
+            "value": "042",
+            "text": "Indian Affairs and Northern Development (Department of)",
+            "score": 0
+          },
+          {
+            "value": "043",
+            "text": "Canadian Intergovernmental Conference Secretariat",
+            "score": 0
+          },
+          {
+            "value": "044",
+            "text": "Western Economic Diversification (Department of)",
+            "score": 0
+          },
+          {
+            "value": "046",
+            "text": "Office of the Public Sector Integrity Commissioner",
+            "score": 0
+          },
+          {
+            "value": "047",
+            "text": "Canadian Nuclear Safety Commission",
+            "score": 0
+          },
+          {
+            "value": "050",
+            "text": "Citizenship and Immigration (Department of)",
+            "score": 0
+          },
+          {
+            "value": "051",
+            "text": "Office of the Commissioner for Federal Judicial Affairs",
+            "score": 0
+          },
+          {
+            "value": "052",
+            "text": "Canada School of Public Service",
+            "score": 0
+          },
+          {
+            "value": "053",
+            "text": "Correctional Service of Canada",
+            "score": 0
+          },
+          {
+            "value": "054",
+            "text": "Statistics Canada",
+            "score": 0
+          },
+          {
+            "value": "055",
+            "text": "Office of the Communications Security Establishment Commissioner",
+            "score": 0
+          },
+          {
+            "value": "056",
+            "text": "Treasury Board Secretariat",
+            "score": 0
+          },
+          {
+            "value": "057",
+            "text": "Parole Board of Canada",
+            "score": 0
+          },
+          {
+            "value": "061",
+            "text": "Canadian Institutes of Health Research",
+            "score": 0
+          },
+          {
+            "value": "062",
+            "text": "Federal Economic Development Agency for Southern Ontario",
+            "score": 0
+          },
+          {
+            "value": "063",
+            "text": "Social Sciences and Humanities Research Council",
+            "score": 0
+          },
+          {
+            "value": "066",
+            "text": "Northern Pipeline Agency",
+            "score": 0
+          },
+          {
+            "value": "067",
+            "text": "House of Commons",
+            "score": 0
+          },
+          {
+            "value": "074",
+            "text": "National Energy Board",
+            "score": 0
+          },
+          {
+            "value": "075",
+            "text": "Canadian Human Rights Commission",
+            "score": 0
+          },
+          {
+            "value": "076",
+            "text": "Office of the Commissioner of Official Languages",
+            "score": 0
+          },
+          {
+            "value": "078",
+            "text": "Canadian Northern Economic Development Agency",
+            "score": 0
+          },
+          {
+            "value": "079",
+            "text": "Payroll System General Ledger",
+            "score": 0
+          },
+          {
+            "value": "080",
+            "text": "Registrar of the Supreme Court of Canada",
+            "score": 0
+          },
+          {
+            "value": "083",
+            "text": "Office of the Co-ordinator, Status of Women",
+            "score": 0
+          },
+          {
+            "value": "085",
+            "text": "Canada Border Services Agency",
+            "score": 0
+          },
+          {
+            "value": "086",
+            "text": "Fisheries and Oceans (Department of)",
+            "score": 0
+          },
+          {
+            "value": "087",
+            "text": "Public Service Superannuation",
+            "score": 0
+          },
+          {
+            "value": "088",
+            "text": "Public Safety and Emergency Preparedness (Department of)",
+            "score": 0
+          },
+          {
+            "value": "091",
+            "text": "Canada Mortgage and Housing Corporation (Crown Corporation)",
+            "score": 0
+          },
+          {
+            "value": "095",
+            "text": "Canadian Security Intelligence Service",
+            "score": 0
+          },
+          {
+            "value": "096",
+            "text": "Offices of the Information and Privacy Commissioners of Canada",
+            "score": 0
+          },
+          {
+            "value": "097",
+            "text": "Receiver General",
+            "score": 0
+          },
+          {
+            "value": "100",
+            "text": "Canadian Centre for Occupational Health and Safety",
+            "score": 0
+          },
+          {
+            "value": "101",
+            "text": "Canadian Transportation Accident Investigation and Safety Board",
+            "score": 0
+          },
+          {
+            "value": "102",
+            "text": "The National Battlefields Commission",
+            "score": 0
+          },
+          {
+            "value": "103",
+            "text": "Security Intelligence Review Committee",
+            "score": 0
+          },
+          {
+            "value": "109",
+            "text": "Patented Medicine Prices Review Board",
+            "score": 0
+          },
+          {
+            "value": "116",
+            "text": "Copyright Board",
+            "score": 0
+          },
+          {
+            "value": "119",
+            "text": "Canadian Space Agency",
+            "score": 0
+          },
+          {
+            "value": "122",
+            "text": "Canada Revenue Agency - (Administered Activities)",
+            "score": 0
+          },
+          {
+            "value": "123",
+            "text": "Export Development Canada (Crown Corporation)",
+            "score": 0
+          },
+          {
+            "value": "124",
+            "text": "Parks Canada Agency",
+            "score": 0
+          },
+          {
+            "value": "127",
+            "text": "Public Works and Government Services (Department of)",
+            "score": 0
+          },
+          {
+            "value": "130",
+            "text": "Canada Revenue Agency",
+            "score": 0
+          },
+          {
+            "value": "133",
+            "text": "Canadian Grain Commission",
+            "score": 0
+          },
+          {
+            "value": "134",
+            "text": "Canadian Dairy Commission",
+            "score": 0
+          },
+          {
+            "value": "135",
+            "text": "Canadian Heritage (Department of)",
+            "score": 0
+          },
+          {
+            "value": "136",
+            "text": "Canadian Food Inspection Agency",
+            "score": 0
+          },
+          {
+            "value": "137",
+            "text": "Military Police Complaints Commission",
+            "score": 0
+          },
+          {
+            "value": "138",
+            "text": "Military Grievances External Review Committee",
+            "score": 0
+          },
+          {
+            "value": "139",
+            "text": "Financial Transactions and Reports Analysis Centre of Canada",
+            "score": 0
+          },
+          {
+            "value": "141",
+            "text": "Financial Consumer Agency of Canada",
+            "score": 0
+          },
+          {
+            "value": "142",
+            "text": "Office of Infrastructure of Canada",
+            "score": 0
+          },
+          {
+            "value": "144",
+            "text": "Courts Administration Service",
+            "score": 0
+          },
+          {
+            "value": "145",
+            "text": "Library and Archives of Canada",
+            "score": 0
+          },
+          {
+            "value": "147",
+            "text": "Office of the Conflict of Interest and Ethics Commissioner",
+            "score": 0
+          },
+          {
+            "value": "148",
+            "text": "Public Health Agency of Canada",
+            "score": 0
+          },
+          {
+            "value": "151",
+            "text": "Office of the Senate Ethics Officer",
+            "score": 0
+          },
+          {
+            "value": "154",
+            "text": "Office of the Commissioner of Lobbying",
+            "score": 0
+          },
+          {
+            "value": "163",
+            "text": "Shared Services Canada",
+            "score": 0
+          },
+          {
+            "value": "165",
+            "text": "Communications Security Establishment",
+            "score": 0
+          },
+          {
+            "value": "170",
+            "text": "Administrative Tribunals Support Service of Canada",
+            "score": 0
+          },
+          {
+            "value": "171",
+            "text": "Canadian High Arctic Research Station",
+            "score": 0
+          },
+          {
+            "value": "176",
+            "text": "Parliamentary Protective Service",
+            "score": 0
+          },
+          {
+            "value": "180",
+            "text": "Invest in Canada Hub",
+            "score": 0
+          },
+          {
+            "value": "183",
+            "text": "Office of the Parliamentary Budget Officer",
+            "score": 0
+          },
+          {
+            "value": "192",
+            "text": "Secretariat of the National Security and Intelligence Committee of Parliamentarians",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "projectDetailsPhase",
+        "question_title": "Project Phase",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1",
+            "text": "Design",
+            "score": 0
+          },
+          {
+            "value": "item2",
+            "text": "Implementation",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "businessDrivers1",
+        "question_title": "What is motivating your team to introduce automation into this decision-making process? (Check all that apply)",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1",
+            "text": "Reduce existing backlog of work or cases",
+            "score": 0
+          },
+          {
+            "value": "item2",
+            "text": "Improve overall quality of decisions",
+            "score": 0
+          },
+          {
+            "value": "item3",
+            "text": "Lower transaction costs of an existing program",
+            "score": 0
+          },
+          {
+            "value": "item4",
+            "text": "Perform tasks that humans could not accomplish in a reasonable period of time",
+            "score": 0
+          },
+          {
+            "value": "item5",
+            "text": "Use innovative approaches",
+            "score": 0
+          },
+          {
+            "value": "item6",
+            "text": "Other (specify)",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "projectAuthority1",
+        "question_title": "Will you require new policy or legal authority for this project?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "decisionSector1",
+        "question_title": "Does the decision pertain to any of the categories below (check all that apply). Note that the examples in brackets are not exhaustive.",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Health-related services (environmental and workplace health, product and food safety, drug regulation)",
+            "score": 1
+          },
+          {
+            "value": "item2-1",
+            "text": "Economic interests (grants and contributions, tax benefits, debt collection)",
+            "score": 1
+          },
+          {
+            "value": "item3-1",
+            "text": "Social assistance (employment insurance, disability or housing benefits, children or seniors programs)",
+            "score": 1
+          },
+          {
+            "value": "item4-1",
+            "text": "Access and mobility (security clearances, border management, immigration)",
+            "score": 1
+          },
+          {
+            "value": "item5-1",
+            "text": "Licensing and issuance of permits (possession and acquisition licence, export permits, commercial fishing licence)",
+            "score": 1
+          },
+          {
+            "value": "item7-1",
+            "text": "Employment (recruitment, hiring, promotion, performance evaluation, monitoring, security clearance)",
+            "score": 1
+          },
+          {
+            "value": "item8-1",
+            "text": "Public safety and law enforcement (investigating criminal acts)",
+            "score": 1
+          },
+          {
+            "value": "item6-1",
+            "text": "Other (specify)",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "question_id": "consultationDesign1",
+        "question_title": "Internal consultees or partners (federal institutions, including the federal public service).",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "consultationDesign2",
+        "question_title": "Which internal consultees or partners will you be engaging?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item2",
+            "text": "Strategic Policy and Planning",
+            "score": 0
+          },
+          {
+            "value": "item3",
+            "text": "Data Governance",
+            "score": 0
+          },
+          {
+            "value": "item4",
+            "text": "Program Policy",
+            "score": 0
+          },
+          {
+            "value": "item5",
+            "text": "Legal Services",
+            "score": 0
+          },
+          {
+            "value": "item6",
+            "text": "Access to Information and Privacy",
+            "score": 0
+          },
+          {
+            "value": "item7",
+            "text": "Communications services",
+            "score": 0
+          },
+          {
+            "value": "item8",
+            "text": "Client Experience / Client Relationship Management",
+            "score": 0
+          },
+          {
+            "value": "item10",
+            "text": "Digital Policy",
+            "score": 0
+          },
+          {
+            "value": "item11",
+            "text": "Human Resources",
+            "score": 0
+          },
+          {
+            "value": "item12",
+            "text": "TBS Office of the Chief Human Resources Officer",
+            "score": 0
+          },
+          {
+            "value": "item13",
+            "text": "TBS Office of the Chief Information Officer",
+            "score": 0
+          },
+          {
+            "value": "item14",
+            "text": "Office of the Privacy Commissioner of Canada",
+            "score": 0
+          },
+          {
+            "value": "item15",
+            "text": "Networks for Equity-seeking Employees",
+            "score": 0
+          },
+          {
+            "value": "item16",
+            "text": "Accessibility Working Groups",
+            "score": 0
+          },
+          {
+            "value": "item17",
+            "text": "2SLGBTQI+ Secretariat",
+            "score": 0
+          },
+          {
+            "value": "item9",
+            "text": "Other (describe)",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "consultationDesign3",
+        "question_title": "External consultees or partners (groups in other sectors or jurisdictions).",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "consultationDesign4",
+        "question_title": "Which external consultees or partners will you be engaging?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item2",
+            "text": "General Public",
+            "score": 0
+          },
+          {
+            "value": "item7",
+            "text": "Academia",
+            "score": 0
+          },
+          {
+            "value": "item8",
+            "text": "Industry",
+            "score": 0
+          },
+          {
+            "value": "item11",
+            "text": "Bargaining Agents",
+            "score": 0
+          },
+          {
+            "value": "item12",
+            "text": "Governments in other Jurisdictions",
+            "score": 0
+          },
+          {
+            "value": "item13",
+            "text": "International Organizations",
+            "score": 0
+          },
+          {
+            "value": "item14",
+            "text": "Clients or their Representatives",
+            "score": 0
+          },
+          {
+            "value": "item15",
+            "text": "Indigenous organizations, Elders, and leadership",
+            "score": 0
+          },
+          {
+            "value": "item16",
+            "text": "Non-governmental organizations ",
+            "score": 0
+          },
+          {
+            "value": "item19",
+            "text": "Professional associations  ",
+            "score": 0
+          },
+          {
+            "value": "item9",
+            "text": "Other (describe)",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "consultationImplementation1",
+        "question_title": "Internal Stakeholders (federal institutions, including the federal public service)",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "consultationImplementation2",
+        "question_title": "Which internal consultees or partners have you engaged?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item2",
+            "text": "Strategic Policy and Planning",
+            "score": 0
+          },
+          {
+            "value": "item3",
+            "text": "Data Governance",
+            "score": 0
+          },
+          {
+            "value": "item4",
+            "text": "Program Policy",
+            "score": 0
+          },
+          {
+            "value": "item5",
+            "text": "Legal Services",
+            "score": 0
+          },
+          {
+            "value": "item6",
+            "text": "Access to Information and Privacy",
+            "score": 0
+          },
+          {
+            "value": "item7",
+            "text": "Communications services",
+            "score": 0
+          },
+          {
+            "value": "item8",
+            "text": "Client Experience / Client Relationship Management",
+            "score": 0
+          },
+          {
+            "value": "item10",
+            "text": "Digital Policy",
+            "score": 0
+          },
+          {
+            "value": "item11",
+            "text": "Human Resources",
+            "score": 0
+          },
+          {
+            "value": "item12",
+            "text": "TBS Office of the Chief Human Resources Officer",
+            "score": 0
+          },
+          {
+            "value": "item13",
+            "text": "TBS Office of the Chief Information Officer",
+            "score": 0
+          },
+          {
+            "value": "item14",
+            "text": "Office of the Privacy Commissioner of Canada",
+            "score": 0
+          },
+          {
+            "value": "item15",
+            "text": "Networks for Equity-seeking Employees",
+            "score": 0
+          },
+          {
+            "value": "item16",
+            "text": "Accessibility Working Groups",
+            "score": 0
+          },
+          {
+            "value": "item17",
+            "text": "2SLGBTQI+ Secretariat",
+            "score": 0
+          },
+          {
+            "value": "item9",
+            "text": "Other (describe)",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "consultationImplementation3",
+        "question_title": "External consultees or partners (groups in other sectors or jurisdictions).",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "consultationImplementation4",
+        "question_title": "Which external consultees or partners have you engaged?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item2",
+            "text": "General Public",
+            "score": 0
+          },
+          {
+            "value": "item7",
+            "text": "Academia",
+            "score": 0
+          },
+          {
+            "value": "item8",
+            "text": "Industry",
+            "score": 0
+          },
+          {
+            "value": "item11",
+            "text": "Bargaining Agents",
+            "score": 0
+          },
+          {
+            "value": "item12",
+            "text": "Governments in other Jurisdictions",
+            "score": 0
+          },
+          {
+            "value": "item13",
+            "text": "International Organizations",
+            "score": 0
+          },
+          {
+            "value": "item14",
+            "text": "Clients or their Representatives",
+            "score": 0
+          },
+          {
+            "value": "item15",
+            "text": "Indigenous organizations, Elders, and leadership",
+            "score": 0
+          },
+          {
+            "value": "item16",
+            "text": "Non-governmental organizations ",
+            "score": 0
+          },
+          {
+            "value": "item19",
+            "text": "Professional associations  ",
+            "score": 0
+          },
+          {
+            "value": "item9",
+            "text": "Other (describe)",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign1",
+        "question_title": "Will the audit trail provide information to trace the chain of legislative authority for the decision and key decision points?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign3",
+        "question_title": "Will all key decision points be identifiable in the audit trail?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign4",
+        "question_title": "Will there be a process in place to log the instances when overrides were performed?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign7",
+        "question_title": "Will the audit trail capture information that can be used to help generate an explanation of the decision where required?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign9",
+        "question_title": "Will the audit trail show who the authorized decision-maker is?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign13",
+        "question_title": "Will there be a recourse process planned or established for clients to challenge the decision?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign21",
+        "question_title": "Indicate additional procedural fairness protections in place (check all that apply): ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Clear time frame or service standards for timeliness ",
+            "score": 1
+          },
+          {
+            "value": "item2-1",
+            "text": "Clients are provided with adequate information about the decision-making process and have the opportunity to meaningfully participate",
+            "score": 1
+          },
+          {
+            "value": "item3-1",
+            "text": "Clients are provided with all documents and information in which the administrative decision was based ",
+            "score": 1
+          },
+          {
+            "value": "item4-1",
+            "text": "Mechanism for assessing and responding to client feedback ",
+            "score": 1
+          },
+          {
+            "value": "item5-1",
+            "text": "Other",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessDesign23",
+        "question_title": "Will your team be regularly retraining the model or reviewing the rules? ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation1",
+        "question_title": "Does the audit trail provide information to trace the chain of legislative authority for the decision and key decision points? ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation3",
+        "question_title": "Are all key decision points identifiable in the audit trail? ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation4",
+        "question_title": "Is there a process in place to log the instances when overrides were performed? ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation7",
+        "question_title": "Does the audit trail capture information that can be used to help generate an explanation of the decision where required? ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation9",
+        "question_title": "Does the audit trail show who the authorized decision-maker is? ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation13",
+        "question_title": "Is there a recourse process established for clients to challenge the decision?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation21",
+        "question_title": "Indicate additional procedural fairness protections in place (check all that apply): ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Clear time frame or service standards for timeliness ",
+            "score": 1
+          },
+          {
+            "value": "item2-1",
+            "text": "Clients are provided with adequate information about the decision-making process and have the opportunity to meaningfully participate",
+            "score": 1
+          },
+          {
+            "value": "item3-1",
+            "text": "Clients are provided with all documents and information in which the administrative decision was based ",
+            "score": 1
+          },
+          {
+            "value": "item4-1",
+            "text": "Mechanism for assessing and responding to client feedback ",
+            "score": 1
+          },
+          {
+            "value": "item5-1",
+            "text": "Other",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "question_id": "fairnessImplementation23",
+        "question_title": "Will your team be regularly retraining the model or reviewing the rules? ",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-2",
+            "text": "Yes",
+            "score": 2
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "privacyDesign4",
+        "question_title": "If the disclosing of personal information is involved, has an agreement or arrangement with appropriate safeguards been established?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "question_id": "privacyImplementation4",
+        "question_title": "If the disclosing of personal information is involved, has an agreement or arrangement with appropriate safeguards been established?",
+        "category": "manual",
+        "choices": [
+          {
+            "value": "item1-1",
+            "text": "Yes",
+            "score": 1
+          },
+          {
+            "value": "item2-0",
+            "text": "No",
+            "score": 0
+          }
+        ]
+      }
+    ],
+    "recommendations": [
+      "Implement standard operational procedures and documentation",
+      "Establish basic monitoring and logging mechanisms",
+      "Conduct periodic reviews of system performance",
+      "Maintain clear documentation of decision-making processes"
+    ],
+    "next_actions": [
+      "Complete remaining manual questions",
+      "Document standard operating procedures",
+      "Schedule periodic review (annually)"
+    ],
+    "compliance_notes": [
+      "All automated decisions must be explainable and auditable",
+      "Regular bias testing and mitigation measures required",
+      "Clear appeals process must be established for affected individuals"
+    ]
+  },
+  "framework_details": {
+    "total_questions": 162,
+    "question_categories": {
+      "technical": 115,
+      "impact_risk": 16,
+      "manual": 31
+    },
+    "scoring_thresholds": {
+      "Level I": "0-15 points (Very Low Impact)",
+      "Level II": "16-30 points (Low Impact)",
+      "Level III": "31-50 points (Moderate Impact)",
+      "Level IV": "51+ points (High Impact)"
+    }
+  }
+}

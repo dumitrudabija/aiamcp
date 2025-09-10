@@ -1,0 +1,3283 @@
+{
+  "metadata": {
+    "total_pages": 18,
+    "total_questions": 162,
+    "scorable_questions": 152,
+    "max_possible_score": 298,
+    "question_types": {
+      "dropdown": 16,
+      "radiogroup": 130,
+      "checkbox": 16
+    }
+  },
+  "scorable_questions": [
+    {
+      "name": "businessDrivers5",
+      "type": "dropdown",
+      "title": "How effective will the system likely be in meeting client needs?",
+      "scoring_type": "dropdown",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Slightly effective",
+          "score": 2
+        },
+        {
+          "value": "item2-1",
+          "text": "Moderately effective",
+          "score": 1
+        },
+        {
+          "value": "item3-0",
+          "text": "Very effective",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "businessDrivers9",
+      "type": "radiogroup",
+      "title": "Have alternative non-automated processes been considered?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "No",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "businessDrivers11",
+      "type": "checkbox",
+      "title": "What would be the consequence of not deploying the system?",
+      "scoring_type": "multiple_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Service cannot be delivered at all",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "Service cannot be delivered in a timely or efficient manner",
+          "score": 0
+        },
+        {
+          "value": "item3-0",
+          "text": "Service costs are too high",
+          "score": 0
+        },
+        {
+          "value": "item4-0",
+          "text": "Service quality is not as high",
+          "score": 0
+        },
+        {
+          "value": "item5-0",
+          "text": "Service delivery cannot achieve performance targets",
+          "score": 0
+        },
+        {
+          "value": "item6-0",
+          "text": "Other (specify)",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "riskProfile1",
+      "type": "radiogroup",
+      "title": "Is the project within an area of intense public scrutiny (for example, because of privacy concerns) and/or frequent litigation?",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "riskProfile2",
+      "type": "radiogroup",
+      "title": "Does the line of business serve equity denied groups?",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "riskProfile3",
+      "type": "radiogroup",
+      "title": "Are there any population groups that the automated decision system should not be applied to?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "riskProfile4",
+      "type": "radiogroup",
+      "title": "Has the system been assessed to understand whether it would create or exacerbate barriers for persons with disabilities, and are measures in place to address any identified issues?",
+      "scoring_type": "single_choice",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Assessment has been conducted, and no barriers were identified.",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "Assessment has been conducted, barriers were identified, and measures are in place or planned to remove or prevent them.",
+          "score": 0
+        },
+        {
+          "value": "item3-4",
+          "text": "Assessment was conducted, barriers were identified, and no measures were put in place or planned to remove or prevent them.",
+          "score": 4
+        },
+        {
+          "value": "item4-4",
+          "text": "No assessment has been conducted.",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "riskProfile7",
+      "type": "radiogroup",
+      "title": "Could the automated decision-system be at heightened risk of being an exploitation target for malicious actors (for example, fraud for financial gain)?",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "riskProfile8",
+      "type": "radiogroup",
+      "title": "Have potential issues or harms with the existing service delivery approach been raised by clients or their representatives, the media, audits or parliamentary committees?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "riskProfile9",
+      "type": "radiogroup",
+      "title": "Will you be submitting a concept case to TBS and presenting the project to the Government of Canada Enterprise Architecture Review Board?",
+      "scoring_type": "single_choice",
+      "max_score": 0,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "riskProfile10",
+      "type": "radiogroup",
+      "title": "Have you submitted a concept case to TBS and presented the project to the Government of Canada Enterprise Architecture Review Board?",
+      "scoring_type": "single_choice",
+      "max_score": 0,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "projectAuthority1",
+      "type": "radiogroup",
+      "title": "Will you require new policy or legal authority for this project?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem3",
+      "type": "radiogroup",
+      "title": "Who developed the system?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Your institution",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "Another federal institution",
+          "score": 0
+        },
+        {
+          "value": "item3-1",
+          "text": "Another government",
+          "score": 1
+        },
+        {
+          "value": "item4-1",
+          "text": "A non-government third party",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem4",
+      "type": "radiogroup",
+      "title": "Who configured the system?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Your institution",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "Another federal institution",
+          "score": 0
+        },
+        {
+          "value": "item3-1",
+          "text": "Another government",
+          "score": 1
+        },
+        {
+          "value": "item4-1",
+          "text": "A non-government third party",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem5",
+      "type": "radiogroup",
+      "title": "Is the system:",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Open source",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "Custom built",
+          "score": 1
+        },
+        {
+          "value": "item3-2",
+          "text": "Commercial off the shelf (COTS)",
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem5B",
+      "type": "radiogroup",
+      "title": "Has the product been customized to add functionality beyond what is available off the shelf?",
+      "scoring_type": "single_choice",
+      "max_score": 0,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem6",
+      "type": "radiogroup",
+      "title": "Have you assigned accountability in your institution for the design, development, and maintenance, of the system?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-2",
+          "text": "No",
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem7",
+      "type": "radiogroup",
+      "title": "Is there a group in your institution responsible for identifying and implementing opportunities for improvement?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-2",
+          "text": "No",
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem8",
+      "type": "radiogroup",
+      "title": "Does your system conform with the appropriate clauses of standard CAN/ASC EN 301 549:2024, Accessibility requirements for Information and Communication Technology (ICT) products and services? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "No",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem9",
+      "type": "radiogroup",
+      "title": "Is a non-automated alternative planned and available in the event the automated decision system was unavailable for an extended period of time?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-2",
+          "text": "No",
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem10A",
+      "type": "radiogroup",
+      "title": "Is there a process in place to grant, monitor, and revoke access permission to the system?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-2",
+          "text": "No",
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "aboutSystem11",
+      "type": "dropdown",
+      "title": "The impacts that the development, operation, and maintenance of the system could have on the ongoing sustainability of an environmental ecosystem, may be:",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Little to no impact",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Moderate impact",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "High impact",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Very high impact",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm1",
+      "type": "radiogroup",
+      "title": "The algorithm used will be a (trade) secret",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm2",
+      "type": "radiogroup",
+      "title": "The algorithmic process will be difficult to interpret or to explain",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm3",
+      "type": "checkbox",
+      "title": "Is the algorithm (Check all that apply):",
+      "scoring_type": "multiple_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Based on rules developed from laws and policy and/or using human expertise (for example, if/then statements)",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "Based on patterns in data identified by the AI model (for example, neural network, deep learning)",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm4",
+      "type": "checkbox",
+      "title": "If the automated decision-system is model based, is the model inference (select all that apply):",
+      "scoring_type": "multiple_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Deterministic (follow precise rules and generate single outcome)",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "Probabilistic (infer several models to explain data)",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm5",
+      "type": "radiogroup",
+      "title": "Is the model: ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Discriminative (for example, regression analyses, decision trees)",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "Generative (for example, linear discriminant analysis, naïve Bayes)",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm8",
+      "type": "radiogroup",
+      "title": "Will the algorithm continue to learn and evolve as it is used?",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm8A",
+      "type": "radiogroup",
+      "title": "If yes, are there mechanisms in place to monitor the changes?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "No",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm9",
+      "type": "radiogroup",
+      "title": "Does the algorithm consider protected characteristics to make its decisions or recommendations?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutAlgorithm11",
+      "type": "radiogroup",
+      "title": "Have you evaluated whether variables that the system bases its decisions or recommendations on could be proxies for protected characteristics?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-2",
+          "text": "No",
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "decisionSector1",
+      "type": "checkbox",
+      "title": "Does the decision pertain to any of the categories below (check all that apply). Note that the examples in brackets are not exhaustive.",
+      "scoring_type": "multiple_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Health-related services (environmental and workplace health, product and food safety, drug regulation)",
+          "score": 1
+        },
+        {
+          "value": "item2-1",
+          "text": "Economic interests (grants and contributions, tax benefits, debt collection)",
+          "score": 1
+        },
+        {
+          "value": "item3-1",
+          "text": "Social assistance (employment insurance, disability or housing benefits, children or seniors programs)",
+          "score": 1
+        },
+        {
+          "value": "item4-1",
+          "text": "Access and mobility (security clearances, border management, immigration)",
+          "score": 1
+        },
+        {
+          "value": "item5-1",
+          "text": "Licensing and issuance of permits (possession and acquisition licence, export permits, commercial fishing licence)",
+          "score": 1
+        },
+        {
+          "value": "item7-1",
+          "text": "Employment (recruitment, hiring, promotion, performance evaluation, monitoring, security clearance)",
+          "score": 1
+        },
+        {
+          "value": "item8-1",
+          "text": "Public safety and law enforcement (investigating criminal acts)",
+          "score": 1
+        },
+        {
+          "value": "item6-1",
+          "text": "Other (specify)",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "impact30",
+      "type": "radiogroup",
+      "title": "Which of the following best describes the type of automation you are planning? ",
+      "scoring_type": "single_choice",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-4",
+          "text": "Full automation (the system will make an administrative decision) ",
+          "score": 4
+        },
+        {
+          "value": "item2-2",
+          "text": "Partial automation (the system will contribute to administrative decision-making by supporting an officer with assessments, recommendations, intermediate decisions, or other outputs)",
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "impact3",
+      "type": "radiogroup",
+      "title": "Will the system be making decisions or assessments that require judgment or discretion?",
+      "scoring_type": "single_choice",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-4",
+          "text": "Yes",
+          "score": 4
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "impact4A",
+      "type": "radiogroup",
+      "title": "Will this project have major impacts on staff, either in terms of their numbers or their roles?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "impact22",
+      "type": "radiogroup",
+      "title": "Will the system perform an assessment or other operation that is not currently completed by a human?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "impact5",
+      "type": "radiogroup",
+      "title": "Is the system used by a different part of the organization than the ones who developed it?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "impact6",
+      "type": "dropdown",
+      "title": "Are the impacts resulting from the decision reversible?",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Reversible",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Likely reversible",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "Difficult to reverse",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Irreversible",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "impact7",
+      "type": "dropdown",
+      "title": "How long could impacts from the decision last?",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Impacts are most likely to be brief",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Some impacts may last a matter of months, but some lingering impacts may last longer",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "Impacts can last years",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Most impacts are perpetual",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "impact9",
+      "type": "dropdown",
+      "title": "The impacts that the decision could have on the rights or freedoms of individuals may be:",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Little to no impact",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Moderate impact",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "High impact",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Very high impact",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "impact24",
+      "type": "dropdown",
+      "title": "The impacts that the decision could have on the equality, dignity, privacy, and autonomy of individuals may be: ",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Little to no impact",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Moderate impact",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "High impact",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Very high impact",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "impact11",
+      "type": "dropdown",
+      "title": "The impacts that the decision could have on the health and well-being of individuals may be:",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Little to no impact",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Moderate impact",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "High impact",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Very high impact",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "impact13",
+      "type": "dropdown",
+      "title": "The impacts that the decision could have on the economic interests of individuals may be:",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Little to no impact",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Moderate impact",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "High impact",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Very high impact",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "impact15",
+      "type": "dropdown",
+      "title": "The impacts that the decision could have on the ongoing sustainability of an environmental ecosystem, may be:",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Little to no impact",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Moderate impact",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "High impact",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Very high impact",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "impact18",
+      "type": "radiogroup",
+      "title": "Have you assessed system performance for clients with a range of personal and intersectional identity factors (for example, gender, age, race, language, ethnicity, disability) to verify that decisions and outcomes are fair for a diverse group of people, and have the identified disparities been addressed?",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "No assessment has been conducted",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "Assessment conducted; no performance differences identified.",
+          "score": 0
+        },
+        {
+          "value": "item3-2",
+          "text": "Assessment conducted; performance differences identified and are justified. Downstream impacts of performance difference have not been considered or addressed.",
+          "score": 2
+        },
+        {
+          "value": "item4-2",
+          "text": "Assessment conducted; performance differences identified which are not justified. Downstream impacts of the performance difference considered and addressed.",
+          "score": 2
+        },
+        {
+          "value": "item5-1",
+          "text": "Assessment conducted; performance differences identified and are justified. Downstream impacts have been considered and addressed.",
+          "score": 1
+        },
+        {
+          "value": "item6-3",
+          "text": "Assessment conducted; performance differences are identified and are not justified. Downstream impacts of the performance differences not considered or addressed.",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "name": "impact19I",
+      "type": "radiogroup",
+      "title": "Have you tested system performance for clients with a variety of different disabilities?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "No",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "impact23",
+      "type": "radiogroup",
+      "title": "Are there clients or groups of clients that will experience the most significant negative impacts from the system being used?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "impact26",
+      "type": "dropdown",
+      "title": "What proportion of clients will the system be applied to?",
+      "scoring_type": "dropdown",
+      "max_score": 0,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "0 to 25% ",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "26 to 50%",
+          "score": 0
+        },
+        {
+          "value": "item3-0",
+          "text": "51 to 75%",
+          "score": 0
+        },
+        {
+          "value": "item4-0",
+          "text": "76 to 99%",
+          "score": 0
+        },
+        {
+          "value": "item5-0",
+          "text": "100% ",
+          "score": 0
+        },
+        {
+          "value": "item6-0",
+          "text": "Unknown",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "impact27",
+      "type": "radiogroup",
+      "title": "Could not being subject to the use of the tool have a negative impact on an individual or groups of individuals?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "impact28",
+      "type": "dropdown",
+      "title": "The impact of individuals being wrongfully included or overlooked by the system could be:",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Little to no impact  ",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Moderate impact ",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "High impact",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "Very high impact ",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource1",
+      "type": "radiogroup",
+      "title": "Will the system use personal information as input data?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource9",
+      "type": "radiogroup",
+      "title": "Have you verified that the collection of personal information is limited to only what is directly related to a program or activity of your institution?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-2",
+          "text": "No",
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource10",
+      "type": "radiogroup",
+      "title": "Is the personal information of individuals used in a decision-making process that affects those individuals?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource11",
+      "type": "radiogroup",
+      "title": "Have you verified whether the system is using personal information in a way that is consistent with: (a) the current personal information banks (PIBs) and privacy impact assessments (PIAs) of your programs or (b) planned or implemented modifications to the PIBs or PIAs that take new uses and processes into account?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "No",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource14",
+      "type": "checkbox",
+      "title": "Will the personal information be shared (check all that apply)",
+      "scoring_type": "multiple_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "No sharing ",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "Within your department",
+          "score": 1
+        },
+        {
+          "value": "item3-1",
+          "text": "With another federal department",
+          "score": 1
+        },
+        {
+          "value": "item4-3",
+          "text": "With a government from another jurisdiction",
+          "score": 3
+        },
+        {
+          "value": "item5-3",
+          "text": "With a third party (private sector/NGO)",
+          "score": 3
+        },
+        {
+          "value": "item6-1",
+          "text": "Other",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource15",
+      "type": "radiogroup",
+      "title": "Is the training and testing data for the system representative of the clients being served? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-2",
+          "text": "No",
+          "score": 2
+        },
+        {
+          "value": "item3-1",
+          "text": "Unsure",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource16",
+      "type": "radiogroup",
+      "title": "Are there biases in the training data that could increase the likelihood of discriminatory outcomes or lead to other impacts on human rights? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-1",
+          "text": "Unsure",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource2",
+      "type": "dropdown",
+      "title": "What is the highest security classification of the input data used by the system? (Select one)",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "None",
+          "score": 0
+        },
+        {
+          "value": "item2-1",
+          "text": "Protected A",
+          "score": 1
+        },
+        {
+          "value": "item4-3",
+          "text": "Protected B",
+          "score": 3
+        },
+        {
+          "value": "item6-3",
+          "text": "Protected C",
+          "score": 3
+        },
+        {
+          "value": "item3-2",
+          "text": "Confidential",
+          "score": 2
+        },
+        {
+          "value": "item5-4",
+          "text": "Secret",
+          "score": 4
+        },
+        {
+          "value": "item7-4",
+          "text": "Top Secret",
+          "score": 4
+        },
+        {
+          "value": "item8-0",
+          "text": "Other",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource17",
+      "type": "radiogroup",
+      "title": "Are there measures in place to ensure the accuracy of the personal information used?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-2",
+          "text": "No",
+          "score": 2
+        },
+        {
+          "value": "item3-0",
+          "text": "Not applicable",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource3",
+      "type": "dropdown",
+      "title": "Who controls the data?",
+      "scoring_type": "dropdown",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Federal Government",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Other Canadian Government (province/territorial/municipal)",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "Private sector / NGO / academia",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource4",
+      "type": "radiogroup",
+      "title": "Will the system use data from multiple different sources?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource5",
+      "type": "radiogroup",
+      "title": "Will the system require input data from a network-connected device? (such as Internet of Things, sensor)",
+      "scoring_type": "single_choice",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-4",
+          "text": "Yes",
+          "score": 4
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource6",
+      "type": "radiogroup",
+      "title": "Will the system interface with other IT systems?",
+      "scoring_type": "single_choice",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-4",
+          "text": "Yes",
+          "score": 4
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource7",
+      "type": "dropdown",
+      "title": "Who collected the data used for training the system?",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Your institution",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Another federal institution",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "Another level of government",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "A foreign government or non-government third party",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "aboutDataSource8",
+      "type": "dropdown",
+      "title": "Who collected the input data used by the system?",
+      "scoring_type": "dropdown",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Your institution",
+          "score": 1
+        },
+        {
+          "value": "item2-2",
+          "text": "Another federal institution",
+          "score": 2
+        },
+        {
+          "value": "item3-3",
+          "text": "Another level of government",
+          "score": 3
+        },
+        {
+          "value": "item4-4",
+          "text": "A foreign government or non-government third party",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "aboutDataType1",
+      "type": "radiogroup",
+      "title": "Will the system require the analysis of unstructured data to make an assessment, recommendation or decision?",
+      "scoring_type": "single_choice",
+      "max_score": 0,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "aboutDataType2",
+      "type": "checkbox",
+      "title": "What types of unstructured data? (Check all that apply)",
+      "scoring_type": "multiple_choice",
+      "max_score": 4,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Audio and text files",
+          "score": 2
+        },
+        {
+          "value": "item2-4",
+          "text": "Images and videos",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "name": "aboutDataType3",
+      "type": "radiogroup",
+      "title": "Has there been a decision to exclude certain data? ",
+      "scoring_type": "single_choice",
+      "max_score": 0,
+      "choices": [
+        {
+          "value": "item1-0",
+          "text": "Yes",
+          "score": 0
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "consultationDesign1",
+      "type": "radiogroup",
+      "title": "Internal consultees or partners (federal institutions, including the federal public service).",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "consultationDesign3",
+      "type": "radiogroup",
+      "title": "External consultees or partners (groups in other sectors or jurisdictions).",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "consultationDesign6",
+      "type": "radiogroup",
+      "title": "Will you consult with the clients that will be most impacted by the system?",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-0",
+          "text": "Unsure",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "consultationDesign7",
+      "type": "radiogroup",
+      "title": "Will you consult with clients or communities that will be adversely impacted by the system? ",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-0",
+          "text": "Unsure",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "consultationImplementation1",
+      "type": "radiogroup",
+      "title": "Internal Stakeholders (federal institutions, including the federal public service)",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "consultationImplementation3",
+      "type": "radiogroup",
+      "title": "External consultees or partners (groups in other sectors or jurisdictions).",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "consultationImplementation6",
+      "type": "radiogroup",
+      "title": "Did you consult with the clients that will be most impacted by the system? ",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-0",
+          "text": "Unsure",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "consultationImplementation7",
+      "type": "radiogroup",
+      "title": "Did you consult with clients or communities that will be adversely impacted by the system? ",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-0",
+          "text": "Unsure",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign1",
+      "type": "radiogroup",
+      "title": "Will you have documented processes in place to test datasets against biases, discrimination, and other unexpected outcomes? This could include experience in applying frameworks, methods, guidelines or other assessment tools.",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign2",
+      "type": "radiogroup",
+      "title": "Will the documented process be publicly available? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign3",
+      "type": "radiogroup",
+      "title": "Will you be developing a process to document how data quality issues were resolved during the design process?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign4",
+      "type": "radiogroup",
+      "title": "Will you be making the process publicly available?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign5",
+      "type": "radiogroup",
+      "title": "Will you undertake a Gender Based Analysis Plus (GBA Plus) of the data?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-1",
+          "text": "Not applicable",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign7",
+      "type": "radiogroup",
+      "title": "Will you be making the GBA Plus findings publicly available?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign8",
+      "type": "radiogroup",
+      "title": "Will you have a documented process to manage the risk that low quality, outdated or unreliable data is used to make an automated decision?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign9",
+      "type": "radiogroup",
+      "title": "Will you be making the process publicly available?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityDesign10",
+      "type": "radiogroup",
+      "title": "Will the data used for this system be posted on the Open Government Portal?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation1",
+      "type": "radiogroup",
+      "title": "Do you have documented processes in place to test datasets against biases, discrimination, and other unexpected outcomes? This could include experience in applying frameworks, methods, guidelines, or other assessment tools. ",
+      "scoring_type": "single_choice",
+      "max_score": 3,
+      "choices": [
+        {
+          "value": "item1-3",
+          "text": "Yes",
+          "score": 3
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation2",
+      "type": "radiogroup",
+      "title": "Is the documented process publicly available? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation3",
+      "type": "radiogroup",
+      "title": "Have you developed a process to document how data quality issues were resolved during the design process? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation4",
+      "type": "radiogroup",
+      "title": "Is the process publicly available? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation5",
+      "type": "radiogroup",
+      "title": "Have you undertaken a Gender-based Analysis Plus (GBA Plus) of the data?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-1",
+          "text": "Not applicable",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation7",
+      "type": "radiogroup",
+      "title": "Are the GBA Plus findings publicly available?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation8",
+      "type": "radiogroup",
+      "title": "Do you have a documented process to manage the risk that low quality, outdated or unreliable data is used to make an automated decision?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation9",
+      "type": "radiogroup",
+      "title": "Is the process publicly available? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "dataQualityImplementation10",
+      "type": "radiogroup",
+      "title": "Will the data used for this system be posted on the Open Government Portal?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign1",
+      "type": "radiogroup",
+      "title": "Will the audit trail provide information to trace the chain of legislative authority for the decision and key decision points?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign1A",
+      "type": "radiogroup",
+      "title": "Will all key decision points in the automated system's logic be linked to the relevant legislation, policy or procedure?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign2",
+      "type": "radiogroup",
+      "title": "Will the audit trail capture all the recommendations or decisions made by the system?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign3",
+      "type": "radiogroup",
+      "title": "Will all key decision points be identifiable in the audit trail?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign4",
+      "type": "radiogroup",
+      "title": "Will there be a process in place to log the instances when overrides were performed?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign5",
+      "type": "radiogroup",
+      "title": "Will there be an up-to-date log of the changes made to the model and the system?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign7",
+      "type": "radiogroup",
+      "title": "Will the audit trail capture information that can be used to help generate an explanation of the decision where required?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign10",
+      "type": "radiogroup",
+      "title": "Will the system be able to produce reasons for its decisions or recommendations when required?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign8",
+      "type": "radiogroup",
+      "title": "Will the audit trail identify precisely which version of the system was used for each decision it supports?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign9",
+      "type": "radiogroup",
+      "title": "Will the audit trail show who the authorized decision-maker is?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign12",
+      "type": "radiogroup",
+      "title": "Will there be a mechanism to capture feedback by users of the system?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign13",
+      "type": "radiogroup",
+      "title": "Will there be a recourse process planned or established for clients to challenge the decision?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign16",
+      "type": "radiogroup",
+      "title": "Will the audit trail include change control processes to record modifications to the system's operation or performance?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign17",
+      "type": "radiogroup",
+      "title": "Will the system base its decision or recommendation on all of the information provided by the client? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-0",
+          "text": "Not applicable",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign18",
+      "type": "radiogroup",
+      "title": "Will you undertake mitigations in algorithm development and model testing to address bias and discrimination? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign19",
+      "type": "radiogroup",
+      "title": "Will the system only consider input data and information relevant to the decision? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign20",
+      "type": "radiogroup",
+      "title": "Are the system rules directly relevant to the administrative decision? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign21",
+      "type": "checkbox",
+      "title": "Indicate additional procedural fairness protections in place (check all that apply): ",
+      "scoring_type": "multiple_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Clear time frame or service standards for timeliness ",
+          "score": 1
+        },
+        {
+          "value": "item2-1",
+          "text": "Clients are provided with adequate information about the decision-making process and have the opportunity to meaningfully participate",
+          "score": 1
+        },
+        {
+          "value": "item3-1",
+          "text": "Clients are provided with all documents and information in which the administrative decision was based ",
+          "score": 1
+        },
+        {
+          "value": "item4-1",
+          "text": "Mechanism for assessing and responding to client feedback ",
+          "score": 1
+        },
+        {
+          "value": "item5-1",
+          "text": "Other",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign22",
+      "type": "radiogroup",
+      "title": "Are there processes in place to ensure impartiality and ethical conduct by the decision-maker in the use of the system and its outputs? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign22A",
+      "type": "radiogroup",
+      "title": "Will you undertake training on appropriate use and awareness of risks associated with automation bias?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign23",
+      "type": "radiogroup",
+      "title": "Will your team be regularly retraining the model or reviewing the rules? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign24",
+      "type": "radiogroup",
+      "title": "Do you have monitoring processes in place to detect changes in system performance over time? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessDesign24A",
+      "type": "radiogroup",
+      "title": "Do you have a process in place to update the system based on the monitoring results? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation1",
+      "type": "radiogroup",
+      "title": "Does the audit trail provide information to trace the chain of legislative authority for the decision and key decision points? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation1A",
+      "type": "radiogroup",
+      "title": "Are all key decision points in the automated system's logic linked to the relevant legislation, policy or procedures? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation2",
+      "type": "radiogroup",
+      "title": "Does the audit trail capture all the recommendations or decisions made by the system? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation3",
+      "type": "radiogroup",
+      "title": "Are all key decision points identifiable in the audit trail? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation4",
+      "type": "radiogroup",
+      "title": "Is there a process in place to log the instances when overrides were performed? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation5",
+      "type": "radiogroup",
+      "title": "Is there an up-to-date log of the changes made to the model and the system? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation7",
+      "type": "radiogroup",
+      "title": "Does the audit trail capture information that can be used to help generate an explanation of the decision where required? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation10",
+      "type": "radiogroup",
+      "title": "Is the system able to produce reasons for its decisions or recommendations when required? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation8",
+      "type": "radiogroup",
+      "title": "Does the audit trail identify precisely which version of the system was used for each decision it supports? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation9",
+      "type": "radiogroup",
+      "title": "Does the audit trail show who the authorized decision-maker is? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation12",
+      "type": "radiogroup",
+      "title": "Is there a mechanism to capture feedback by users of the system?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation13",
+      "type": "radiogroup",
+      "title": "Is there a recourse process established for clients to challenge the decision?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation16",
+      "type": "radiogroup",
+      "title": "Does the audit trail include change control processes to record modifications to the system's operation or performance? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation17",
+      "type": "radiogroup",
+      "title": "Does the system base its decision or recommendation on all of the information provided by the client? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        },
+        {
+          "value": "item3-0",
+          "text": "Not applicable",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation18",
+      "type": "radiogroup",
+      "title": "Have you undertaken mitigations in algorithm development and model testing to address bias and discrimination? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation19",
+      "type": "radiogroup",
+      "title": "Does the system only consider input data and information relevant to the decision?  ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation20",
+      "type": "radiogroup",
+      "title": "Are the system rules directly relevant to the administrative decision? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation21",
+      "type": "checkbox",
+      "title": "Indicate additional procedural fairness protections in place (check all that apply): ",
+      "scoring_type": "multiple_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Clear time frame or service standards for timeliness ",
+          "score": 1
+        },
+        {
+          "value": "item2-1",
+          "text": "Clients are provided with adequate information about the decision-making process and have the opportunity to meaningfully participate",
+          "score": 1
+        },
+        {
+          "value": "item3-1",
+          "text": "Clients are provided with all documents and information in which the administrative decision was based ",
+          "score": 1
+        },
+        {
+          "value": "item4-1",
+          "text": "Mechanism for assessing and responding to client feedback ",
+          "score": 1
+        },
+        {
+          "value": "item5-1",
+          "text": "Other",
+          "score": 1
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation22",
+      "type": "radiogroup",
+      "title": "Are there processes in place to ensure impartiality and ethical conduct by the decision-maker in the use of the system and its outputs? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation22A",
+      "type": "radiogroup",
+      "title": "Have you undertaken training on appropriate use and awareness of risks associated with automation bias?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation23",
+      "type": "radiogroup",
+      "title": "Will your team be regularly retraining the model or reviewing the rules? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation24",
+      "type": "radiogroup",
+      "title": "Do you have monitoring processes in place to detect changes in system performance over time? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "fairnessImplementation24A",
+      "type": "radiogroup",
+      "title": "Do you have a process in place to update the system based on the monitoring results? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyDesign1",
+      "type": "radiogroup",
+      "title": "If your system uses or creates personal information, will you undertake a privacy impact assessment (PIA), or update an existing one prior to system launch?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyDesign2",
+      "type": "radiogroup",
+      "title": "Will you design and build security into your systems from the concept stage of the project?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyDesign9",
+      "type": "radiogroup",
+      "title": "Will you design and build privacy into your systems from the concept stage of the project?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyDesign3",
+      "type": "radiogroup",
+      "title": "Will information be used within a closed system (no connections to the Internet, Intranet or any other system)?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyDesign4",
+      "type": "radiogroup",
+      "title": "If the disclosing of personal information is involved, has an agreement or arrangement with appropriate safeguards been established?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyDesign7",
+      "type": "radiogroup",
+      "title": "Will you de-identify any personal information used or created by the system at any point in the lifecycle? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyImplementation1",
+      "type": "radiogroup",
+      "title": "If your system uses or creates personal information, have you undertaken a PIA, or updated an existing one? ",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyImplementation2",
+      "type": "radiogroup",
+      "title": "Have you designed and built security into your systems from the concept stage of the project?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyImplementation9",
+      "type": "radiogroup",
+      "title": "Have you designed and built privacy into your systems from the concept stage of the project?",
+      "scoring_type": "single_choice",
+      "max_score": 2,
+      "choices": [
+        {
+          "value": "item1-2",
+          "text": "Yes",
+          "score": 2
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyImplementation3",
+      "type": "radiogroup",
+      "title": "Is the information used within a closed system (no connections to the Internet, Intranet or any other system)?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyImplementation4",
+      "type": "radiogroup",
+      "title": "If the disclosing of personal information is involved, has an agreement or arrangement with appropriate safeguards been established?",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "privacyImplementation7",
+      "type": "radiogroup",
+      "title": "Will you de-identify any personal information used or created by the system at any point in the lifecycle? ",
+      "scoring_type": "single_choice",
+      "max_score": 1,
+      "choices": [
+        {
+          "value": "item1-1",
+          "text": "Yes",
+          "score": 1
+        },
+        {
+          "value": "item2-0",
+          "text": "No",
+          "score": 0
+        }
+      ]
+    }
+  ]
+}

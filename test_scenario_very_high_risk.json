@@ -1,0 +1,91 @@
+{
+  "name": "very_high_risk",
+  "target_score": 85,
+  "estimated_score": 52,
+  "responses": [
+    {
+      "question_id": "riskProfile4",
+      "selected_values": [
+        "item3-4"
+      ]
+    },
+    {
+      "question_id": "aboutSystem11",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact30",
+      "selected_values": [
+        "item1-4"
+      ]
+    },
+    {
+      "question_id": "impact3",
+      "selected_values": [
+        "item1-4"
+      ]
+    },
+    {
+      "question_id": "impact6",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact7",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact9",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact24",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact11",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact13",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact15",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "impact28",
+      "selected_values": [
+        "item4-4"
+      ]
+    },
+    {
+      "question_id": "businessDrivers5",
+      "selected_values": [
+        "item1-2"
+      ]
+    },
+    {
+      "question_id": "businessDrivers11",
+      "selected_values": [
+        "item1-2"
+      ]
+    }
+  ]
+}
