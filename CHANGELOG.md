@@ -13,18 +13,24 @@ All notable changes to the AIA Assessment MCP Server project are documented in t
 
 ### 📊 Completion Percentage Fix
 
-#### Accurate Progress Tracking
-- **Fixed completion percentage calculation** to use only scoring questions as denominator
-- **Root Cause**: Calculation used all 162 questions instead of 146 scoring questions
-- **Solution**: Changed denominator from 162 total questions to 146 scoring questions
-- **Impact**: More accurate assessment progress tracking that reflects functional completion
+#### Phase-Specific Progress Tracking
+- **Fixed completion percentage calculation** to use Design phase scoring questions as denominator
+- **Root Cause**: Calculation used all 146 scoring questions, but users only see phase-specific questions
+- **Discovery**: AIA questionnaire shows different questions based on project phase (Design vs Implementation)
+- **Solution**: Changed denominator from 146 total scoring questions to 109 Design phase scoring questions
 
 #### Technical Details
-- **Scoring questions**: 146 questions that contribute to the AIA risk score
+- **Design phase scoring questions**: 109 (55 always-visible + 54 design-only)
+- **Implementation phase scoring questions**: 92 (55 always-visible + 37 implementation-only)
 - **Non-scoring questions**: 16 administrative questions (department, phase, etc.)
-- **Old calculation**: `(auto_answered / 162) * 100` - included administrative questions
-- **New calculation**: `(auto_answered / scoring_questions_count) * 100` - functional questions only
-- **Example**: 162 auto-answered questions now shows 111% (162/146) instead of 100% (162/162)
+- **Phase-specific calculation**: `(auto_answered / 109) * 100` for Design phase users
+- **Previous calculation**: `(auto_answered / 146) * 100` - used all scoring questions regardless of phase
+- **Example**: 162 auto-answered questions now shows 149% (162/109) vs 111% (162/146)
+
+#### Impact
+- **More accurate progress tracking** that reflects questions actually visible to users
+- **Design phase focus** since most initial assessments are done during project design
+- **Better user experience** with completion percentages that match visible question count
 
 #### Tool Description Improvements
 - **assess_project**: Now prefixed with "CANADA'S ALGORITHMIC IMPACT ASSESSMENT (AIA)"
