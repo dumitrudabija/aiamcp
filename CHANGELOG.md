@@ -11,6 +11,21 @@ All notable changes to the AIA Assessment MCP Server project are documented in t
 - **Root Cause**: Generic tool descriptions lacked sufficient context about Canada's AIA framework
 - **Solution**: Enhanced all tool descriptions with explicit Canadian government context
 
+### 📊 Completion Percentage Fix
+
+#### Accurate Progress Tracking
+- **Fixed completion percentage calculation** to use only scoring questions as denominator
+- **Root Cause**: Calculation used all 162 questions instead of 146 scoring questions
+- **Solution**: Changed denominator from 162 total questions to 146 scoring questions
+- **Impact**: More accurate assessment progress tracking that reflects functional completion
+
+#### Technical Details
+- **Scoring questions**: 146 questions that contribute to the AIA risk score
+- **Non-scoring questions**: 16 administrative questions (department, phase, etc.)
+- **Old calculation**: `(auto_answered / 162) * 100` - included administrative questions
+- **New calculation**: `(auto_answered / scoring_questions_count) * 100` - functional questions only
+- **Example**: 162 auto-answered questions now shows 111% (162/146) instead of 100% (162/162)
+
 #### Tool Description Improvements
 - **assess_project**: Now prefixed with "CANADA'S ALGORITHMIC IMPACT ASSESSMENT (AIA)"
 - **analyze_project_description**: Added "CANADA'S AIA FRAMEWORK" prefix
