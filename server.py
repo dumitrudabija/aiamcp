@@ -485,9 +485,10 @@ class MCPServer:
                 'reasoning': 'Could not be determined from project description - requires manual input'
             })
         
-        # Calculate partial assessment - only count scoring questions for completion percentage
-        scoring_questions_count = len([q for q in self.aia_processor.scorable_questions if max(choice.get('score', 0) for choice in q.get('choices', [])) > 0])
-        completion_percentage = round((len(auto_responses) / scoring_questions_count) * 100)
+        # Calculate partial assessment - only count Design phase scoring questions for completion percentage
+        # Design phase has 55 always-visible + 54 design-only = 109 total scoring questions
+        design_phase_scoring_questions = 109  # Based on phase-specific analysis
+        completion_percentage = round((len(auto_responses) / design_phase_scoring_questions) * 100)
         score_percentage = round((preliminary_score / summary['max_possible_score']) * 100, 2)
         
         return {
