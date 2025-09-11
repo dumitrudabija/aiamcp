@@ -24,6 +24,7 @@ from datetime import datetime
 from docx import Document
 from docx.shared import Inches
 from aia_processor import AIAProcessor
+from osfi_e23_processor import OSFIE23Processor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
@@ -39,6 +40,7 @@ class MCPServer:
         print(f"DEBUG: Changed working directory to: {script_dir}", file=sys.stderr)
         
         self.aia_processor = AIAProcessor()
+        self.osfi_e23_processor = OSFIE23Processor()
         self.server_info = {
             "name": "aia-assessment-server",
             "version": "1.0.0"
@@ -263,6 +265,119 @@ class MCPServer:
                     "required": ["project_name", "project_description", "assessment_results"],
                     "additionalProperties": False
                 }
+            },
+            {
+                "name": "assess_model_risk",
+                "description": "⚠️ OSFI E-23 MODEL RISK MANAGEMENT: Assess model risk using Canada's OSFI Guideline E-23 framework for federally regulated financial institutions. COMPLIANCE WARNING: This tool provides structured assessment framework only. All results must be validated by qualified model risk professionals and approved by appropriate governance authorities. Risk assessments must be based on factual, verifiable project information - not AI interpretation.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "projectName": {
+                            "type": "string",
+                            "description": "Name of the model being assessed"
+                        },
+                        "projectDescription": {
+                            "type": "string",
+                            "description": "CRITICAL: Provide factual, detailed description including specific technical architecture, documented data sources/volumes, explicit business use cases, defined decision-making processes, and measurable performance criteria. Avoid vague descriptions requiring AI interpretation."
+                        }
+                    },
+                    "required": ["projectName", "projectDescription"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "evaluate_lifecycle_compliance",
+                "description": "OSFI E-23 MODEL RISK MANAGEMENT: Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages (Design, Review, Deployment, Monitoring, Decommission). Identifies compliance gaps and provides stage-specific recommendations.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "projectName": {
+                            "type": "string",
+                            "description": "Name of the model being evaluated"
+                        },
+                        "projectDescription": {
+                            "type": "string",
+                            "description": "Detailed description of the model and its current lifecycle stage"
+                        },
+                        "currentStage": {
+                            "type": "string",
+                            "description": "Current lifecycle stage of the model",
+                            "enum": ["Design", "Review", "Deployment", "Monitoring", "Decommission"]
+                        }
+                    },
+                    "required": ["projectName", "projectDescription"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "generate_risk_rating",
+                "description": "OSFI E-23 MODEL RISK MANAGEMENT: Generate detailed risk rating assessment using OSFI E-23 methodology. Provides comprehensive risk analysis with quantitative scoring, qualitative factors, and risk amplification analysis for financial institution compliance.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "projectName": {
+                            "type": "string",
+                            "description": "Name of the model being rated"
+                        },
+                        "projectDescription": {
+                            "type": "string",
+                            "description": "Detailed description of the model including technical details, business impact, and usage context"
+                        }
+                    },
+                    "required": ["projectName", "projectDescription"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "create_compliance_framework",
+                "description": "OSFI E-23 MODEL RISK MANAGEMENT: Create comprehensive compliance framework based on OSFI E-23 requirements. Generates detailed governance structure, policies, procedures, and controls tailored to the model's risk level and business context.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "projectName": {
+                            "type": "string",
+                            "description": "Name of the model requiring compliance framework"
+                        },
+                        "projectDescription": {
+                            "type": "string",
+                            "description": "Detailed description of the model, its business purpose, and organizational context"
+                        },
+                        "riskLevel": {
+                            "type": "string",
+                            "description": "Optional: Pre-determined risk level to tailor framework requirements",
+                            "enum": ["Low", "Medium", "High", "Critical"]
+                        }
+                    },
+                    "required": ["projectName", "projectDescription"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "export_e23_report",
+                "description": "⚠️ OSFI E-23 MODEL RISK MANAGEMENT: Export OSFI E-23 model risk assessment results to a Microsoft Word document. COMPLIANCE WARNING: Generated reports are templates requiring professional validation. All content must be reviewed by qualified model risk professionals, validated against actual project characteristics, and approved by appropriate governance authorities before use for regulatory compliance.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "project_name": {
+                            "type": "string",
+                            "description": "Name of the model being assessed"
+                        },
+                        "project_description": {
+                            "type": "string",
+                            "description": "Description of the model and its business application"
+                        },
+                        "assessment_results": {
+                            "type": "object",
+                            "description": "Assessment results object from previous E-23 assessment (assess_model_risk, generate_risk_rating, or create_compliance_framework)"
+                        },
+                        "custom_filename": {
+                            "type": "string",
+                            "description": "Optional custom filename (without extension). If not provided, will use E23_Report_[ProjectName]_[YYYY-MM-DD].docx format"
+                        }
+                    },
+                    "required": ["project_name", "project_description", "assessment_results"],
+                    "additionalProperties": False
+                }
             }
         ]
         
@@ -290,6 +405,16 @@ class MCPServer:
                 result = self._functional_preview(arguments)
             elif tool_name == "export_assessment_report":
                 result = self._export_assessment_report(arguments)
+            elif tool_name == "assess_model_risk":
+                result = self._assess_model_risk(arguments)
+            elif tool_name == "evaluate_lifecycle_compliance":
+                result = self._evaluate_lifecycle_compliance(arguments)
+            elif tool_name == "generate_risk_rating":
+                result = self._generate_risk_rating(arguments)
+            elif tool_name == "create_compliance_framework":
+                result = self._create_compliance_framework(arguments)
+            elif tool_name == "export_e23_report":
+                result = self._export_e23_report(arguments)
             else:
                 return {
                     "jsonrpc": "2.0",
@@ -1651,6 +1776,931 @@ class MCPServer:
             return "⚠️ Early Indicator - Not Official Assessment. Based on functional characteristics only. Final assessment requires complete stakeholder input and official AIA process completion."
         else:
             return "This assessment is based on available project information and automated analysis. Final AIA compliance requires complete stakeholder input and official government review process."
+    
+    def _export_e23_report(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Export OSFI E-23 model risk assessment results to a Microsoft Word document."""
+        project_name = arguments.get("project_name", "")
+        project_description = arguments.get("project_description", "")
+        assessment_results = arguments.get("assessment_results", {})
+        custom_filename = arguments.get("custom_filename")
+        
+        logger.info(f"Exporting OSFI E-23 report for project: {project_name}")
+        
+        try:
+            # Create AIA_Assessments directory if it doesn't exist (reuse same directory)
+            assessments_dir = "./AIA_Assessments"
+            os.makedirs(assessments_dir, exist_ok=True)
+            
+            # Generate filename
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            if custom_filename:
+                filename = f"{custom_filename}.docx"
+            else:
+                # Clean project name for filename
+                clean_project_name = "".join(c for c in project_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                clean_project_name = clean_project_name.replace(' ', '_')
+                filename = f"E23_Report_{clean_project_name}_{current_date}.docx"
+            
+            file_path = os.path.join(assessments_dir, filename)
+            
+            # Create Word document
+            doc = Document()
+            
+            # Add title page
+            title = doc.add_heading('OSFI Guideline E-23', 0)
+            title.alignment = 1  # Center alignment
+            subtitle = doc.add_heading('Model Risk Management Assessment Report', 1)
+            subtitle.alignment = 1
+            
+            # Add model information section
+            doc.add_heading('1. Model Information', level=1)
+            doc.add_paragraph(f'Model Name: {project_name}')
+            doc.add_paragraph(f'Assessment Date: {datetime.now().strftime("%B %d, %Y")}')
+            doc.add_paragraph(f'Framework: OSFI Guideline E-23 Model Risk Management')
+            doc.add_paragraph(f'Effective Date: May 1, 2027')
+            doc.add_paragraph(f'Scope: Federally regulated financial institutions')
+            
+            # Extract E-23 assessment data
+            risk_level = self._extract_e23_risk_level(assessment_results)
+            risk_score = self._extract_e23_risk_score(assessment_results)
+            
+            doc.add_paragraph(f'Risk Rating: {risk_level}')
+            doc.add_paragraph(f'Risk Score: {risk_score}/100 points')
+            
+            # Add executive summary
+            doc.add_heading('2. Executive Summary', level=1)
+            summary = self._generate_e23_executive_summary(risk_level, risk_score, project_description)
+            doc.add_paragraph(summary)
+            
+            # Add model description and business rationale
+            doc.add_heading('3. Model Description and Business Rationale', level=1)
+            doc.add_paragraph(project_description)
+            doc.add_paragraph('')
+            doc.add_paragraph('Business Rationale:')
+            business_rationale = self._extract_e23_business_rationale(assessment_results, project_description)
+            doc.add_paragraph(business_rationale)
+            
+            # Add comprehensive risk assessment
+            doc.add_heading('4. Model Risk Assessment', level=1)
+            
+            # Risk rating methodology
+            doc.add_heading('4.1 Risk Rating Methodology', level=2)
+            methodology_text = self._generate_e23_risk_methodology(assessment_results)
+            doc.add_paragraph(methodology_text)
+            
+            # Quantitative risk factors
+            doc.add_heading('4.2 Quantitative Risk Factors', level=2)
+            quant_factors = self._extract_e23_quantitative_factors(assessment_results)
+            for factor in quant_factors:
+                p = doc.add_paragraph(factor)
+                p.style = 'List Bullet'
+            
+            # Qualitative risk factors
+            doc.add_heading('4.3 Qualitative Risk Factors', level=2)
+            qual_factors = self._extract_e23_qualitative_factors(assessment_results)
+            for factor in qual_factors:
+                p = doc.add_paragraph(factor)
+                p.style = 'List Bullet'
+            
+            # Risk interactions and amplification
+            doc.add_heading('4.4 Risk Interactions and Amplification', level=2)
+            risk_interactions = self._extract_e23_risk_interactions(assessment_results)
+            for interaction in risk_interactions:
+                p = doc.add_paragraph(interaction)
+                p.style = 'List Bullet'
+            
+            # Add governance framework
+            doc.add_heading('5. Model Risk Management Framework', level=1)
+            
+            # Organizational structure
+            doc.add_heading('5.1 Organizational Structure and Accountability', level=2)
+            org_structure = self._extract_e23_organizational_structure(assessment_results)
+            for role, description in org_structure.items():
+                doc.add_paragraph(f'{role.replace("_", " ").title()}: {description}')
+            
+            # Policies and procedures
+            doc.add_heading('5.2 Policies, Procedures, and Controls', level=2)
+            policies = self._extract_e23_policies_procedures(assessment_results)
+            for policy in policies:
+                p = doc.add_paragraph(policy)
+                p.style = 'List Bullet'
+            
+            # Add model lifecycle management
+            doc.add_heading('6. Model Lifecycle Management', level=1)
+            
+            # Design phase
+            doc.add_heading('6.1 Model Design', level=2)
+            design_reqs = self._extract_e23_design_requirements(assessment_results)
+            for req in design_reqs:
+                p = doc.add_paragraph(req)
+                p.style = 'List Bullet'
+            
+            # Review and validation
+            doc.add_heading('6.2 Model Review and Validation', level=2)
+            review_reqs = self._extract_e23_review_requirements(assessment_results)
+            for req in review_reqs:
+                p = doc.add_paragraph(req)
+                p.style = 'List Bullet'
+            
+            # Deployment
+            doc.add_heading('6.3 Model Deployment', level=2)
+            deployment_reqs = self._extract_e23_deployment_requirements(assessment_results)
+            for req in deployment_reqs:
+                p = doc.add_paragraph(req)
+                p.style = 'List Bullet'
+            
+            # Monitoring and performance management
+            doc.add_heading('6.4 Model Monitoring and Performance Management', level=2)
+            monitoring_framework = self._extract_e23_monitoring_framework(assessment_results)
+            doc.add_paragraph(f"Monitoring Frequency: {monitoring_framework.get('frequency', 'As per risk level')}")
+            doc.add_paragraph("Key Performance Indicators:")
+            for kpi in monitoring_framework.get('kpis', []):
+                p = doc.add_paragraph(kpi)
+                p.style = 'List Bullet'
+            
+            # Model decommission
+            doc.add_heading('6.5 Model Decommission', level=2)
+            decommission_reqs = self._extract_e23_decommission_requirements(assessment_results)
+            for req in decommission_reqs:
+                p = doc.add_paragraph(req)
+                p.style = 'List Bullet'
+            
+            # Add documentation requirements
+            doc.add_heading('7. Documentation Requirements', level=1)
+            doc_requirements = self._extract_e23_documentation_requirements(assessment_results)
+            for doc_req in doc_requirements:
+                p = doc.add_paragraph(doc_req)
+                p.style = 'List Bullet'
+            
+            # Add compliance checklist
+            doc.add_heading('8. Compliance Checklist', level=1)
+            compliance_checklist = self._extract_e23_compliance_checklist(assessment_results)
+            for item in compliance_checklist:
+                status = "✓" if item.get('completed', False) else "☐"
+                stage = item.get('stage', 'N/A')
+                required = "Required" if item.get('required', True) else "Optional"
+                doc.add_paragraph(f"{status} {item.get('item', 'N/A')} ({stage} - {required})")
+            
+            # Add implementation timeline
+            doc.add_heading('9. Implementation Timeline', level=1)
+            timeline = self._extract_e23_implementation_timeline(assessment_results)
+            for phase, duration in timeline.items():
+                doc.add_paragraph(f"{phase.replace('_', ' ').title()}: {duration}")
+            
+            # Add recommendations and next steps
+            doc.add_heading('10. Recommendations and Next Steps', level=1)
+            recommendations = self._extract_e23_recommendations(assessment_results)
+            for recommendation in recommendations:
+                p = doc.add_paragraph(recommendation)
+                p.style = 'List Bullet'
+            
+            # Add appendices
+            doc.add_heading('11. Appendices', level=1)
+            
+            # Appendix A: OSFI E-23 Principles
+            doc.add_heading('Appendix A: OSFI E-23 Core Principles', level=2)
+            principles = self._get_e23_core_principles()
+            for principle in principles:
+                doc.add_paragraph(f"Principle {principle['id']}: {principle['title']}")
+                doc.add_paragraph(principle['description'])
+                doc.add_paragraph('')
+            
+            # Appendix B: Risk rating levels
+            doc.add_heading('Appendix B: Risk Rating Levels', level=2)
+            risk_levels = self._get_e23_risk_levels()
+            for level in risk_levels:
+                doc.add_paragraph(f"{level['level']}: {level['description']} (Score: {level['score_range'][0]}-{level['score_range'][1]})")
+            
+            # Add disclaimer
+            doc.add_heading('12. Disclaimer and Limitations', level=1)
+            disclaimer_text = self._get_e23_assessment_disclaimer(assessment_results)
+            doc.add_paragraph(disclaimer_text)
+            
+            # Save document
+            doc.save(file_path)
+            
+            # Get file size
+            file_size = os.path.getsize(file_path)
+            file_size_kb = round(file_size / 1024, 1)
+            
+            return {
+                "success": True,
+                "file_path": file_path,
+                "file_size": f"{file_size_kb}KB",
+                "message": "OSFI E-23 assessment report saved successfully"
+            }
+            
+        except PermissionError:
+            return {
+                "success": False,
+                "error": "Permission denied - unable to create file. Check write permissions for the directory.",
+                "file_path": None
+            }
+        except OSError as e:
+            return {
+                "success": False,
+                "error": f"File system error: {str(e)}",
+                "file_path": None
+            }
+        except Exception as e:
+            logger.error(f"Error creating OSFI E-23 assessment report: {str(e)}")
+            return {
+                "success": False,
+                "error": f"Failed to create OSFI E-23 assessment report: {str(e)}",
+                "file_path": None
+            }
+    
+    def _extract_e23_risk_level(self, assessment_results: Dict[str, Any]) -> str:
+        """Extract risk level from E-23 assessment results."""
+        return assessment_results.get("risk_level", 
+               assessment_results.get("risk_rating", "Medium"))
+    
+    def _extract_e23_risk_score(self, assessment_results: Dict[str, Any]) -> int:
+        """Extract risk score from E-23 assessment results."""
+        return assessment_results.get("risk_score", 
+               assessment_results.get("overall_score", 0))
+    
+    def _generate_e23_executive_summary(self, risk_level: str, risk_score: int, project_description: str) -> str:
+        """Generate executive summary for E-23 assessment."""
+        description_lower = project_description.lower()
+        
+        # Determine risk characterization
+        if risk_level == "Critical":
+            risk_char = "presents critical model risk requiring maximum governance controls"
+        elif risk_level == "High":
+            risk_char = "presents high model risk requiring enhanced governance and oversight"
+        elif risk_level == "Medium":
+            risk_char = "presents moderate model risk requiring standard governance procedures"
+        else:
+            risk_char = "presents low model risk with minimal governance requirements"
+        
+        # Add model characteristics
+        characteristics = []
+        if any(term in description_lower for term in ['ai', 'machine learning', 'neural']):
+            characteristics.append("AI/ML-powered")
+        if any(term in description_lower for term in ['financial', 'loan', 'credit', 'risk management']):
+            characteristics.append("financial decision-making")
+        if any(term in description_lower for term in ['automated', 'autonomous']):
+            characteristics.append("automated processing")
+        if any(term in description_lower for term in ['customer', 'client', 'retail']):
+            characteristics.append("customer-facing")
+        
+        char_text = ", ".join(characteristics) if characteristics else "decision-making"
+        
+        # Generate governance guidance
+        governance_guidance = {
+            "Critical": "Maximum governance controls including board oversight, external validation, and continuous monitoring are required.",
+            "High": "Enhanced governance procedures including senior management oversight, quarterly reviews, and comprehensive monitoring are recommended.",
+            "Medium": "Standard governance procedures with regular monitoring and semi-annual reviews are sufficient.",
+            "Low": "Basic governance procedures with annual reviews and minimal monitoring are adequate."
+        }
+        
+        governance = governance_guidance.get(risk_level, "Standard governance procedures are recommended.")
+        
+        return f"This {char_text} model {risk_char} under OSFI Guideline E-23 Model Risk Management framework. {governance} The assessment indicates {risk_level} risk classification requiring appropriate risk management intensity commensurate with the model's risk profile."
+    
+    def _extract_e23_risk_analysis(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract risk analysis points from E-23 assessment results."""
+        analysis_points = []
+        
+        # Extract from risk_analysis if available
+        risk_analysis = assessment_results.get("risk_analysis", {})
+        
+        # Quantitative indicators
+        quant_indicators = risk_analysis.get("quantitative_indicators", {})
+        for indicator, present in quant_indicators.items():
+            if present:
+                indicator_text = indicator.replace('_', ' ').title()
+                analysis_points.append(f"Quantitative Risk Factor: {indicator_text} identified")
+        
+        # Qualitative indicators
+        qual_indicators = risk_analysis.get("qualitative_indicators", {})
+        for indicator, present in qual_indicators.items():
+            if present:
+                indicator_text = indicator.replace('_', ' ').title()
+                analysis_points.append(f"Qualitative Risk Factor: {indicator_text} identified")
+        
+        # Risk factor analysis if available
+        if 'risk_factor_analysis' in assessment_results:
+            factor_analysis = assessment_results['risk_factor_analysis']
+            
+            high_risk_factors = factor_analysis.get('high_risk_factors', [])
+            for factor in high_risk_factors[:3]:  # Limit to top 3
+                analysis_points.append(f"High Risk: {factor}")
+            
+            risk_interactions = factor_analysis.get('risk_interactions', [])
+            for interaction in risk_interactions[:2]:  # Limit to top 2
+                analysis_points.append(f"Risk Interaction: {interaction}")
+        
+        # Default analysis if none found
+        if not analysis_points:
+            analysis_points = [
+                "Model risk assessment completed using OSFI E-23 methodology",
+                "Risk factors evaluated across quantitative and qualitative dimensions",
+                "Governance requirements determined based on risk profile"
+            ]
+        
+        return analysis_points[:8]  # Limit to 8 analysis points
+    
+    def _extract_e23_governance_requirements(self, assessment_results: Dict[str, Any]) -> Dict[str, List[str]]:
+        """Extract governance requirements from E-23 assessment results."""
+        # Try to get governance requirements from assessment results
+        governance_reqs = assessment_results.get("governance_requirements", {})
+        
+        if governance_reqs:
+            return governance_reqs
+        
+        # Generate default governance requirements based on risk level
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        base_requirements = {
+            "organizational": [
+                "Assign qualified model owner with appropriate expertise",
+                "Establish clear roles and responsibilities",
+                "Ensure adequate resources for model risk management"
+            ],
+            "documentation": [
+                "Maintain comprehensive model documentation",
+                "Document model rationale and business purpose",
+                "Record model limitations and assumptions"
+            ],
+            "review_approval": [
+                "Conduct independent model review",
+                "Obtain appropriate approval before deployment",
+                "Document review findings and recommendations"
+            ],
+            "monitoring": [
+                "Implement ongoing model performance monitoring",
+                "Establish performance thresholds and alerts",
+                "Monitor for model drift and degradation"
+            ]
+        }
+        
+        # Enhanced requirements for higher risk levels
+        if risk_level in ["High", "Critical"]:
+            base_requirements["organizational"].extend([
+                "Establish Model Risk Committee oversight",
+                "Assign senior management accountability"
+            ])
+            
+            base_requirements["review_approval"].extend([
+                "Require senior management approval",
+                "Conduct quarterly comprehensive reviews"
+            ])
+            
+            base_requirements["monitoring"].extend([
+                "Implement real-time monitoring and alerting",
+                "Maintain contingency and rollback procedures"
+            ])
+        
+        return base_requirements
+    
+    def _extract_e23_recommendations(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract recommendations from E-23 assessment results."""
+        recommendations = assessment_results.get("recommendations", [])
+        
+        if recommendations:
+            return recommendations[:8]  # Limit to 8 recommendations
+        
+        # Generate default recommendations based on risk level
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        default_recommendations = [
+            "Establish comprehensive Model Risk Management framework aligned with OSFI E-23",
+            "Implement risk-based approach to model governance",
+            "Ensure model inventory includes all models with non-negligible risk"
+        ]
+        
+        if risk_level == "Critical":
+            default_recommendations.extend([
+                "🚨 CRITICAL: Obtain board-level approval before deployment",
+                "Implement maximum governance controls and oversight",
+                "Conduct external validation and independent review"
+            ])
+        elif risk_level == "High":
+            default_recommendations.extend([
+                "⚠️ HIGH RISK: Require senior management approval",
+                "Implement enhanced governance and oversight controls",
+                "Conduct quarterly comprehensive model reviews"
+            ])
+        elif risk_level == "Medium":
+            default_recommendations.extend([
+                "📋 MODERATE RISK: Implement standard governance procedures",
+                "Conduct semi-annual model reviews"
+            ])
+        else:
+            default_recommendations.extend([
+                "✅ LOWER RISK: Apply proportionate governance controls",
+                "Conduct annual model reviews"
+            ])
+        
+        return default_recommendations
+    
+    def _extract_e23_lifecycle_info(self, assessment_results: Dict[str, Any]) -> str:
+        """Extract lifecycle compliance information from E-23 assessment results."""
+        if 'compliance_checklist' in assessment_results:
+            checklist = assessment_results['compliance_checklist']
+            completed_items = len([item for item in checklist if item.get('completed', False)])
+            total_items = len(checklist)
+            return f"Compliance checklist: {completed_items}/{total_items} items completed. Review lifecycle requirements and ensure all mandatory items are addressed before model deployment."
+        
+        if 'current_stage' in assessment_results:
+            current_stage = assessment_results['current_stage']
+            return f"Model is currently in {current_stage} stage. Ensure all stage-specific requirements are met before proceeding to the next lifecycle phase."
+        
+        return "Model lifecycle compliance should be evaluated across all five stages: Design, Review, Deployment, Monitoring, and Decommission. Ensure appropriate governance controls are applied at each stage."
+    
+    def _get_e23_assessment_disclaimer(self, assessment_results: Dict[str, Any]) -> str:
+        """Get appropriate disclaimer for E-23 assessment."""
+        return "This OSFI E-23 model risk assessment is based on available project information and automated analysis. Final compliance with OSFI Guideline E-23 requires comprehensive stakeholder input, independent validation, and appropriate governance oversight. This assessment should be reviewed and validated by qualified model risk management professionals before making final risk management decisions."
+    
+    # Enhanced E-23 Report Helper Methods
+    
+    def _extract_e23_business_rationale(self, assessment_results: Dict[str, Any], project_description: str) -> str:
+        """Extract business rationale for E-23 model."""
+        description_lower = project_description.lower()
+        
+        # Generate business rationale based on project characteristics
+        if any(term in description_lower for term in ['risk management', 'credit risk', 'market risk']):
+            return "This model supports risk management objectives by providing quantitative risk assessments to inform business decisions and regulatory compliance requirements."
+        elif any(term in description_lower for term in ['fraud', 'detection', 'prevention']):
+            return "This model enhances fraud detection capabilities to protect the institution and customers from financial losses while maintaining operational efficiency."
+        elif any(term in description_lower for term in ['pricing', 'loan', 'credit']):
+            return "This model supports pricing and credit decision-making to optimize risk-adjusted returns while ensuring fair and consistent treatment of customers."
+        elif any(term in description_lower for term in ['regulatory', 'compliance', 'reporting']):
+            return "This model supports regulatory compliance and reporting requirements while improving operational efficiency and decision-making accuracy."
+        else:
+            return "This model supports business objectives by automating decision-making processes, improving operational efficiency, and enhancing risk management capabilities."
+    
+    def _generate_e23_risk_methodology(self, assessment_results: Dict[str, Any]) -> str:
+        """Generate risk rating methodology description."""
+        return "The model risk rating follows OSFI E-23 methodology, evaluating both quantitative and qualitative risk factors. Quantitative factors include portfolio size, financial impact, and operational criticality. Qualitative factors assess model complexity, autonomy level, explainability, and third-party dependencies. Risk amplification is applied when high-risk combinations are identified, such as AI/ML usage in critical financial decisions."
+    
+    def _extract_e23_quantitative_factors(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract quantitative risk factors from assessment results."""
+        factors = []
+        risk_analysis = assessment_results.get("risk_analysis", {})
+        quant_indicators = risk_analysis.get("quantitative_indicators", {})
+        
+        factor_descriptions = {
+            'high_volume': "High transaction volume requiring robust processing capabilities",
+            'financial_impact': "Significant financial impact on institution and customers",
+            'customer_facing': "Direct customer impact requiring enhanced controls",
+            'revenue_critical': "Revenue-critical application with business continuity implications",
+            'regulatory_impact': "Regulatory compliance and reporting dependencies"
+        }
+        
+        for factor, present in quant_indicators.items():
+            if present and factor in factor_descriptions:
+                factors.append(factor_descriptions[factor])
+        
+        if not factors:
+            factors = [
+                "Standard operational impact assessment completed",
+                "Financial materiality evaluated based on model usage",
+                "Customer impact scope determined"
+            ]
+        
+        return factors
+    
+    def _extract_e23_qualitative_factors(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract qualitative risk factors from assessment results."""
+        factors = []
+        risk_analysis = assessment_results.get("risk_analysis", {})
+        qual_indicators = risk_analysis.get("qualitative_indicators", {})
+        
+        factor_descriptions = {
+            'ai_ml_usage': "AI/ML technology requiring specialized validation and monitoring",
+            'high_complexity': "High model complexity increasing validation requirements",
+            'autonomous_decisions': "Autonomous decision-making with limited human oversight",
+            'black_box': "Limited model explainability and transparency",
+            'third_party': "Third-party model dependencies requiring vendor oversight",
+            'data_sensitive': "Sensitive data processing requiring enhanced controls",
+            'real_time': "Real-time processing with immediate decision impact",
+            'customer_impact': "Direct customer decision impact requiring fairness controls"
+        }
+        
+        for factor, present in qual_indicators.items():
+            if present and factor in factor_descriptions:
+                factors.append(factor_descriptions[factor])
+        
+        if not factors:
+            factors = [
+                "Standard model complexity assessment completed",
+                "Technology risk evaluation performed",
+                "Operational risk factors identified"
+            ]
+        
+        return factors
+    
+    def _extract_e23_risk_interactions(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract risk interactions and amplification factors."""
+        interactions = []
+        
+        if 'risk_factor_analysis' in assessment_results:
+            factor_analysis = assessment_results['risk_factor_analysis']
+            risk_interactions = factor_analysis.get('risk_interactions', [])
+            interactions.extend(risk_interactions)
+        
+        if not interactions:
+            interactions = [
+                "Risk factor interactions evaluated for amplification effects",
+                "Combined risk scenarios assessed for governance implications",
+                "Risk mitigation strategies aligned with interaction patterns"
+            ]
+        
+        return interactions
+    
+    def _extract_e23_organizational_structure(self, assessment_results: Dict[str, Any]) -> Dict[str, str]:
+        """Extract organizational structure from assessment results."""
+        governance_reqs = assessment_results.get("governance_requirements", {})
+        
+        if 'governance_structure' in assessment_results:
+            return assessment_results['governance_structure']
+        
+        # Generate default organizational structure
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        base_structure = {
+            "model_owner": "Business unit responsible for model outcomes and business rationale",
+            "model_developer": "Technical team or vendor responsible for model development and maintenance",
+            "model_reviewer": "Independent validation team responsible for model review and testing",
+            "model_approver": f"Approval authority as per risk level: {self.osfi_e23_processor._determine_approval_authority(risk_level)}"
+        }
+        
+        if risk_level in ["High", "Critical"]:
+            base_structure.update({
+                "model_risk_committee": "Senior committee providing oversight and governance for model risk",
+                "compliance_officer": "Compliance function ensuring adherence to regulatory requirements"
+            })
+        
+        if risk_level == "Critical":
+            base_structure.update({
+                "board_oversight": "Board of Directors providing oversight for critical models",
+                "external_validator": "Independent third-party validation for critical model components"
+            })
+        
+        return base_structure
+    
+    def _extract_e23_policies_procedures(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract policies and procedures requirements."""
+        policies = [
+            "Model Risk Management Policy defining roles, responsibilities, and governance framework",
+            "Model Development Standards specifying technical and documentation requirements",
+            "Model Review and Validation Procedures for independent assessment processes",
+            "Model Approval Procedures defining authority levels and approval criteria",
+            "Model Monitoring and Performance Management Procedures",
+            "Model Change Management Procedures for updates and modifications",
+            "Model Decommission Procedures for retirement and replacement processes"
+        ]
+        
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        if risk_level in ["High", "Critical"]:
+            policies.extend([
+                "Enhanced Documentation Standards for complex and high-risk models",
+                "Bias Testing and Fairness Assessment Procedures for AI/ML models",
+                "Third-party Model Oversight Procedures for vendor-developed models"
+            ])
+        
+        return policies
+    
+    def _extract_e23_design_requirements(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract model design requirements."""
+        requirements = [
+            "Clear organizational rationale and business case documentation",
+            "Comprehensive data quality and governance standards",
+            "Appropriate model development methodology and documentation",
+            "Performance criteria and success metrics definition",
+            "Model limitations and assumptions documentation"
+        ]
+        
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        if risk_level in ["High", "Critical"]:
+            requirements.extend([
+                "Detailed explainability and interpretability analysis",
+                "Comprehensive bias and fairness assessment",
+                "Regulatory compliance and impact analysis"
+            ])
+        
+        return requirements
+    
+    def _extract_e23_review_requirements(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract model review and validation requirements."""
+        requirements = [
+            "Independent conceptual soundness review",
+            "Comprehensive performance evaluation and testing",
+            "Risk rating confirmation and documentation",
+            "Model documentation completeness review",
+            "Limitation and mitigation strategy assessment"
+        ]
+        
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        if risk_level in ["High", "Critical"]:
+            requirements.extend([
+                "Enhanced validation testing including stress scenarios",
+                "External validation for critical model components",
+                "Regulatory pre-approval consultation where applicable"
+            ])
+        
+        return requirements
+    
+    def _extract_e23_deployment_requirements(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract model deployment requirements."""
+        requirements = [
+            "Quality assurance and change control processes",
+            "Production environment testing and validation",
+            "Stakeholder coordination and communication",
+            "Risk assessment completion and sign-off",
+            "Monitoring framework setup and configuration"
+        ]
+        
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        if risk_level in ["High", "Critical"]:
+            requirements.extend([
+                "Enhanced production testing with parallel run validation",
+                "Real-time monitoring and alerting system activation",
+                "Contingency and rollback procedure implementation"
+            ])
+        
+        return requirements
+    
+    def _extract_e23_monitoring_framework(self, assessment_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract monitoring framework details."""
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        frequency_mapping = {
+            "Low": "Quarterly monitoring with annual comprehensive review",
+            "Medium": "Monthly monitoring with quarterly comprehensive review",
+            "High": "Weekly monitoring with monthly comprehensive review",
+            "Critical": "Daily monitoring with weekly comprehensive review"
+        }
+        
+        base_kpis = [
+            "Model performance accuracy and stability metrics",
+            "Prediction quality and consistency indicators",
+            "Data quality and completeness measures",
+            "Usage patterns and volume statistics"
+        ]
+        
+        if risk_level in ["High", "Critical"]:
+            base_kpis.extend([
+                "Bias and fairness metrics for protected characteristics",
+                "Explainability and transparency measures",
+                "Regulatory compliance indicators",
+                "Customer impact and complaint metrics"
+            ])
+        
+        return {
+            "frequency": frequency_mapping.get(risk_level, "Monthly monitoring"),
+            "kpis": base_kpis
+        }
+    
+    def _extract_e23_decommission_requirements(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract model decommission requirements."""
+        return [
+            "Formal model retirement process and timeline",
+            "Stakeholder notification and communication plan",
+            "Documentation retention and archival procedures",
+            "Downstream system impact assessment and mitigation",
+            "Third-party model considerations and vendor coordination",
+            "Data retention and disposal procedures",
+            "Replacement model transition planning"
+        ]
+    
+    def _extract_e23_documentation_requirements(self, assessment_results: Dict[str, Any]) -> List[str]:
+        """Extract documentation requirements."""
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        base_docs = [
+            "Model rationale and business purpose documentation",
+            "Data sources, quality standards, and governance documentation",
+            "Model methodology, assumptions, and limitations documentation",
+            "Performance metrics, validation results, and testing documentation",
+            "Risk assessment and mitigation strategy documentation"
+        ]
+        
+        if risk_level in ["High", "Critical"]:
+            base_docs.extend([
+                "Detailed explainability and interpretability documentation",
+                "Comprehensive bias testing and mitigation measures documentation",
+                "Audit trail and change management documentation",
+                "Contingency planning and rollback procedures documentation"
+            ])
+        
+        if risk_level == "Critical":
+            base_docs.extend([
+                "Board presentation and approval documentation",
+                "External validation and independent review reports",
+                "Regulatory compliance attestations and correspondence",
+                "Continuous monitoring dashboards and alert configurations"
+            ])
+        
+        return base_docs
+    
+    def _extract_e23_compliance_checklist(self, assessment_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Extract compliance checklist from assessment results."""
+        if 'compliance_checklist' in assessment_results:
+            return assessment_results['compliance_checklist']
+        
+        # Generate default compliance checklist
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        base_checklist = [
+            {"item": "Model inventory registration", "required": True, "stage": "design", "completed": False},
+            {"item": "Risk rating assignment", "required": True, "stage": "design", "completed": False},
+            {"item": "Model documentation completion", "required": True, "stage": "design", "completed": False},
+            {"item": "Independent model review", "required": True, "stage": "review", "completed": False},
+            {"item": "Formal model approval", "required": True, "stage": "review", "completed": False},
+            {"item": "Production deployment testing", "required": True, "stage": "deployment", "completed": False},
+            {"item": "Monitoring system activation", "required": True, "stage": "deployment", "completed": False},
+            {"item": "Regular performance monitoring", "required": True, "stage": "monitoring", "completed": False}
+        ]
+        
+        if risk_level in ["High", "Critical"]:
+            base_checklist.extend([
+                {"item": "Bias and fairness testing", "required": True, "stage": "design", "completed": False},
+                {"item": "Explainability documentation", "required": True, "stage": "design", "completed": False},
+                {"item": "Senior management approval", "required": True, "stage": "review", "completed": False},
+                {"item": "Enhanced monitoring setup", "required": True, "stage": "deployment", "completed": False}
+            ])
+        
+        if risk_level == "Critical":
+            base_checklist.extend([
+                {"item": "Board-level approval", "required": True, "stage": "review", "completed": False},
+                {"item": "External validation", "required": True, "stage": "review", "completed": False},
+                {"item": "Real-time monitoring activation", "required": True, "stage": "deployment", "completed": False}
+            ])
+        
+        return base_checklist
+    
+    def _extract_e23_implementation_timeline(self, assessment_results: Dict[str, Any]) -> Dict[str, str]:
+        """Extract implementation timeline from assessment results."""
+        if 'implementation_timeline' in assessment_results:
+            return assessment_results['implementation_timeline']
+        
+        # Generate default timeline based on risk level
+        risk_level = self._extract_e23_risk_level(assessment_results)
+        
+        timeline_mapping = {
+            "Low": {
+                "design_phase": "4-6 weeks",
+                "review_phase": "2-3 weeks",
+                "deployment_phase": "2-3 weeks",
+                "monitoring_setup": "1-2 weeks"
+            },
+            "Medium": {
+                "design_phase": "6-8 weeks",
+                "review_phase": "3-4 weeks",
+                "deployment_phase": "3-4 weeks",
+                "monitoring_setup": "2-3 weeks"
+            },
+            "High": {
+                "design_phase": "8-12 weeks",
+                "review_phase": "4-6 weeks",
+                "deployment_phase": "4-5 weeks",
+                "monitoring_setup": "3-4 weeks"
+            },
+            "Critical": {
+                "design_phase": "12-16 weeks",
+                "review_phase": "6-8 weeks",
+                "external_validation": "4-6 weeks",
+                "deployment_phase": "5-7 weeks",
+                "monitoring_setup": "4-5 weeks"
+            }
+        }
+        
+        return timeline_mapping.get(risk_level, timeline_mapping["Medium"])
+    
+    def _get_e23_core_principles(self) -> List[Dict[str, str]]:
+        """Get OSFI E-23 core principles."""
+        return self.osfi_e23_processor.framework_data.get("principles", [
+            {
+                "id": "1.1",
+                "title": "Organizational Enablement",
+                "description": "Effective reporting structures and proper resourcing should enable sound model governance"
+            },
+            {
+                "id": "1.2",
+                "title": "MRM Framework",
+                "description": "The MRM framework should align risk-taking activities to strategic objectives and risk appetite"
+            },
+            {
+                "id": "1.3",
+                "title": "Use of Models",
+                "description": "Models should be appropriate for their business purposes"
+            },
+            {
+                "id": "2.1",
+                "title": "Model Identification",
+                "description": "Institutions should identify and track all models in use or recently decommissioned"
+            },
+            {
+                "id": "2.2",
+                "title": "Model Risk Rating",
+                "description": "Institutions should establish a model risk rating approach that assesses key dimensions of model risk"
+            },
+            {
+                "id": "2.3",
+                "title": "Risk Management Intensity",
+                "description": "The scope, scale, and intensity of MRM should be commensurate with the risk introduced by the model"
+            },
+            {
+                "id": "3.1",
+                "title": "Policies, Procedures, and Controls",
+                "description": "MRM policies, procedures, and controls should be robust, flexible, and lead to effective requirements applied across the model lifecycle"
+            }
+        ])
+    
+    def _get_e23_risk_levels(self) -> List[Dict[str, Any]]:
+        """Get OSFI E-23 risk rating levels."""
+        return self.osfi_e23_processor.framework_data.get("risk_rating_levels", [
+            {"level": "Low", "description": "Minimal governance requirements", "score_range": [0, 25]},
+            {"level": "Medium", "description": "Standard governance requirements", "score_range": [26, 50]},
+            {"level": "High", "description": "Enhanced governance requirements", "score_range": [51, 75]},
+            {"level": "Critical", "description": "Maximum governance requirements", "score_range": [76, 100]}
+        ])
+    
+    # OSFI E-23 Tool Handlers
+    
+    def _assess_model_risk(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle OSFI E-23 model risk assessment requests."""
+        project_name = arguments.get("projectName", "")
+        project_description = arguments.get("projectDescription", "")
+        
+        logger.info(f"OSFI E-23 model risk assessment for: {project_name}")
+        
+        # Use the OSFI E-23 processor
+        result = self.osfi_e23_processor.assess_model_risk(
+            project_name=project_name,
+            project_description=project_description
+        )
+        
+        return result
+    
+    def _evaluate_lifecycle_compliance(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle OSFI E-23 lifecycle compliance evaluation requests."""
+        project_name = arguments.get("projectName", "")
+        project_description = arguments.get("projectDescription", "")
+        current_stage = arguments.get("currentStage")
+        
+        logger.info(f"OSFI E-23 lifecycle compliance evaluation for: {project_name}")
+        
+        # Use the OSFI E-23 processor
+        result = self.osfi_e23_processor.evaluate_lifecycle_compliance(
+            project_name=project_name,
+            project_description=project_description,
+            current_stage=current_stage
+        )
+        
+        return result
+    
+    def _generate_risk_rating(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle OSFI E-23 risk rating generation requests."""
+        project_name = arguments.get("projectName", "")
+        project_description = arguments.get("projectDescription", "")
+        
+        logger.info(f"OSFI E-23 risk rating generation for: {project_name}")
+        
+        # Use the OSFI E-23 processor
+        result = self.osfi_e23_processor.generate_risk_rating(
+            project_name=project_name,
+            project_description=project_description
+        )
+        
+        return result
+    
+    def _create_compliance_framework(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle OSFI E-23 compliance framework creation requests."""
+        project_name = arguments.get("projectName", "")
+        project_description = arguments.get("projectDescription", "")
+        risk_level = arguments.get("riskLevel")
+        
+        logger.info(f"OSFI E-23 compliance framework creation for: {project_name}")
+        
+        # If risk_level is provided, create a mock risk assessment
+        risk_assessment = None
+        if risk_level:
+            risk_assessment = {
+                "risk_level": risk_level,
+                "risk_score": {"Low": 20, "Medium": 40, "High": 65, "Critical": 85}.get(risk_level, 40),
+                "risk_analysis": {
+                    "quantitative_indicators": {},
+                    "qualitative_indicators": {}
+                }
+            }
+        
+        # Use the OSFI E-23 processor
+        result = self.osfi_e23_processor.create_compliance_framework(
+            project_name=project_name,
+            project_description=project_description,
+            risk_assessment=risk_assessment
+        )
+        
+        return result
     
     def run(self):
         """Run the MCP server."""

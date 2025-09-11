@@ -1,22 +1,38 @@
 # AIA Assessment MCP Server
 
-A Model Context Protocol (MCP) server for Canada's Algorithmic Impact Assessment (AIA) framework, designed to work seamlessly with Claude Desktop and other MCP-compatible clients.
+A comprehensive Model Context Protocol (MCP) server for Canada's regulatory frameworks, including the Algorithmic Impact Assessment (AIA) and OSFI Guideline E-23 Model Risk Management. Designed to work seamlessly with Claude Desktop and other MCP-compatible clients.
 
 ## Overview
 
-This MCP server provides tools for conducting algorithmic impact assessments based on Canada's official AIA framework. It enables AI assistants to help users evaluate the risk levels of automated decision-making systems through a structured questionnaire process.
+This MCP server provides tools for conducting regulatory assessments based on Canada's official frameworks:
+- **AIA Framework**: Canada's Algorithmic Impact Assessment for automated decision systems
+- **OSFI E-23**: Model Risk Management framework for federally regulated financial institutions
+
+It enables AI assistants to help users evaluate risk levels and compliance requirements through structured assessment processes.
 
 ## Features
 
+### AIA Framework (Algorithmic Impact Assessment)
 - **Official AIA Framework**: Based on Canada's Treasury Board Secretariat guidelines
 - **Official AIA Compliance**: 104 questions matching Canada's official framework (63 risk + 41 mitigation)
 - **4-Tier Risk Classification**: Levels I-IV (Very Low to Very High Impact)
 - **Official Scoring System**: Maximum 224 points aligned with Canada.ca framework
 - **Completion Percentage Accuracy**: Fixed critical logic ensuring percentages never exceed 100%
 - **Intelligent Workflow**: Guided assessment process with proper tool sequencing
-- **Scoring Accuracy**: Fixed critical scoring issues for reliable results
+
+### OSFI E-23 Framework (Model Risk Management)
+- **Official OSFI E-23 Framework**: Based on Canada's OSFI Guideline E-23 for financial institutions
+- **4-Tier Risk Rating**: Low, Medium, High, Critical risk levels
+- **Comprehensive Risk Analysis**: Quantitative and qualitative risk factor assessment
+- **Lifecycle Management**: Complete model lifecycle compliance (Design, Review, Deployment, Monitoring, Decommission)
+- **Governance Framework**: Risk-based governance requirements and approval authorities
+- **Professional Document Export**: 12-chapter comprehensive E-23 compliance reports
+
+### General Features
 - **Claude Desktop Integration**: Seamless integration with enhanced workflow guidance
-- **Hallucination Prevention**: Enhanced tool descriptions prevent LLM clients from inventing information about AIA
+- **Anti-Hallucination Safeguards**: Comprehensive compliance warnings and validation requirements
+- **Professional Oversight**: Built-in requirements for qualified personnel validation
+- **Audit Trail Support**: Complete documentation and review process tracking
 
 ## Quick Start
 
@@ -52,21 +68,23 @@ This MCP server provides tools for conducting algorithmic impact assessments bas
 
 ## MCP Tools
 
-### 1. `analyze_project_description`
+### AIA Framework Tools
+
+#### 1. `analyze_project_description`
 Analyzes a project description to categorize questions and identify assessment requirements.
 
 **Parameters:**
 - `projectName`: Name of the project
 - `projectDescription`: Detailed description of the automated decision-making system
 
-### 2. `get_questions`
+#### 2. `get_questions`
 Retrieves AIA questions by category or type for manual assessment.
 
 **Parameters:**
 - `category` (optional): Filter by category (Project, System, Algorithm, Decision, Impact, Data, Consultations, De-risking)
 - `type` (optional): Filter by type (risk, mitigation)
 
-### 3. `assess_project`
+#### 3. `assess_project`
 **FINAL STEP**: Calculates official AIA risk score using actual question responses.
 
 **Parameters:**
@@ -74,38 +92,100 @@ Retrieves AIA questions by category or type for manual assessment.
 - `projectDescription`: Detailed description
 - `responses`: Array of question responses with `questionId` and `selectedOption`
 
-### 4. `functional_preview`
-Early functional risk assessment for AI projects using Canada's AIA framework. Focuses on technical characteristics and planning insights.
+#### 4. `functional_preview`
+Early functional risk assessment for AI projects using Canada's AIA framework.
 
 **Parameters:**
 - `projectName`: Name of the AI project being assessed
-- `projectDescription`: Detailed description of the AI system's technical capabilities, data usage, decision-making scope, and affected populations
+- `projectDescription`: Detailed description of the AI system's technical capabilities
 
-### 5. `export_assessment_report`
-Export AIA assessment results to a Microsoft Word document. Creates a professional AIA compliance report with executive summary, key findings, and recommendations.
+#### 5. `export_assessment_report`
+Export AIA assessment results to a Microsoft Word document.
 
 **Parameters:**
 - `project_name`: Name of the project being assessed
-- `project_description`: Description of the project and its automated decision-making components
+- `project_description`: Description of the project
 - `assessment_results`: Assessment results object from previous assessment
 - `custom_filename` (optional): Custom filename (without extension)
 
-## Risk Assessment Framework
+### OSFI E-23 Framework Tools
 
-### Impact Levels
+#### 6. `assess_model_risk`
+⚠️ **COMPLIANCE WARNING**: Assess model risk using OSFI E-23 framework. Requires professional validation.
+
+**Parameters:**
+- `projectName`: Name of the model being assessed
+- `projectDescription`: **CRITICAL**: Factual, detailed description with specific technical architecture, documented data sources/volumes, explicit business use cases
+
+#### 7. `evaluate_lifecycle_compliance`
+Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages.
+
+**Parameters:**
+- `projectName`: Name of the model being evaluated
+- `projectDescription`: Detailed description of the model and its current lifecycle stage
+- `currentStage` (optional): Current lifecycle stage (Design, Review, Deployment, Monitoring, Decommission)
+
+#### 8. `generate_risk_rating`
+Generate detailed risk rating assessment using OSFI E-23 methodology.
+
+**Parameters:**
+- `projectName`: Name of the model being rated
+- `projectDescription`: Detailed description including technical details, business impact, and usage context
+
+#### 9. `create_compliance_framework`
+Create comprehensive compliance framework based on OSFI E-23 requirements.
+
+**Parameters:**
+- `projectName`: Name of the model requiring compliance framework
+- `projectDescription`: Detailed description of the model, its business purpose, and organizational context
+- `riskLevel` (optional): Pre-determined risk level (Low, Medium, High, Critical)
+
+#### 10. `export_e23_report`
+⚠️ **COMPLIANCE WARNING**: Export OSFI E-23 assessment results to Microsoft Word document. Requires professional validation.
+
+**Parameters:**
+- `project_name`: Name of the model being assessed
+- `project_description`: Description of the model and its business application
+- `assessment_results`: Assessment results object from previous E-23 assessment
+- `custom_filename` (optional): Custom filename (without extension)
+
+## Risk Assessment Frameworks
+
+### AIA Framework (Algorithmic Impact Assessment)
+
+#### Impact Levels
 - **Level I (0-30 points)**: Very Low Impact - Minimal oversight required
 - **Level II (31-55 points)**: Low Impact - Enhanced oversight required
 - **Level III (56-75 points)**: Moderate Impact - Qualified oversight required
 - **Level IV (76+ points)**: High Impact - Qualified oversight and approval required
 
-### Scoring System
+#### Scoring System
 - **104 official AIA questions** (63 risk + 41 mitigation questions)
 - **Maximum possible score**: 224 points
 - **Official Canada.ca framework compliance** based on Tables 3 & 4
 - **Design phase filtering** for mitigation questions only
 - **Automated calculation** based on official Treasury Board methodology
-- **Accurate completion percentages** (never exceeding 100%)
-- **Individual question scoring** with detailed breakdown
+
+### OSFI E-23 Framework (Model Risk Management)
+
+#### Risk Rating Levels
+- **Low (0-25 points)**: Minimal governance requirements - Basic documentation and annual reviews
+- **Medium (26-50 points)**: Standard governance requirements - Regular monitoring and semi-annual reviews
+- **High (51-75 points)**: Enhanced governance requirements - Comprehensive oversight and quarterly reviews
+- **Critical (76-100 points)**: Maximum governance requirements - Continuous monitoring and monthly reviews
+
+#### Risk Assessment Methodology
+- **Quantitative Risk Factors**: Portfolio size, financial impact, operational criticality, customer base, transaction volume
+- **Qualitative Risk Factors**: Model complexity, autonomy level, explainability, AI/ML usage, third-party dependencies
+- **Risk Amplification**: Applied for dangerous combinations (e.g., AI/ML in financial decisions)
+- **Governance Requirements**: Risk-based approach with appropriate approval authorities
+
+#### Model Lifecycle Management
+1. **Design**: Clear rationale, data governance, methodology documentation
+2. **Review**: Independent validation, performance evaluation, risk rating confirmation
+3. **Deployment**: Quality control, production testing, monitoring setup
+4. **Monitoring**: Performance tracking, drift detection, escalation procedures
+5. **Decommission**: Formal retirement, documentation retention, impact assessment
 
 ### Official Framework Compliance Methodology
 
@@ -187,20 +267,45 @@ Our implementation achieves 98% compliance with Canada's official AIA framework 
 - **Prevention of AI assumptions** about risk levels
 - **Consistent scoring methodology**
 
+## ⚠️ Critical Compliance Notice
+
+**REGULATORY COMPLIANCE WARNING**: This tool provides structured assessment frameworks only. 
+
+### Professional Validation Required
+- **All results must be validated** by qualified professionals
+- **Risk assessments must be based** on factual, verifiable project information
+- **Generated reports are templates** requiring professional review and approval
+- **Appropriate governance authorities** must approve all assessments before regulatory use
+
+### Anti-Hallucination Safeguards
+- **Rule-based risk detection** using factual keyword matching (not AI interpretation)
+- **Transparent scoring methodology** with predetermined formulas
+- **Built-in compliance warnings** in all tools and results
+- **Professional oversight requirements** embedded in all outputs
+
+### Documentation Requirements
+- See `OSFI_E23_COMPLIANCE_GUIDANCE.md` for detailed compliance requirements
+- See `AIA_HALLUCINATION_PREVENTION.md` for AIA-specific safeguards
+- Maintain complete audit trails for all assessments
+
 ## Project Structure
 
 ```
 aiamcp/
 ├── server.py                           # Main MCP server
 ├── aia_processor.py                    # Core AIA processing logic
+├── osfi_e23_processor.py              # OSFI E-23 processing logic
 ├── data/survey-enfr.json              # Official AIA questionnaire
 ├── config.json                        # Configuration settings
 ├── requirements.txt                   # Python dependencies
 ├── README.md                          # This documentation
+├── OSFI_E23_COMPLIANCE_GUIDANCE.md   # OSFI E-23 compliance requirements
+├── AIA_HALLUCINATION_PREVENTION.md   # AIA anti-hallucination safeguards
 ├── CLAUDE_DESKTOP_USAGE_GUIDE.md     # Detailed usage instructions
 ├── SCORING_FIX_DOCUMENTATION.md      # Technical fix documentation
 ├── claude_desktop_config.json        # Claude Desktop configuration
 ├── tests/                             # Test scenarios and validation
+├── AIA_Assessments/                   # Generated assessment reports
 └── sample_reports/                    # Example assessment outputs
 ```
 
