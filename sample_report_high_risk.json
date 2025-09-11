@@ -1,6 +1,6 @@
 {
   "export_metadata": {
-    "export_timestamp": "2025-09-09T11:21:29.003405",
+    "export_timestamp": "2025-09-10T16:50:33.069196",
     "framework_version": "Canada AIA v1.0",
     "export_format_version": "1.0",
     "generated_by": "AIA Assessment MCP Server"
@@ -9,7 +9,7 @@
     "assessment_summary": {
       "project_name": "AI Loan Recommendation System",
       "project_description": "AI loan recommendation system using customer financial data. Analyzes credit history, income, and financial behavior to provide loan approval recommendations to human underwriters.",
-      "assessment_date": "2025-09-09T11:21:29.003394",
+      "assessment_date": "2025-09-10T16:50:33.069183",
       "total_score": 67,
       "max_possible_score": 298,
       "score_percentage": 22.5,

@@ -1,6 +1,6 @@
 {
   "export_metadata": {
-    "export_timestamp": "2025-09-09T11:21:29.004580",
+    "export_timestamp": "2025-09-10T16:50:33.070420",
     "framework_version": "Canada AIA v1.0",
     "export_format_version": "1.0",
     "generated_by": "AIA Assessment MCP Server"
@@ -9,7 +9,7 @@
     "assessment_summary": {
       "project_name": "Automated Criminal Justice Risk Assessment",
       "project_description": "Automated system for criminal justice risk assessment that determines bail, sentencing, and parole decisions. Uses AI to analyze criminal history, demographics, and behavioral patterns to make high-stakes decisions affecting individual liberty.",
-      "assessment_date": "2025-09-09T11:21:29.004568",
+      "assessment_date": "2025-09-10T16:50:33.070409",
       "total_score": 122,
       "max_possible_score": 298,
       "score_percentage": 40.9,

@@ -1,6 +1,6 @@
 {
   "export_metadata": {
-    "export_timestamp": "2025-09-09T11:21:28.999232",
+    "export_timestamp": "2025-09-10T16:50:33.064733",
     "framework_version": "Canada AIA v1.0",
     "export_format_version": "1.0",
     "generated_by": "AIA Assessment MCP Server"
@@ -9,7 +9,7 @@
     "assessment_summary": {
       "project_name": "Simple Internal File Organization Tool",
       "project_description": "Simple internal file organization tool with no user data. Helps employees organize documents in shared folders with basic categorization features.",
-      "assessment_date": "2025-09-09T11:21:28.999209",
+      "assessment_date": "2025-09-10T16:50:33.064700",
       "total_score": 3,
       "max_possible_score": 298,
       "score_percentage": 1.0,

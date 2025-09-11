@@ -336,8 +336,9 @@ class MCPServer:
         converted_responses = None
         if responses:
             converted_responses = []
-            # Create a lookup dict for questions by name
-            questions_by_name = {q['name']: q for q in self.aia_processor.scorable_questions}
+            # Create a lookup dict for questions by name (Design phase only)
+            design_phase_questions = self._get_design_phase_questions()
+            questions_by_name = {q['name']: q for q in design_phase_questions}
             
             for response in responses:
                 question_id = response.get("questionId", "")
@@ -413,12 +414,13 @@ class MCPServer:
         preliminary_score = self.aia_processor.calculate_score(auto_responses)
         impact_level, level_name, level_description = self.aia_processor.determine_impact_level(preliminary_score)
         
-        # Get questions that still need manual input
+        # Get questions that still need manual input (Design phase only)
         answered_question_ids = {r['question_id'] for r in auto_responses}
-        questions_by_name = {q['name']: q for q in self.aia_processor.scorable_questions}
+        design_phase_questions = self._get_design_phase_questions()
+        questions_by_name = {q['name']: q for q in design_phase_questions}
         
         manual_questions = []
-        for question in self.aia_processor.scorable_questions:
+        for question in design_phase_questions:
             if question['name'] not in answered_question_ids:
                 manual_questions.append(question)
         
@@ -485,10 +487,10 @@ class MCPServer:
                 'reasoning': 'Could not be determined from project description - requires manual input'
             })
         
-        # Calculate partial assessment - only count Design phase scoring questions for completion percentage
-        # Design phase has 55 always-visible + 54 design-only = 109 total scoring questions
-        design_phase_scoring_questions = 109  # Based on phase-specific analysis
-        completion_percentage = round((len(auto_responses) / design_phase_scoring_questions) * 100)
+        # Get Design phase questions for completion calculation
+        design_phase_questions = self._get_design_phase_questions()
+        design_phase_scoring_questions = len([q for q in design_phase_questions if q.get('max_score', 0) > 0])
+        completion_percentage = round((len(auto_responses) / len(design_phase_questions)) * 100)
         score_percentage = round((preliminary_score / summary['max_possible_score']) * 100, 2)
         
         return {
@@ -525,6 +527,87 @@ class MCPServer:
         roman_map = {1: 'I', 2: 'II', 3: 'III', 4: 'IV'}
         return roman_map.get(impact_level, 'I')
     
+    def _get_design_phase_questions(self) -> List[Dict[str, Any]]:
+        """Filter questions to only include those visible in Design phase.
+        
+        Based on survey-enfr.json analysis, Design phase users see questions that are either:
+        1. Always visible (no visibleIf condition), OR
+        2. Have visibleIf condition "{projectDetailsPhase} = \"item1\"" (Design phase)
+        
+        This excludes questions that are only visible in Implementation phase.
+        """
+        # Load the survey data to check visibility conditions
+        try:
+            with open('data/survey-enfr.json', 'r', encoding='utf-8') as f:
+                survey_data = json.load(f)
+        except Exception as e:
+            logger.warning(f"Could not load survey data for phase filtering: {e}")
+            # Fallback to all questions if we can't load the survey data
+            return self.aia_processor.scorable_questions
+        
+        # Find pages that are Implementation-only (have visibleIf with item2)
+        implementation_only_pages = set()
+        
+        # Check each page for visibility conditions
+        for page in survey_data.get('pages', []):
+            page_name = page.get('name', '')
+            page_visible_if = page.get('visibleIf', '')
+            
+            # Check if this page is only visible in Implementation phase
+            if '{projectDetailsPhase} = "item2"' in page_visible_if:
+                implementation_only_pages.add(page_name)
+                logger.info(f"Found Implementation-only page: {page_name}")
+        
+        # Extract all question names, excluding those from Implementation-only pages
+        design_phase_question_names = set()
+        
+        def extract_questions_from_page(page):
+            page_name = page.get('name', '')
+            
+            # Skip Implementation-only pages
+            if page_name in implementation_only_pages:
+                return
+            
+            # Recursively extract questions from this page
+            def extract_questions(element):
+                if isinstance(element, dict):
+                    # Check if this is a question element
+                    if 'name' in element and 'type' in element:
+                        question_name = element['name']
+                        element_visible_if = element.get('visibleIf', '')
+                        
+                        # Skip questions that are specifically Implementation-only
+                        if '{projectDetailsPhase} = "item2"' in element_visible_if and '{projectDetailsPhase} = "item1"' not in element_visible_if:
+                            return
+                        
+                        design_phase_question_names.add(question_name)
+                    
+                    # Recursively process nested elements
+                    for key, value in element.items():
+                        if key in ['elements', 'choices']:
+                            extract_questions(value)
+                elif isinstance(element, list):
+                    for item in element:
+                        extract_questions(item)
+            
+            # Extract questions from this page
+            extract_questions(page)
+        
+        # Process all pages
+        for page in survey_data.get('pages', []):
+            extract_questions_from_page(page)
+        
+        # Filter scorable questions to only include Design phase questions
+        design_phase_questions = []
+        for question in self.aia_processor.scorable_questions:
+            if question['name'] in design_phase_question_names:
+                design_phase_questions.append(question)
+        
+        logger.info(f"Filtered to {len(design_phase_questions)} Design phase questions out of {len(self.aia_processor.scorable_questions)} total questions")
+        logger.info(f"Found {len(implementation_only_pages)} Implementation-only pages")
+        
+        return design_phase_questions
+    
     def _intelligent_project_analysis(self, project_description: str) -> List[Dict[str, Any]]:
         """Perform intelligent analysis of project description to automatically answer questions."""
         auto_responses = []
@@ -548,11 +631,17 @@ class MCPServer:
             'high_impact_decisions': any(term in description_lower for term in ['approve', 'deny', 'reject', 'grant', 'refuse', 'determine eligibility'])
         }
         
-        # Get all questions for analysis
-        questions_by_name = {q['name']: q for q in self.aia_processor.scorable_questions}
+        # Filter questions to only include those visible in Design phase
+        # Based on survey-enfr.json analysis: Design phase users see questions that are either:
+        # 1. Always visible (no visibleIf condition), OR
+        # 2. Have visibleIf condition "{projectDetailsPhase} = \"item1\"" (Design phase)
+        design_phase_questions = self._get_design_phase_questions()
+        
+        # Get questions by name for lookup
+        questions_by_name = {q['name']: q for q in design_phase_questions}
         
         # Automatically answer questions based on comprehensive project analysis
-        for question in self.aia_processor.scorable_questions:
+        for question in design_phase_questions:
             question_name = question['name']
             question_title = question['title'].lower()
             
@@ -815,8 +904,8 @@ class MCPServer:
         
         logger.info(f"Retrieving questions - category: {category}, type: {question_type}")
         
-        # Get all questions
-        all_questions = self.aia_processor.scorable_questions
+        # Get Design phase questions only (not all 162 questions)
+        all_questions = self._get_design_phase_questions()
         
         # Filter by category if specified
         if category:
@@ -862,9 +951,9 @@ class MCPServer:
                 "type": question_type
             },
             "framework_info": {
-                "name": "Canada's Algorithmic Impact Assessment",
-                "total_questions": len(self.aia_processor.scorable_questions),
-                "max_possible_score": sum(q['max_score'] for q in self.aia_processor.scorable_questions)
+                "name": "Canada's Algorithmic Impact Assessment (Design Phase)",
+                "total_questions": len(self._get_design_phase_questions()),
+                "max_possible_score": sum(q['max_score'] for q in self._get_design_phase_questions())
             }
         }
     
@@ -872,8 +961,24 @@ class MCPServer:
         """Handle questions summary requests."""
         logger.info("Retrieving questions summary")
         
-        # Use the existing AIAProcessor logic
-        summary = self.aia_processor.get_questions_summary()
+        # Use Design phase questions for summary calculation
+        design_phase_questions = self._get_design_phase_questions()
+        
+        # Calculate summary based on Design phase questions only
+        total_questions = len(design_phase_questions)
+        max_possible_score = sum(q['max_score'] for q in design_phase_questions)
+        
+        # Count questions by type
+        risk_questions = len([q for q in design_phase_questions if q.get('max_score', 0) > 0])
+        mitigation_questions = total_questions - risk_questions
+        
+        summary = {
+            "total_questions": total_questions,
+            "risk_questions": risk_questions,
+            "mitigation_questions": mitigation_questions,
+            "max_possible_score": max_possible_score,
+            "framework": "Canada's Algorithmic Impact Assessment (Design Phase)"
+        }
         
         return {
             "success": True,
@@ -893,8 +998,9 @@ class MCPServer:
         if limit:
             category_questions = category_questions[:limit]
         
-        # Get full question details
-        questions_by_name = {q['name']: q for q in self.aia_processor.scorable_questions}
+        # Get full question details (Design phase only)
+        design_phase_questions = self._get_design_phase_questions()
+        questions_by_name = {q['name']: q for q in design_phase_questions}
         detailed_questions = []
         
         for question_name in category_questions:
@@ -919,12 +1025,16 @@ class MCPServer:
         total_score = self.aia_processor.calculate_score(responses)
         level, level_name, level_description = self.aia_processor.determine_impact_level(total_score)
         
+        # Use Design phase questions for max score calculation
+        design_phase_questions = self._get_design_phase_questions()
+        max_possible_score = sum(q['max_score'] for q in design_phase_questions)
+        
         return {
             "success": True,
             "calculation": {
                 "total_score": total_score,
                 "responses_processed": len(responses),
-                "max_possible_score": sum(q['max_score'] for q in self.aia_processor.scorable_questions),
+                "max_possible_score": max_possible_score,
                 "impact_level": level,
                 "level_name": level_name,
                 "level_description": level_description
@@ -1319,7 +1429,8 @@ class MCPServer:
             # Extract assessment data
             score = self._extract_score(assessment_results)
             impact_level = self._extract_impact_level(assessment_results)
-            max_score = sum(q['max_score'] for q in self.aia_processor.scorable_questions)
+            design_phase_questions = self._get_design_phase_questions()
+            max_score = sum(q['max_score'] for q in design_phase_questions)
             
             doc.add_paragraph(f'Impact Level: {impact_level}')
             doc.add_paragraph(f'Score: {score}/{max_score} points')
