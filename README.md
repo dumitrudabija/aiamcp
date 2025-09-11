@@ -9,8 +9,9 @@ This MCP server provides tools for conducting algorithmic impact assessments bas
 ## Features
 
 - **Official AIA Framework**: Based on Canada's Treasury Board Secretariat guidelines
-- **162 Assessment Questions**: Complete questionnaire with automated scoring
+- **Design Phase Assessment**: 116 Design phase questions (filtered from 162 total framework questions)
 - **4-Tier Risk Classification**: Levels I-IV (Very Low to Very High Impact)
+- **Completion Percentage Accuracy**: Fixed critical logic ensuring percentages never exceed 100%
 - **Intelligent Workflow**: Guided assessment process with proper tool sequencing
 - **Scoring Accuracy**: Fixed critical scoring issues for reliable results
 - **Claude Desktop Integration**: Seamless integration with enhanced workflow guidance
@@ -72,6 +73,22 @@ Retrieves AIA questions by category or type for manual assessment.
 - `projectDescription`: Detailed description
 - `responses`: Array of question responses with `questionId` and `selectedOption`
 
+### 4. `functional_preview`
+Early functional risk assessment for AI projects using Canada's AIA framework. Focuses on technical characteristics and planning insights.
+
+**Parameters:**
+- `projectName`: Name of the AI project being assessed
+- `projectDescription`: Detailed description of the AI system's technical capabilities, data usage, decision-making scope, and affected populations
+
+### 5. `export_assessment_report`
+Export AIA assessment results to a Microsoft Word document. Creates a professional AIA compliance report with executive summary, key findings, and recommendations.
+
+**Parameters:**
+- `project_name`: Name of the project being assessed
+- `project_description`: Description of the project and its automated decision-making components
+- `assessment_results`: Assessment results object from previous assessment
+- `custom_filename` (optional): Custom filename (without extension)
+
 ## Risk Assessment Framework
 
 ### Impact Levels
@@ -81,9 +98,10 @@ Retrieves AIA questions by category or type for manual assessment.
 - **Level IV (51+ points)**: High Impact - Qualified oversight and approval required
 
 ### Scoring System
-- **162 total questions** in the framework
+- **116 Design phase questions** (filtered from 162 total framework questions)
 - **Maximum possible score**: 298 points
 - **Automated calculation** based on official Treasury Board methodology
+- **Accurate completion percentages** (never exceeding 100%)
 - **Individual question scoring** with detailed breakdown
 
 ## Proper Usage Workflow
@@ -124,6 +142,12 @@ Retrieves AIA questions by category or type for manual assessment.
    ```
 
 ## Key Fixes and Improvements
+
+### v1.3.0 - Completion Percentage Fix (Critical)
+- **Issue**: System showed impossible completion percentages over 100% (e.g., 135%)
+- **Root Cause**: Answered all 162 questions but calculated completion using only Design phase questions
+- **Solution**: Updated all MCP tools to use only Design phase questions (116 questions) consistently
+- **Impact**: Completion percentages now correctly show maximum 100%, matching official AIA survey behavior
 
 ### Scoring Fix (Critical)
 - **Issue**: All assessments returned 0 points due to selectedOption format mismatch
