@@ -99,7 +99,7 @@ Export AIA assessment results to a Microsoft Word document. Creates a profession
 
 ### Scoring System
 - **116 Design phase questions** (filtered from 162 total framework questions)
-- **Maximum possible score**: 298 points
+- **Maximum possible score**: 225 points
 - **Automated calculation** based on official Treasury Board methodology
 - **Accurate completion percentages** (never exceeding 100%)
 - **Individual question scoring** with detailed breakdown

@@ -404,8 +404,9 @@ class MCPServer:
         
         logger.info(f"Analyzing project description: {project_name}")
         
-        # Get questions summary and categorization
-        summary = self.aia_processor.get_questions_summary()
+        # Get Design phase questions for all calculations
+        design_phase_questions = self._get_design_phase_questions()
+        design_phase_max_score = sum(q['max_score'] for q in design_phase_questions)
         
         # Perform intelligent analysis of the project description
         auto_responses = self._intelligent_project_analysis(project_description)
@@ -416,7 +417,6 @@ class MCPServer:
         
         # Get questions that still need manual input (Design phase only)
         answered_question_ids = {r['question_id'] for r in auto_responses}
-        design_phase_questions = self._get_design_phase_questions()
         questions_by_name = {q['name']: q for q in design_phase_questions}
         
         manual_questions = []
@@ -487,11 +487,9 @@ class MCPServer:
                 'reasoning': 'Could not be determined from project description - requires manual input'
             })
         
-        # Get Design phase questions for completion calculation
-        design_phase_questions = self._get_design_phase_questions()
-        design_phase_scoring_questions = len([q for q in design_phase_questions if q.get('max_score', 0) > 0])
+        # Calculate percentages using Design phase questions
         completion_percentage = round((len(auto_responses) / len(design_phase_questions)) * 100)
-        score_percentage = round((preliminary_score / summary['max_possible_score']) * 100, 2)
+        score_percentage = round((preliminary_score / design_phase_max_score) * 100, 2)
         
         return {
             "projectName": project_name,
