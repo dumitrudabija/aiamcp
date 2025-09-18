@@ -122,6 +122,11 @@ It provides both MCP (Model Context Protocol) integration with Claude Desktop an
 }
 ```
 
+**Key Configuration Details:**
+- **Correct Path**: `/Users/dumitru.dabija/Library/Application Support/Claude/claude_desktop_config.json`
+- **Uses Absolute Paths**: No `cwd` parameter - uses absolute path in `args`
+- **Working Configuration**: This exact format is confirmed working after Xcode license acceptance
+
 ### 4. **Working Directory Issue - RESOLVED**
 **Problem**: Server couldn't find data files (`data/survey-enfr.json`, `config.json`)
 - **Root Cause**: Server not running from correct directory

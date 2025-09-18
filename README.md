@@ -54,13 +54,17 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
    ```
 
 3. **Configure Claude Desktop**:
-   Add to your Claude Desktop configuration file:
+   Add to your Claude Desktop configuration file (`~/Library/Application Support/Claude/claude_desktop_config.json`):
    ```json
    {
      "mcpServers": {
        "aia-assessment": {
-         "command": "node",
-         "args": ["/absolute/path/to/aiamcp/build/index.js"]
+         "command": "/usr/bin/python3",
+         "args": ["/Users/dumitru.dabija/Documents/aia-assessment-mcp/server.py"],
+         "env": {
+           "PYTHONPATH": "/Users/dumitru.dabija/Documents/aia-assessment-mcp",
+           "PYTHONUNBUFFERED": "1"
+         }
        }
      }
    }

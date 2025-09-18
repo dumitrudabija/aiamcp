@@ -2,8 +2,7 @@
   "mcpServers": {
     "aia-assessment": {
       "command": "/usr/bin/python3",
-      "args": ["server.py"],
-      "cwd": "/Users/dumitru.dabija/Documents/aia-assessment-mcp",
+      "args": ["/Users/dumitru.dabija/Documents/aia-assessment-mcp/server.py"],
       "env": {
         "PYTHONPATH": "/Users/dumitru.dabija/Documents/aia-assessment-mcp",
         "PYTHONUNBUFFERED": "1"
