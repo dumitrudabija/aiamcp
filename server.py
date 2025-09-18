@@ -25,6 +25,7 @@ from docx import Document
 from docx.shared import Inches
 from aia_processor import AIAProcessor
 from osfi_e23_processor import OSFIE23Processor
+from description_validator import ProjectDescriptionValidator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
@@ -41,6 +42,7 @@ class MCPServer:
         
         self.aia_processor = AIAProcessor()
         self.osfi_e23_processor = OSFIE23Processor()
+        self.description_validator = ProjectDescriptionValidator()
         self.server_info = {
             "name": "aia-assessment-server",
             "version": "1.0.0"
@@ -145,6 +147,25 @@ class MCPServer:
     def _list_tools(self, request_id: Any) -> Dict[str, Any]:
         """List available tools."""
         tools = [
+            {
+                "name": "validate_project_description",
+                "description": "🔍 FRAMEWORK READINESS VALIDATOR: Validate project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. Ensures descriptions contain sufficient information across key areas required by both frameworks. Use this as a first step before framework assessments to prevent 'insufficient description' errors.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "projectName": {
+                            "type": "string",
+                            "description": "Name of the project being validated"
+                        },
+                        "projectDescription": {
+                            "type": "string",
+                            "description": "Project description to validate for framework assessment readiness"
+                        }
+                    },
+                    "required": ["projectName", "projectDescription"],
+                    "additionalProperties": False
+                }
+            },
             {
                 "name": "assess_project",
                 "description": "CANADA'S ALGORITHMIC IMPACT ASSESSMENT (AIA) - FINAL STEP: Calculate official AIA risk score using actual question responses. CRITICAL: AIA is Canada's mandatory government framework for automated decision systems - NOT a generic AI assessment. Only use this tool with actual user responses to specific AIA questions. Do NOT make assumptions or interpretations about risk levels - only the calculated score from actual responses is valid for Canadian federal compliance.",
@@ -395,7 +416,9 @@ class MCPServer:
         arguments = params.get("arguments", {})
         
         try:
-            if tool_name == "assess_project":
+            if tool_name == "validate_project_description":
+                result = self._validate_project_description(arguments)
+            elif tool_name == "assess_project":
                 result = self._assess_project(arguments)
             elif tool_name == "analyze_project_description":
                 result = self._analyze_project_description(arguments)
@@ -448,14 +471,98 @@ class MCPServer:
                     "message": f"Tool execution failed: {str(e)}"
                 }
             }
-    
+
+    def _validate_project_description(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate project description for framework assessment readiness."""
+        project_name = arguments.get("projectName", "")
+        project_description = arguments.get("projectDescription", "")
+
+        # Perform validation using the description validator
+        validation_result = self.description_validator.validate_description(project_description)
+
+        # Format the response
+        response = {
+            "validation": {
+                "project_name": project_name,
+                "is_valid": validation_result["is_valid"],
+                "total_words": validation_result["total_words"],
+                "areas_covered": validation_result["areas_covered"],
+                "areas_missing": validation_result["areas_missing"],
+                "framework_readiness": validation_result["framework_readiness"],
+                "validation_message": validation_result["validation_message"],
+                "recommendations": validation_result["recommendations"]
+            },
+            "coverage_analysis": {
+                area_key: {
+                    "area_name": details["name"],
+                    "covered": details["covered"],
+                    "keywords_found": details["keyword_matches"],
+                    "relevant_word_count": details["relevant_word_count"],
+                    "minimum_required": details["min_words_required"],
+                    "status": "✅ Adequate" if details["covered"] else "❌ Insufficient"
+                }
+                for area_key, details in validation_result["coverage_details"].items()
+            },
+            "next_steps": self._get_next_steps(validation_result),
+            "professional_guidance": {
+                "framework_compliance": "Results are based on content analysis and require professional validation",
+                "regulatory_note": "Both AIA and OSFI E-23 frameworks require qualified professional oversight",
+                "validation_warning": "This tool provides structure only - professional judgment is required for regulatory compliance"
+            }
+        }
+
+        # Add template if description is insufficient
+        if not validation_result["is_valid"]:
+            response["description_template"] = self.description_validator.get_description_template()
+
+        return response
+
+    def _get_next_steps(self, validation_result: Dict[str, Any]) -> List[str]:
+        """Generate next steps based on validation results."""
+        if validation_result["is_valid"]:
+            return [
+                "✅ Description is adequate for framework assessments",
+                "• Use 'assess_project' for AIA framework assessment with actual question responses",
+                "• Use 'assess_model_risk' for OSFI E-23 framework assessment",
+                "• Use 'functional_preview' for early AIA risk assessment without full responses",
+                "• Use 'analyze_project_description' for automated AIA question analysis"
+            ]
+        else:
+            return [
+                "❌ Description needs improvement before framework assessment",
+                "• Review the missing content areas listed above",
+                "• Add more detail to reach minimum word count requirements",
+                "• Use the provided template as a guide",
+                "• Re-run validation after improving the description",
+                "• Once validation passes, proceed with framework assessment tools"
+            ]
+
     def _assess_project(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle project assessment requests."""
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
         responses = arguments.get("responses")
-        
+
         logger.info(f"Assessing project: {project_name}")
+
+        # Validate project description adequacy for framework assessment
+        validation_result = self.description_validator.validate_description(project_description)
+        if not validation_result["is_valid"]:
+            return {
+                "assessment": {
+                    "status": "validation_failed",
+                    "message": "❌ Insufficient project description for AIA framework assessment",
+                    "validation_details": validation_result,
+                    "required_action": "Use 'validate_project_description' tool to check requirements and improve description"
+                },
+                "framework_readiness": validation_result["framework_readiness"],
+                "recommendations": [
+                    "Project description does not meet minimum requirements for AIA assessment",
+                    "Please provide more detailed information covering the missing areas",
+                    "Use the 'validate_project_description' tool to check specific requirements",
+                    "Re-run assessment after improving the description"
+                ]
+            }
         
         # Convert responses format if provided
         converted_responses = None
@@ -1168,9 +1275,28 @@ class MCPServer:
         """Handle functional preview requests - early risk assessment focused on technical characteristics."""
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
-        
+
         logger.info(f"Functional preview for project: {project_name}")
-        
+
+        # Validate project description adequacy for framework assessment
+        validation_result = self.description_validator.validate_description(project_description)
+        if not validation_result["is_valid"]:
+            return {
+                "assessment": {
+                    "status": "validation_failed",
+                    "message": "❌ Insufficient project description for AIA functional preview",
+                    "validation_details": validation_result,
+                    "required_action": "Use 'validate_project_description' tool to check requirements and improve description"
+                },
+                "framework_readiness": validation_result["framework_readiness"],
+                "recommendations": [
+                    "Project description does not meet minimum requirements for AIA functional preview",
+                    "Please provide more detailed information covering the missing areas",
+                    "Use the 'validate_project_description' tool to check specific requirements",
+                    "Re-run functional preview after improving the description"
+                ]
+            }
+
         # Perform functional analysis focusing on technical characteristics
         functional_responses = self._functional_risk_analysis(project_description)
         
@@ -2630,9 +2756,29 @@ class MCPServer:
         """Handle OSFI E-23 model risk assessment requests."""
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
-        
+
         logger.info(f"OSFI E-23 model risk assessment for: {project_name}")
-        
+
+        # Validate project description adequacy for framework assessment
+        validation_result = self.description_validator.validate_description(project_description)
+        if not validation_result["is_valid"]:
+            return {
+                "assessment": {
+                    "status": "validation_failed",
+                    "message": "❌ Insufficient project description for OSFI E-23 framework assessment",
+                    "validation_details": validation_result,
+                    "required_action": "Use 'validate_project_description' tool to check requirements and improve description"
+                },
+                "framework_readiness": validation_result["framework_readiness"],
+                "recommendations": [
+                    "Project description does not meet minimum requirements for OSFI E-23 assessment",
+                    "Please provide more detailed information covering the missing areas",
+                    "Use the 'validate_project_description' tool to check specific requirements",
+                    "Re-run assessment after improving the description"
+                ],
+                "compliance_warning": "⚠️ COMPLIANCE WARNING: OSFI E-23 assessments require detailed, factual project descriptions for regulatory compliance"
+            }
+
         # Use the OSFI E-23 processor
         result = self.osfi_e23_processor.assess_model_risk(
             project_name=project_name,

@@ -72,23 +72,44 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 
 ## MCP Tools
 
+### Description Validation Tool
+
+#### 1. `validate_project_description`
+**FIRST STEP**: Validates project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. Ensures descriptions contain sufficient information across key areas required by both frameworks.
+
+**Parameters:**
+- `projectName`: Name of the project being validated
+- `projectDescription`: Project description to validate for framework assessment readiness
+
+**Returns:**
+- Validation status (pass/fail)
+- Coverage analysis for 6 content areas (System/Technology, Business Purpose, Data Sources, Impact Scope, Decision Process, Technical Architecture)
+- Progressive feedback showing covered vs missing areas
+- Framework readiness assessment for both AIA and OSFI E-23
+- Detailed recommendations and content template if validation fails
+
+**Minimum Requirements:**
+- Total description: 100+ words
+- Cover at least 3/6 content areas (50%+ coverage)
+- Include specific, factual details for each covered area
+
 ### AIA Framework Tools
 
-#### 1. `analyze_project_description`
+#### 2. `analyze_project_description`
 Analyzes a project description to categorize questions and identify assessment requirements.
 
 **Parameters:**
 - `projectName`: Name of the project
 - `projectDescription`: Detailed description of the automated decision-making system
 
-#### 2. `get_questions`
+#### 3. `get_questions`
 Retrieves AIA questions by category or type for manual assessment.
 
 **Parameters:**
 - `category` (optional): Filter by category (Project, System, Algorithm, Decision, Impact, Data, Consultations, De-risking)
 - `type` (optional): Filter by type (risk, mitigation)
 
-#### 3. `assess_project`
+#### 4. `assess_project`
 **FINAL STEP**: Calculates official AIA risk score using actual question responses.
 
 **Parameters:**
@@ -96,14 +117,14 @@ Retrieves AIA questions by category or type for manual assessment.
 - `projectDescription`: Detailed description
 - `responses`: Array of question responses with `questionId` and `selectedOption`
 
-#### 4. `functional_preview`
+#### 5. `functional_preview`
 Early functional risk assessment for AI projects using Canada's AIA framework.
 
 **Parameters:**
 - `projectName`: Name of the AI project being assessed
 - `projectDescription`: Detailed description of the AI system's technical capabilities
 
-#### 5. `export_assessment_report`
+#### 6. `export_assessment_report`
 Export AIA assessment results to a Microsoft Word document.
 
 **Parameters:**
@@ -114,14 +135,14 @@ Export AIA assessment results to a Microsoft Word document.
 
 ### OSFI E-23 Framework Tools
 
-#### 6. `assess_model_risk`
+#### 7. `assess_model_risk`
 ⚠️ **COMPLIANCE WARNING**: Assess model risk using OSFI E-23 framework. Requires professional validation.
 
 **Parameters:**
 - `projectName`: Name of the model being assessed
 - `projectDescription`: **CRITICAL**: Factual, detailed description with specific technical architecture, documented data sources/volumes, explicit business use cases
 
-#### 7. `evaluate_lifecycle_compliance`
+#### 8. `evaluate_lifecycle_compliance`
 Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages.
 
 **Parameters:**
@@ -129,14 +150,14 @@ Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 
 - `projectDescription`: Detailed description of the model and its current lifecycle stage
 - `currentStage` (optional): Current lifecycle stage (Design, Review, Deployment, Monitoring, Decommission)
 
-#### 8. `generate_risk_rating`
+#### 9. `generate_risk_rating`
 Generate detailed risk rating assessment using OSFI E-23 methodology.
 
 **Parameters:**
 - `projectName`: Name of the model being rated
 - `projectDescription`: Detailed description including technical details, business impact, and usage context
 
-#### 9. `create_compliance_framework`
+#### 10. `create_compliance_framework`
 Create comprehensive compliance framework based on OSFI E-23 requirements.
 
 **Parameters:**
@@ -144,7 +165,7 @@ Create comprehensive compliance framework based on OSFI E-23 requirements.
 - `projectDescription`: Detailed description of the model, its business purpose, and organizational context
 - `riskLevel` (optional): Pre-determined risk level (Low, Medium, High, Critical)
 
-#### 10. `export_e23_report`
+#### 11. `export_e23_report`
 ⚠️ **COMPLIANCE WARNING**: Export OSFI E-23 assessment results to Microsoft Word document. Requires professional validation.
 
 **Parameters:**
@@ -213,7 +234,18 @@ Our implementation achieves 98% compliance with Canada's official AIA framework 
 
 ⚠️ **CRITICAL**: Follow this workflow to ensure accurate assessments:
 
-1. **Project Analysis** (Optional):
+1. **Description Validation** (REQUIRED FIRST STEP):
+   ```javascript
+   use_mcp_tool("aia-assessment", "validate_project_description", {
+     "projectName": "AI System",
+     "projectDescription": "Detailed description covering system, business purpose, data, impact, decisions, and architecture..."
+   });
+   ```
+   - **Must pass validation** before proceeding with framework assessments
+   - Ensures description covers minimum 3/6 content areas and 100+ words
+   - Provides detailed feedback on missing areas and improvement recommendations
+
+2. **Project Analysis** (Optional):
    ```javascript
    use_mcp_tool("aia-assessment", "analyze_project_description", {
      "projectName": "AI System",
