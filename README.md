@@ -70,7 +70,7 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
    }
    ```
 
-## MCP Tools
+## MCP Tools (16 Tools Total)
 
 ### Transparency & Information Tools
 
@@ -109,7 +109,7 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 - Next step recommendations
 - Usage instructions for workflow management
 
-#### 2. `execute_workflow_step`
+#### 3. `execute_workflow_step`
 **WORKFLOW EXECUTION**: Execute specific tools within a managed workflow with automatic state tracking, dependency validation, and smart next-step recommendations.
 
 **Parameters:**
@@ -123,7 +123,7 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 - Progress tracking
 - Next step recommendations
 
-#### 3. `get_workflow_status`
+#### 4. `get_workflow_status`
 **STATUS TRACKING**: Get comprehensive workflow status including progress, next steps, smart routing recommendations, and session management.
 
 **Parameters:**
@@ -135,7 +135,7 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 - Smart routing recommendations
 - Available management options
 
-#### 4. `auto_execute_workflow`
+#### 5. `auto_execute_workflow`
 **AUTO-EXECUTION**: Automatically execute multiple workflow steps where possible, with intelligent dependency management and manual intervention detection.
 
 **Parameters:**
@@ -150,7 +150,7 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 
 ### Description Validation Tool
 
-#### 5. `validate_project_description`
+#### 6. `validate_project_description`
 **FIRST STEP**: Validates project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. Ensures descriptions contain sufficient information across key areas required by both frameworks.
 
 **Parameters:**
@@ -171,21 +171,21 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 
 ### AIA Framework Tools
 
-#### 2. `analyze_project_description`
+#### 7. `analyze_project_description`
 Analyzes a project description to categorize questions and identify assessment requirements.
 
 **Parameters:**
 - `projectName`: Name of the project
 - `projectDescription`: Detailed description of the automated decision-making system
 
-#### 3. `get_questions`
+#### 8. `get_questions`
 Retrieves AIA questions by category or type for manual assessment.
 
 **Parameters:**
 - `category` (optional): Filter by category (Project, System, Algorithm, Decision, Impact, Data, Consultations, De-risking)
 - `type` (optional): Filter by type (risk, mitigation)
 
-#### 4. `assess_project`
+#### 9. `assess_project`
 **FINAL STEP**: Calculates official AIA risk score using actual question responses.
 
 **Parameters:**
@@ -193,14 +193,14 @@ Retrieves AIA questions by category or type for manual assessment.
 - `projectDescription`: Detailed description
 - `responses`: Array of question responses with `questionId` and `selectedOption`
 
-#### 5. `functional_preview`
+#### 10. `functional_preview`
 Early functional risk assessment for AI projects using Canada's AIA framework.
 
 **Parameters:**
 - `projectName`: Name of the AI project being assessed
 - `projectDescription`: Detailed description of the AI system's technical capabilities
 
-#### 6. `export_assessment_report`
+#### 11. `export_assessment_report`
 Export AIA assessment results to a Microsoft Word document.
 
 **Parameters:**
@@ -211,14 +211,14 @@ Export AIA assessment results to a Microsoft Word document.
 
 ### OSFI E-23 Framework Tools
 
-#### 7. `assess_model_risk`
+#### 12. `assess_model_risk`
 ⚠️ **COMPLIANCE WARNING**: Assess model risk using OSFI E-23 framework. Requires professional validation.
 
 **Parameters:**
 - `projectName`: Name of the model being assessed
 - `projectDescription`: **CRITICAL**: Factual, detailed description with specific technical architecture, documented data sources/volumes, explicit business use cases
 
-#### 8. `evaluate_lifecycle_compliance`
+#### 13. `evaluate_lifecycle_compliance`
 Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages.
 
 **Parameters:**
@@ -226,14 +226,14 @@ Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 
 - `projectDescription`: Detailed description of the model and its current lifecycle stage
 - `currentStage` (optional): Current lifecycle stage (Design, Review, Deployment, Monitoring, Decommission)
 
-#### 9. `generate_risk_rating`
+#### 14. `generate_risk_rating`
 Generate detailed risk rating assessment using OSFI E-23 methodology.
 
 **Parameters:**
 - `projectName`: Name of the model being rated
 - `projectDescription`: Detailed description including technical details, business impact, and usage context
 
-#### 10. `create_compliance_framework`
+#### 15. `create_compliance_framework`
 Create comprehensive compliance framework based on OSFI E-23 requirements.
 
 **Parameters:**
@@ -241,7 +241,7 @@ Create comprehensive compliance framework based on OSFI E-23 requirements.
 - `projectDescription`: Detailed description of the model, its business purpose, and organizational context
 - `riskLevel` (optional): Pre-determined risk level (Low, Medium, High, Critical)
 
-#### 11. `export_e23_report`
+#### 16. `export_e23_report`
 ⚠️ **COMPLIANCE WARNING**: Export OSFI E-23 assessment results to Microsoft Word document. Requires professional validation.
 
 **Parameters:**
@@ -308,9 +308,21 @@ Our implementation achieves 98% compliance with Canada's official AIA framework 
 
 ## Usage Workflows
 
-### Option 1: Managed Workflow (Recommended)
+### Option 1: Server Introduction (Recommended First Step)
 
-⚠️ **NEW**: Use workflow management for automated sequencing, state persistence, and smart routing:
+⚠️ **NEW**: Start with transparency introduction to understand capabilities and data distinction:
+
+```javascript
+use_mcp_tool("aia-assessment", "get_server_introduction", {});
+```
+- Provides comprehensive server capabilities overview
+- Explains MCP official data vs Claude AI analysis distinction
+- Shows workflow guidance and best practices
+- One-time orientation for new users
+
+### Option 2: Managed Workflow (Recommended)
+
+⚠️ **INTELLIGENT AUTOMATION**: Use workflow management for automated sequencing, state persistence, and smart routing:
 
 1. **Create Workflow Session**:
    ```javascript
@@ -355,7 +367,7 @@ Our implementation achieves 98% compliance with Canada's official AIA framework 
    });
    ```
 
-### Option 2: Manual Workflow (Traditional)
+### Option 3: Manual Workflow (Traditional)
 
 ⚠️ **CRITICAL**: Follow this workflow to ensure accurate assessments:
 
@@ -404,6 +416,24 @@ Our implementation achieves 98% compliance with Canada's official AIA framework 
    ```
 
 ## Key Fixes and Improvements
+
+### v1.8.0 - MCP Transparency & AI Distinction System (Latest)
+- **Feature**: Comprehensive transparency system distinguishing MCP official data from Claude AI interpretations
+- **Addition**: Server introduction tool providing complete capabilities overview and usage guidance
+- **Enhancement**: Visual markers (🔧 MCP SERVER vs 🧠 CLAUDE ANALYSIS) for content distinction
+- **Impact**: Clear regulatory compliance through data source transparency
+
+### v1.7.0 - Intelligent Workflow Management System
+- **Feature**: Complete workflow engine with auto-execution, state persistence, and dependency validation
+- **Addition**: Smart routing recommendations and session management
+- **Enhancement**: Automated tool sequencing with manual intervention detection
+- **Impact**: Streamlined assessment processes with guided workflows
+
+### v1.6.0 - Project Description Validation Guardrails
+- **Feature**: Mandatory validation system ensuring adequate project descriptions before assessments
+- **Addition**: 6 content area coverage analysis with progressive feedback
+- **Enhancement**: Framework readiness assessment with detailed recommendations
+- **Impact**: Prevents insufficient descriptions from proceeding to regulatory assessments
 
 ### v1.4.0 - Official Framework Compliance (Critical)
 - **Issue**: System extracted 162 questions instead of official 106 questions from Canada's AIA framework
