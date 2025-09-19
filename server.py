@@ -26,6 +26,7 @@ from docx.shared import Inches
 from aia_processor import AIAProcessor
 from osfi_e23_processor import OSFIE23Processor
 from description_validator import ProjectDescriptionValidator
+from workflow_engine import WorkflowEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
@@ -43,9 +44,10 @@ class MCPServer:
         self.aia_processor = AIAProcessor()
         self.osfi_e23_processor = OSFIE23Processor()
         self.description_validator = ProjectDescriptionValidator()
+        self.workflow_engine = WorkflowEngine()
         self.server_info = {
             "name": "aia-assessment-server",
-            "version": "1.0.0"
+            "version": "1.7.0"
         }
         
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
@@ -163,6 +165,89 @@ class MCPServer:
                         }
                     },
                     "required": ["projectName", "projectDescription"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "create_workflow",
+                "description": "🔄 WORKFLOW MANAGEMENT: Create and manage assessment workflows with automatic sequencing, state persistence, and smart routing. Provides guided assessment processes for AIA and OSFI E-23 frameworks.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "projectName": {
+                            "type": "string",
+                            "description": "Name of the project for workflow management"
+                        },
+                        "projectDescription": {
+                            "type": "string",
+                            "description": "Project description for workflow creation"
+                        },
+                        "assessmentType": {
+                            "type": "string",
+                            "description": "Type of assessment workflow (aia_full, aia_preview, osfi_e23, combined)",
+                            "enum": ["aia_full", "aia_preview", "osfi_e23", "combined"]
+                        }
+                    },
+                    "required": ["projectName", "projectDescription"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "execute_workflow_step",
+                "description": "🎯 WORKFLOW EXECUTION: Execute specific tools within a managed workflow with automatic state tracking, dependency validation, and smart next-step recommendations.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sessionId": {
+                            "type": "string",
+                            "description": "Workflow session ID from create_workflow"
+                        },
+                        "toolName": {
+                            "type": "string",
+                            "description": "Name of the tool to execute within the workflow"
+                        },
+                        "toolArguments": {
+                            "type": "object",
+                            "description": "Arguments for the tool being executed"
+                        }
+                    },
+                    "required": ["sessionId", "toolName", "toolArguments"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "get_workflow_status",
+                "description": "📊 WORKFLOW STATUS: Get comprehensive workflow status including progress, next steps, smart routing recommendations, and session management.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sessionId": {
+                            "type": "string",
+                            "description": "Workflow session ID"
+                        }
+                    },
+                    "required": ["sessionId"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "auto_execute_workflow",
+                "description": "⚡ AUTO-EXECUTION: Automatically execute multiple workflow steps where possible, with intelligent dependency management and manual intervention detection.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sessionId": {
+                            "type": "string",
+                            "description": "Workflow session ID"
+                        },
+                        "stepsToExecute": {
+                            "type": "number",
+                            "description": "Number of steps to auto-execute (default: 1)",
+                            "minimum": 1,
+                            "maximum": 5
+                        }
+                    },
+                    "required": ["sessionId"],
                     "additionalProperties": False
                 }
             },
@@ -416,7 +501,15 @@ class MCPServer:
         arguments = params.get("arguments", {})
         
         try:
-            if tool_name == "validate_project_description":
+            if tool_name == "create_workflow":
+                result = self._create_workflow(arguments)
+            elif tool_name == "execute_workflow_step":
+                result = self._execute_workflow_step(arguments)
+            elif tool_name == "get_workflow_status":
+                result = self._get_workflow_status(arguments)
+            elif tool_name == "auto_execute_workflow":
+                result = self._auto_execute_workflow(arguments)
+            elif tool_name == "validate_project_description":
                 result = self._validate_project_description(arguments)
             elif tool_name == "assess_project":
                 result = self._assess_project(arguments)
@@ -471,6 +564,165 @@ class MCPServer:
                     "message": f"Tool execution failed: {str(e)}"
                 }
             }
+
+    def _create_workflow(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new workflow session."""
+        project_name = arguments.get("projectName", "")
+        project_description = arguments.get("projectDescription", "")
+        assessment_type = arguments.get("assessmentType")
+
+        try:
+            session_id = self.workflow_engine.create_session(
+                project_name=project_name,
+                project_description=project_description,
+                assessment_type=assessment_type
+            )
+
+            session = self.workflow_engine.get_session(session_id)
+            if not session:
+                return {"error": "Failed to create workflow session"}
+
+            return {
+                "workflow_created": {
+                    "session_id": session_id,
+                    "project_name": project_name,
+                    "assessment_type": session["assessment_type"],
+                    "workflow_sequence": session["workflow_sequence"],
+                    "initial_state": session["state"],
+                    "next_steps": self.workflow_engine._get_next_actions(session)
+                },
+                "instructions": {
+                    "how_to_proceed": "Use 'execute_workflow_step' to run individual tools within this workflow",
+                    "auto_execution": "Use 'auto_execute_workflow' to automatically run compatible steps",
+                    "status_tracking": "Use 'get_workflow_status' to check progress and get recommendations"
+                },
+                "framework_guidance": {
+                    "workflow_benefits": "Automatic state persistence, dependency validation, and smart routing",
+                    "professional_note": "All results still require professional validation for regulatory compliance"
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Error creating workflow: {str(e)}")
+            return {"error": f"Workflow creation failed: {str(e)}"}
+
+    def _execute_workflow_step(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a specific tool within a workflow."""
+        session_id = arguments.get("sessionId", "")
+        tool_name = arguments.get("toolName", "")
+        tool_arguments = arguments.get("toolArguments", {})
+
+        try:
+            # Execute the actual tool
+            if tool_name == "validate_project_description":
+                tool_result = self._validate_project_description(tool_arguments)
+            elif tool_name == "assess_project":
+                tool_result = self._assess_project(tool_arguments)
+            elif tool_name == "analyze_project_description":
+                tool_result = self._analyze_project_description(tool_arguments)
+            elif tool_name == "functional_preview":
+                tool_result = self._functional_preview(tool_arguments)
+            elif tool_name == "assess_model_risk":
+                tool_result = self._assess_model_risk(tool_arguments)
+            elif tool_name == "get_questions":
+                tool_result = self._get_questions(tool_arguments)
+            else:
+                return {"error": f"Tool '{tool_name}' not supported in workflow execution"}
+
+            # Update workflow state
+            workflow_info = self.workflow_engine.execute_tool(session_id, tool_name, tool_result)
+
+            # Combine tool result with workflow management
+            return {
+                "tool_result": tool_result,
+                "workflow_management": workflow_info,
+                "session_id": session_id,
+                "executed_tool": tool_name,
+                "execution_timestamp": datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"Error executing workflow step: {str(e)}")
+            return {"error": f"Workflow step execution failed: {str(e)}"}
+
+    def _get_workflow_status(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Get comprehensive workflow status."""
+        session_id = arguments.get("sessionId", "")
+
+        try:
+            workflow_summary = self.workflow_engine.get_workflow_summary(session_id)
+            return {
+                "workflow_status": workflow_summary,
+                "management_options": {
+                    "continue_workflow": "Use 'execute_workflow_step' for manual execution",
+                    "auto_execute": "Use 'auto_execute_workflow' for automated execution",
+                    "get_updates": "Call this tool again for latest status"
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Error getting workflow status: {str(e)}")
+            return {"error": f"Failed to get workflow status: {str(e)}"}
+
+    def _auto_execute_workflow(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Auto-execute workflow steps."""
+        session_id = arguments.get("sessionId", "")
+        steps_to_execute = arguments.get("stepsToExecute", 1)
+
+        try:
+            # Get auto-execution plan
+            execution_plan = self.workflow_engine.auto_execute_workflow(session_id, steps_to_execute)
+
+            if "error" in execution_plan:
+                return execution_plan
+
+            results = []
+            for step in execution_plan["execution_plan"]:
+                tool_name = step["tool_name"]
+
+                # Get session for tool arguments
+                session = self.workflow_engine.get_session(session_id)
+                if not session:
+                    break
+
+                # Prepare tool arguments from session data
+                tool_arguments = {
+                    "projectName": session["project_name"],
+                    "projectDescription": session["project_description"]
+                }
+
+                # Execute the step
+                step_result = self._execute_workflow_step({
+                    "sessionId": session_id,
+                    "toolName": tool_name,
+                    "toolArguments": tool_arguments
+                })
+
+                results.append({
+                    "tool_name": tool_name,
+                    "step_number": step["step_number"],
+                    "execution_result": step_result,
+                    "success": "error" not in step_result
+                })
+
+                # Stop if execution failed
+                if "error" in step_result:
+                    break
+
+            return {
+                "auto_execution_results": results,
+                "execution_summary": {
+                    "steps_planned": len(execution_plan["execution_plan"]),
+                    "steps_executed": len(results),
+                    "all_successful": all(result["success"] for result in results),
+                    "session_id": session_id
+                },
+                "next_actions": "Use 'get_workflow_status' to see updated workflow state"
+            }
+
+        except Exception as e:
+            logger.error(f"Error in auto-execution: {str(e)}")
+            return {"error": f"Auto-execution failed: {str(e)}"}
 
     def _validate_project_description(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Validate project description for framework assessment readiness."""

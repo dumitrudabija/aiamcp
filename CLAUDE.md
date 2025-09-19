@@ -10,6 +10,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 
 ### Main Components
 - **server.py**: Main MCP server handling JSON-RPC over stdio
+- **workflow_engine.py**: Workflow management, state persistence, and smart routing
 - **aia_processor.py**: Core AIA assessment logic and official framework compliance
 - **osfi_e23_processor.py**: OSFI E-23 model risk management assessment logic
 - **description_validator.py**: Project description validation for framework readiness
@@ -18,6 +19,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 
 ### Key Design Patterns
 - **Official Framework Compliance**: Strict adherence to Canada's official AIA (104 questions) and OSFI E-23 frameworks
+- **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Description Validation Gates**: Mandatory validation before framework assessments ensure adequate information coverage
 - **Anti-Hallucination Safeguards**: Rule-based risk detection using factual keyword matching, not AI interpretation
 - **Professional Validation Requirements**: All tools emphasize that results require professional review
@@ -40,6 +42,9 @@ python test_design_phase_filtering.py
 
 # Test description validation
 python test_description_validation.py
+
+# Test workflow enhancements
+python test_workflow_enhancements.py
 ```
 
 ### Running the Server
@@ -56,6 +61,27 @@ python server.py
 ```bash
 pip install -r requirements.txt
 ```
+
+## Workflow Management
+
+### Recommended Approach
+- **Use workflow management tools** for automated sequencing and state persistence
+- **create_workflow** as the entry point for new assessments
+- **auto_execute_workflow** for compatible automated steps
+- **execute_workflow_step** for manual intervention steps
+- **get_workflow_status** for progress tracking and next-step recommendations
+
+### Session Management
+- **2-hour session timeout** for workflow persistence
+- **In-memory state storage** with automatic cleanup
+- **Progress tracking** across all tool executions
+- **Dependency validation** prevents out-of-order execution
+
+### Auto-Detection Features
+- **Assessment type detection** based on project description keywords
+- **Smart routing recommendations** based on current state
+- **Compatible step identification** for auto-execution
+- **Manual intervention detection** when human input required
 
 ## Framework-Specific Requirements
 
@@ -106,6 +132,7 @@ pip install -r requirements.txt
 - All boolean values use Python True/False
 
 ### Tool Categories
+- **Workflow Management**: create_workflow, execute_workflow_step, get_workflow_status, auto_execute_workflow
 - **Validation Tools**: validate_project_description
 - **AIA Tools**: analyze_project_description, get_questions, assess_project, functional_preview, export_assessment_report
 - **OSFI E-23 Tools**: assess_model_risk, evaluate_lifecycle_compliance, generate_risk_rating, create_compliance_framework, export_e23_report

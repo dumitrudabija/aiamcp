@@ -72,9 +72,64 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 
 ## MCP Tools
 
+### Workflow Management Tools
+
+#### 1. `create_workflow`
+**WORKFLOW CREATION**: Create and manage assessment workflows with automatic sequencing, state persistence, and smart routing. Provides guided assessment processes for AIA and OSFI E-23 frameworks.
+
+**Parameters:**
+- `projectName`: Name of the project for workflow management
+- `projectDescription`: Project description for workflow creation
+- `assessmentType` (optional): Type of assessment workflow (aia_full, aia_preview, osfi_e23, combined) - auto-detected if not provided
+
+**Returns:**
+- Workflow session ID for tracking
+- Assessment type and workflow sequence
+- Next step recommendations
+- Usage instructions for workflow management
+
+#### 2. `execute_workflow_step`
+**WORKFLOW EXECUTION**: Execute specific tools within a managed workflow with automatic state tracking, dependency validation, and smart next-step recommendations.
+
+**Parameters:**
+- `sessionId`: Workflow session ID from create_workflow
+- `toolName`: Name of the tool to execute within the workflow
+- `toolArguments`: Arguments for the tool being executed
+
+**Returns:**
+- Tool execution results
+- Workflow state updates
+- Progress tracking
+- Next step recommendations
+
+#### 3. `get_workflow_status`
+**STATUS TRACKING**: Get comprehensive workflow status including progress, next steps, smart routing recommendations, and session management.
+
+**Parameters:**
+- `sessionId`: Workflow session ID
+
+**Returns:**
+- Complete workflow progress and state
+- Tool execution history
+- Smart routing recommendations
+- Available management options
+
+#### 4. `auto_execute_workflow`
+**AUTO-EXECUTION**: Automatically execute multiple workflow steps where possible, with intelligent dependency management and manual intervention detection.
+
+**Parameters:**
+- `sessionId`: Workflow session ID
+- `stepsToExecute` (optional): Number of steps to auto-execute (default: 1, max: 5)
+
+**Returns:**
+- Auto-execution results for each step
+- Success/failure status
+- Manual intervention requirements
+- Updated workflow state
+
 ### Description Validation Tool
 
-#### 1. `validate_project_description`
+#### 5. `validate_project_description`
 **FIRST STEP**: Validates project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. Ensures descriptions contain sufficient information across key areas required by both frameworks.
 
 **Parameters:**
@@ -230,7 +285,56 @@ Our implementation achieves 98% compliance with Canada's official AIA framework 
    - **All 8 official categories** represented with proper question distribution
    - **Design vs Implementation phase** filtering applied correctly for mitigation questions
 
-## Proper Usage Workflow
+## Usage Workflows
+
+### Option 1: Managed Workflow (Recommended)
+
+⚠️ **NEW**: Use workflow management for automated sequencing, state persistence, and smart routing:
+
+1. **Create Workflow Session**:
+   ```javascript
+   use_mcp_tool("aia-assessment", "create_workflow", {
+     "projectName": "AI System",
+     "projectDescription": "Detailed description...",
+     "assessmentType": "aia_preview"  // or auto-detect
+   });
+   ```
+   - Returns session ID and workflow sequence
+   - Auto-detects assessment type (AIA/OSFI E-23/Combined)
+   - Provides guided next steps
+
+2. **Execute Steps with Auto-Management**:
+   ```javascript
+   use_mcp_tool("aia-assessment", "auto_execute_workflow", {
+     "sessionId": "session-id-from-step-1",
+     "stepsToExecute": 3
+   });
+   ```
+   - Automatically validates dependencies
+   - Executes compatible steps in sequence
+   - Maintains state between calls
+   - Provides smart routing recommendations
+
+3. **Check Progress and Status**:
+   ```javascript
+   use_mcp_tool("aia-assessment", "get_workflow_status", {
+     "sessionId": "session-id"
+   });
+   ```
+   - Shows completion percentage
+   - Lists completed and remaining steps
+   - Provides next-step recommendations
+
+4. **Manual Step Execution** (when needed):
+   ```javascript
+   use_mcp_tool("aia-assessment", "execute_workflow_step", {
+     "sessionId": "session-id",
+     "toolName": "assess_project",
+     "toolArguments": {...}
+   });
+   ```
+
+### Option 2: Manual Workflow (Traditional)
 
 ⚠️ **CRITICAL**: Follow this workflow to ensure accurate assessments:
 
