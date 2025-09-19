@@ -53,8 +53,8 @@ class WorkflowEngine:
             AssessmentType.AIA_PREVIEW: [
                 "validate_project_description",
                 "functional_preview",
-                "assess_project",  # Optional upgrade
-                "export_assessment_report"
+                "export_assessment_report",  # Can export after functional_preview
+                "assess_project"  # Optional upgrade step
             ],
             AssessmentType.OSFI_E23: [
                 "validate_project_description",
@@ -79,7 +79,7 @@ class WorkflowEngine:
             "assess_project": ["validate_project_description"],
             "assess_model_risk": ["validate_project_description"],
             "functional_preview": ["validate_project_description"],
-            "export_assessment_report": ["assess_project"],
+            "export_assessment_report": ["functional_preview"],  # Can export after functional_preview or assess_project
             "export_e23_report": ["assess_model_risk"],
             "evaluate_lifecycle_compliance": ["assess_model_risk"],
             "generate_risk_rating": ["assess_model_risk"],
@@ -330,6 +330,13 @@ class WorkflowEngine:
 
     def _update_workflow_state(self, session: Dict[str, Any], tool_name: str, tool_result: Dict[str, Any]):
         """Update workflow state based on tool execution."""
+        # Update current step based on workflow sequence
+        workflow = session["workflow_sequence"]
+        if tool_name in workflow:
+            tool_index = workflow.index(tool_name)
+            session["current_step"] = tool_index + 1  # Next step index
+
+        # Update workflow state
         if tool_name == "validate_project_description":
             if tool_result.get("validation", {}).get("is_valid"):
                 session["validation_passed"] = True
@@ -420,10 +427,9 @@ class WorkflowEngine:
 
     def _can_auto_execute(self, session: Dict[str, Any]) -> bool:
         """Check if auto-execution is possible."""
-        return (
-            session["validation_passed"] and
-            session["state"] not in [WorkflowState.FAILED.value, WorkflowState.COMPLETED.value]
-        )
+        # Allow auto-execution if not failed or completed
+        # Validation will be handled automatically as the first step
+        return session["state"] not in [WorkflowState.FAILED.value, WorkflowState.COMPLETED.value]
 
     def _requires_manual_input(self, tool_name: str) -> bool:
         """Check if tool requires manual input."""

@@ -626,6 +626,16 @@ class MCPServer:
                 tool_result = self._assess_model_risk(tool_arguments)
             elif tool_name == "get_questions":
                 tool_result = self._get_questions(tool_arguments)
+            elif tool_name == "export_assessment_report":
+                tool_result = self._export_assessment_report(tool_arguments)
+            elif tool_name == "export_e23_report":
+                tool_result = self._export_e23_report(tool_arguments)
+            elif tool_name == "evaluate_lifecycle_compliance":
+                tool_result = self._evaluate_lifecycle_compliance(tool_arguments)
+            elif tool_name == "generate_risk_rating":
+                tool_result = self._generate_risk_rating(tool_arguments)
+            elif tool_name == "create_compliance_framework":
+                tool_result = self._create_compliance_framework(tool_arguments)
             else:
                 return {"error": f"Tool '{tool_name}' not supported in workflow execution"}
 
@@ -691,6 +701,33 @@ class MCPServer:
                     "projectDescription": session["project_description"]
                 }
 
+                # Add special arguments for export tools
+                if tool_name == "export_assessment_report":
+                    # Get assessment results from previous tools
+                    assessment_results = self._get_assessment_results_for_export(session, "aia")
+                    if assessment_results:
+                        tool_arguments.update({
+                            "project_name": session["project_name"],
+                            "project_description": session["project_description"],
+                            "assessment_results": assessment_results
+                        })
+                    else:
+                        # Skip if no assessment results available
+                        continue
+
+                elif tool_name == "export_e23_report":
+                    # Get E-23 assessment results from previous tools
+                    assessment_results = self._get_assessment_results_for_export(session, "osfi_e23")
+                    if assessment_results:
+                        tool_arguments.update({
+                            "project_name": session["project_name"],
+                            "project_description": session["project_description"],
+                            "assessment_results": assessment_results
+                        })
+                    else:
+                        # Skip if no assessment results available
+                        continue
+
                 # Execute the step
                 step_result = self._execute_workflow_step({
                     "sessionId": session_id,
@@ -723,6 +760,30 @@ class MCPServer:
         except Exception as e:
             logger.error(f"Error in auto-execution: {str(e)}")
             return {"error": f"Auto-execution failed: {str(e)}"}
+
+    def _get_assessment_results_for_export(self, session: Dict[str, Any], framework_type: str) -> Optional[Dict[str, Any]]:
+        """Extract assessment results from session for export tools."""
+        tool_results = session.get("tool_results", {})
+
+        if framework_type == "aia":
+            # Look for AIA assessment results
+            if "assess_project" in tool_results:
+                return tool_results["assess_project"]["result"]
+            elif "functional_preview" in tool_results:
+                return tool_results["functional_preview"]["result"]
+            elif "analyze_project_description" in tool_results:
+                return tool_results["analyze_project_description"]["result"]
+
+        elif framework_type == "osfi_e23":
+            # Look for OSFI E-23 assessment results
+            if "assess_model_risk" in tool_results:
+                return tool_results["assess_model_risk"]["result"]
+            elif "generate_risk_rating" in tool_results:
+                return tool_results["generate_risk_rating"]["result"]
+            elif "create_compliance_framework" in tool_results:
+                return tool_results["create_compliance_framework"]["result"]
+
+        return None
 
     def _validate_project_description(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Validate project description for framework assessment readiness."""
