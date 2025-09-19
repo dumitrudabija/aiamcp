@@ -150,6 +150,15 @@ class MCPServer:
         """List available tools."""
         tools = [
             {
+                "name": "get_server_introduction",
+                "description": "🔍 TRANSPARENCY & CAPABILITIES: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework data (MCP) vs AI-generated interpretations (Claude). Essential for understanding data sources and regulatory compliance requirements.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False
+                }
+            },
+            {
                 "name": "validate_project_description",
                 "description": "🔍 FRAMEWORK READINESS VALIDATOR: Validate project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. Ensures descriptions contain sufficient information across key areas required by both frameworks. Use this as a first step before framework assessments to prevent 'insufficient description' errors.",
                 "inputSchema": {
@@ -501,7 +510,9 @@ class MCPServer:
         arguments = params.get("arguments", {})
         
         try:
-            if tool_name == "create_workflow":
+            if tool_name == "get_server_introduction":
+                result = self._get_server_introduction(arguments)
+            elif tool_name == "create_workflow":
                 result = self._create_workflow(arguments)
             elif tool_name == "execute_workflow_step":
                 result = self._execute_workflow_step(arguments)
@@ -564,6 +575,94 @@ class MCPServer:
                     "message": f"Tool execution failed: {str(e)}"
                 }
             }
+
+    def _get_server_introduction(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Provide comprehensive server introduction and transparency information."""
+
+        return {
+            "server_introduction": {
+                "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
+                "version": "1.7.0",
+                "purpose": "Official framework compliance for Canada's Algorithmic Impact Assessment (AIA) and OSFI Guideline E-23 Model Risk Management",
+                "transparency_notice": {
+                    "critical_distinction": "This server provides OFFICIAL regulatory framework data. All calculations, scores, and compliance determinations come from verified government sources - NOT AI generation.",
+                    "data_sources": [
+                        "🔧 MCP SERVER (Official): Canada.ca AIA framework questions and scoring",
+                        "🔧 MCP SERVER (Official): OSFI E-23 risk management methodology",
+                        "🔧 MCP SERVER (Official): Validated calculations using government formulas",
+                        "🧠 CLAUDE (AI-Generated): Result interpretations and recommendations only"
+                    ],
+                    "anti_hallucination_design": "AI cannot modify official scores, risk levels, or compliance determinations - these come exclusively from the MCP server using government-verified data"
+                }
+            },
+            "tool_categories": {
+                "workflow_management": {
+                    "description": "🔄 Automated assessment workflows with state persistence",
+                    "tools": ["create_workflow", "execute_workflow_step", "get_workflow_status", "auto_execute_workflow"],
+                    "usage": "Recommended approach for guided, end-to-end assessments"
+                },
+                "validation_tools": {
+                    "description": "🔍 Project description adequacy validation",
+                    "tools": ["validate_project_description"],
+                    "usage": "Required first step before framework assessments"
+                },
+                "aia_framework": {
+                    "description": "🇨🇦 Canada's Algorithmic Impact Assessment (104 official questions)",
+                    "tools": ["analyze_project_description", "get_questions", "assess_project", "functional_preview", "export_assessment_report"],
+                    "official_source": "Canada.ca Treasury Board Directive on Automated Decision-Making"
+                },
+                "osfi_e23_framework": {
+                    "description": "🏦 OSFI Guideline E-23 Model Risk Management",
+                    "tools": ["assess_model_risk", "evaluate_lifecycle_compliance", "generate_risk_rating", "create_compliance_framework", "export_e23_report"],
+                    "official_source": "Office of the Superintendent of Financial Institutions Canada"
+                }
+            },
+            "workflow_guidance": {
+                "recommended_approach": [
+                    "1. 🔄 Use 'create_workflow' to start guided assessment",
+                    "2. ⚡ Use 'auto_execute_workflow' for automated progression",
+                    "3. 📊 Use 'get_workflow_status' for progress tracking",
+                    "4. 🎯 Use 'execute_workflow_step' for manual control when needed"
+                ],
+                "traditional_approach": [
+                    "1. 🔍 Start with 'validate_project_description'",
+                    "2. 📋 Use framework-specific tools individually",
+                    "3. 📄 Export results with report generation tools"
+                ],
+                "automatic_features": [
+                    "✅ Assessment type auto-detection (AIA/OSFI E-23/Combined)",
+                    "✅ Dependency validation (prevents out-of-order execution)",
+                    "✅ State persistence (2-hour session timeout)",
+                    "✅ Smart routing (next-step recommendations)",
+                    "✅ Document generation (automated export)"
+                ]
+            },
+            "compliance_warnings": {
+                "professional_validation": "⚠️ ALL RESULTS require validation by qualified professionals and approval by appropriate governance authorities",
+                "regulatory_compliance": "⚠️ This tool provides STRUCTURE ONLY - professional judgment is required for regulatory compliance",
+                "anti_hallucination": "⚠️ Official scores and risk levels come from MCP server using government data - AI provides interpretation only",
+                "audit_requirements": "⚠️ Results must be reviewed by appropriate risk management and compliance teams before regulatory use"
+            },
+            "usage_examples": {
+                "proper_usage": [
+                    "✅ Use workflows for complete guided assessments",
+                    "✅ Validate project descriptions before framework tools",
+                    "✅ Use official scores for regulatory compliance",
+                    "✅ Export generated documents for audit trails"
+                ],
+                "improper_usage": [
+                    "❌ Do NOT use AI interpretations for regulatory decisions",
+                    "❌ Do NOT bypass description validation requirements",
+                    "❌ Do NOT use framework tools without proper project information",
+                    "❌ Do NOT modify or substitute official scoring calculations"
+                ]
+            },
+            "next_steps": {
+                "for_new_assessment": "Use 'create_workflow' with your project details to begin guided assessment",
+                "for_specific_framework": "Use 'validate_project_description' first, then proceed with AIA or OSFI E-23 tools",
+                "for_help": "This introduction provides all available capabilities - no additional help tools needed"
+            }
+        }
 
     def _create_workflow(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new workflow session."""
@@ -1630,18 +1729,31 @@ class MCPServer:
         likely_range = self._estimate_impact_level_range(functional_score, gap_analysis)
         
         return {
-            "project_name": project_name,
-            "project_description": project_description,
-            "functional_risk_score": functional_score,
-            "score_range": f"{likely_range['min_score']}-{likely_range['max_score']}",
-            "likely_impact_level": f"Level {self._get_impact_level_roman(base_impact_level)}",
-            "confidence": "High - based on functional characteristics",
-            "critical_gaps": gap_analysis['critical'],
-            "important_gaps": gap_analysis['important'],
-            "administrative_gaps": gap_analysis['administrative'],
-            "planning_guidance": planning_guidance,
-            "score_sensitivity": score_sensitivity,
-            "disclaimer": "⚠️ Early Indicator - Not Official Assessment. Based on functional characteristics only. Final assessment requires complete stakeholder input."
+            "mcp_official_data": {
+                "data_source": "🔧 MCP SERVER (Official): Canada.ca AIA framework calculations",
+                "functional_risk_score": functional_score,
+                "score_range": f"{likely_range['min_score']}-{likely_range['max_score']}",
+                "likely_impact_level": f"Level {self._get_impact_level_roman(base_impact_level)}",
+                "scoring_methodology": "Official AIA framework formula using government-verified question weights",
+                "compliance_note": "Score calculated using official Treasury Board Directive methodology"
+            },
+            "ai_generated_analysis": {
+                "data_source": "🧠 CLAUDE ANALYSIS (AI-Generated): Interpretations and recommendations",
+                "project_name": project_name,
+                "project_description": project_description,
+                "confidence": "High - based on functional characteristics",
+                "critical_gaps": gap_analysis['critical'],
+                "important_gaps": gap_analysis['important'],
+                "administrative_gaps": gap_analysis['administrative'],
+                "planning_guidance": planning_guidance,
+                "score_sensitivity": score_sensitivity,
+                "ai_interpretation_note": "Gap analysis and recommendations generated by AI based on official scores"
+            },
+            "compliance_warnings": {
+                "disclaimer": "⚠️ Early Indicator - Not Official Assessment. Based on functional characteristics only. Final assessment requires complete stakeholder input.",
+                "professional_validation": "⚠️ Results require validation by qualified professionals",
+                "regulatory_compliance": "⚠️ Official scores come from MCP server - AI provides interpretation only"
+            }
         }
     
     def _functional_risk_analysis(self, project_description: str) -> List[Dict[str, Any]]:

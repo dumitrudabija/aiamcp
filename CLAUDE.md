@@ -45,6 +45,9 @@ python test_description_validation.py
 
 # Test workflow enhancements
 python test_workflow_enhancements.py
+
+# Test transparency features
+python test_transparency_features.py
 ```
 
 ### Running the Server
@@ -61,6 +64,23 @@ python server.py
 ```bash
 pip install -r requirements.txt
 ```
+
+## Transparency and Data Source Distinction
+
+### Critical Understanding
+- **MCP Server provides OFFICIAL regulatory data** - all calculations, scores, and compliance determinations come from verified government sources
+- **Claude provides AI interpretation** - explanations, recommendations, and gap analysis based on official MCP results
+- **Anti-hallucination design** - AI cannot modify official scores, risk levels, or compliance determinations
+
+### Visual Markers in Tool Responses
+- **🔧 MCP SERVER (Official)**: Canada.ca AIA framework questions/scoring, OSFI E-23 methodology, validated calculations
+- **🧠 CLAUDE ANALYSIS (AI-Generated)**: Interpretations, recommendations, gap analysis, planning guidance
+- **⚠️ COMPLIANCE WARNINGS**: Professional validation requirements, regulatory compliance notes
+
+### Transparency Tool
+- **get_server_introduction**: Essential first-call tool that explains capabilities, workflows, and MCP vs Claude distinction
+- **Auto-triggered context**: Should be called when user inquiries suggest need for regulatory assessment tools
+- **One-time per conversation**: Provides comprehensive orientation without need for repeated calls
 
 ## Workflow Management
 
@@ -132,6 +152,7 @@ pip install -r requirements.txt
 - All boolean values use Python True/False
 
 ### Tool Categories
+- **Transparency Tools**: get_server_introduction
 - **Workflow Management**: create_workflow, execute_workflow_step, get_workflow_status, auto_execute_workflow
 - **Validation Tools**: validate_project_description
 - **AIA Tools**: analyze_project_description, get_questions, assess_project, functional_preview, export_assessment_report

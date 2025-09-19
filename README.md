@@ -72,9 +72,30 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 
 ## MCP Tools
 
+### Transparency & Information Tools
+
+#### 1. `get_server_introduction`
+**TRANSPARENCY & CAPABILITIES**: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework data (MCP) vs AI-generated interpretations (Claude). Essential for understanding data sources and regulatory compliance requirements.
+
+**Parameters:**
+- None required
+
+**Returns:**
+- Complete server capabilities overview
+- Tool categories and descriptions
+- Workflow guidance (recommended vs traditional approaches)
+- Critical distinction between MCP official data vs Claude AI analysis
+- Compliance warnings and professional validation requirements
+- Usage examples (proper vs improper usage)
+- Data source attribution and anti-hallucination design
+
+**Visual Markers:**
+- 🔧 MCP SERVER (Official): Official government data, validated calculations
+- 🧠 CLAUDE ANALYSIS (AI-Generated): Interpretations, recommendations, gap analysis
+
 ### Workflow Management Tools
 
-#### 1. `create_workflow`
+#### 2. `create_workflow`
 **WORKFLOW CREATION**: Create and manage assessment workflows with automatic sequencing, state persistence, and smart routing. Provides guided assessment processes for AIA and OSFI E-23 frameworks.
 
 **Parameters:**
