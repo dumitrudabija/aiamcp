@@ -417,7 +417,14 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Key Fixes and Improvements
 
-### v1.9.0 - Enhanced Workflow Visibility & Dependency Resolution (Latest)
+### v1.10.0 - Streamlined Reports & Enhanced Usability (Latest)
+- **Major Improvement**: Completely redesigned OSFI E-23 reports from 12 chapters to 5 focused sections
+- **Enhancement**: Compliance checklist now primary focus with priority levels (Critical/High/Medium/Low) and timelines
+- **Fix**: Removed markdown formatting artifacts (** elements) from all generated reports
+- **Improvement**: Actionable implementation roadmap with 30-day, 3-6 month, and 6+ month goals
+- **Impact**: Reports now focused on practical checklist utility rather than verbose documentation
+
+### v1.9.0 - Enhanced Workflow Visibility & Dependency Resolution
 - **Critical Fix**: Resolved workflow stopping at step 3 - fixed dependency logic for export tools
 - **Enhancement**: Complete workflow visualization with numbered steps and tool descriptions
 - **Improvement**: Clear error handling replacing silent skipping with informative messages

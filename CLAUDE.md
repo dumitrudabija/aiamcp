@@ -22,6 +22,8 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Enhanced Workflow Visibility**: Complete workflow roadmap with numbered steps, descriptions, and progress tracking
 - **Flexible Dependency Resolution**: Export tools can work with either preview or full assessments
+- **Streamlined Report Generation**: OSFI E-23 reports redesigned from 12 chapters to 5 focused sections
+- **Compliance-Centered Design**: Enhanced checklist with priority levels and implementation timelines
 - **Description Validation Gates**: Mandatory validation before framework assessments ensure adequate information coverage
 - **Anti-Hallucination Safeguards**: Rule-based risk detection using factual keyword matching, not AI interpretation
 - **Professional Validation Requirements**: All tools emphasize that results require professional review
