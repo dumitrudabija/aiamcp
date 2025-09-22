@@ -681,14 +681,21 @@ class MCPServer:
             if not session:
                 return {"error": "Failed to create workflow session"}
 
+            # Get detailed workflow visualization
+            detailed_sequence = self.workflow_engine.get_detailed_workflow_sequence(session["assessment_type"])
+
             return {
                 "workflow_created": {
                     "session_id": session_id,
                     "project_name": project_name,
                     "assessment_type": session["assessment_type"],
-                    "workflow_sequence": session["workflow_sequence"],
-                    "initial_state": session["state"],
-                    "next_steps": self.workflow_engine._get_next_actions(session)
+                    "total_steps": len(session["workflow_sequence"]),
+                    "initial_state": session["state"]
+                },
+                "workflow_visualization": {
+                    "title": f"📋 {session['assessment_type'].upper()} Assessment Workflow",
+                    "description": f"Complete {len(detailed_sequence)}-step guided assessment process",
+                    "detailed_steps": detailed_sequence
                 },
                 "instructions": {
                     "how_to_proceed": "Use 'execute_workflow_step' to run individual tools within this workflow",
@@ -811,8 +818,19 @@ class MCPServer:
                             "assessment_results": assessment_results
                         })
                     else:
-                        # Skip if no assessment results available
-                        continue
+                        # Return clear error instead of silent skip
+                        results.append({
+                            "tool_name": tool_name,
+                            "step_number": step["step_number"],
+                            "execution_result": {
+                                "error": "Cannot execute export - no assessment results available",
+                                "reason": "Missing assessment data from functional_preview or assess_project",
+                                "required_action": "Execute functional_preview or assess_project first",
+                                "workflow_guidance": "Use 'get_workflow_status' to see required dependencies"
+                            },
+                            "success": False
+                        })
+                        break
 
                 elif tool_name == "export_e23_report":
                     # Get E-23 assessment results from previous tools
@@ -824,8 +842,19 @@ class MCPServer:
                             "assessment_results": assessment_results
                         })
                     else:
-                        # Skip if no assessment results available
-                        continue
+                        # Return clear error instead of silent skip
+                        results.append({
+                            "tool_name": tool_name,
+                            "step_number": step["step_number"],
+                            "execution_result": {
+                                "error": "Cannot execute export - no E-23 assessment results available",
+                                "reason": "Missing assessment data from assess_model_risk or related tools",
+                                "required_action": "Execute assess_model_risk first",
+                                "workflow_guidance": "Use 'get_workflow_status' to see required dependencies"
+                            },
+                            "success": False
+                        })
+                        break
 
                 # Execute the step
                 step_result = self._execute_workflow_step({

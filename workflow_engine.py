@@ -74,12 +74,12 @@ class WorkflowEngine:
             ]
         }
 
-        # Tool dependencies
+        # Tool dependencies - Updated to support flexible export dependencies
         self.dependencies = {
             "assess_project": ["validate_project_description"],
             "assess_model_risk": ["validate_project_description"],
             "functional_preview": ["validate_project_description"],
-            "export_assessment_report": ["functional_preview"],  # Can export after functional_preview or assess_project
+            "export_assessment_report": [],  # Special handling - can export after functional_preview OR assess_project
             "export_e23_report": ["assess_model_risk"],
             "evaluate_lifecycle_compliance": ["assess_model_risk"],
             "generate_risk_rating": ["assess_model_risk"],
@@ -187,14 +187,19 @@ class WorkflowEngine:
         # Get next recommended actions
         next_actions = self._get_next_actions(session)
 
+        # Generate enhanced progress display
+        progress_display = self._generate_progress_display(session)
+
         return {
             "workflow_status": {
                 "session_id": session_id,
                 "current_state": session["state"],
                 "completed_tools": session["completed_tools"],
                 "progress": f"{len(session['completed_tools'])}/{len(session['workflow_sequence'])}",
+                "progress_percentage": round((len(session['completed_tools']) / len(session['workflow_sequence'])) * 100, 1),
                 "assessment_type": session["assessment_type"]
             },
+            "progress_display": progress_display,
             "next_actions": next_actions,
             "smart_routing": self._generate_smart_routing(session),
             "auto_execute_available": self._can_auto_execute(session)
@@ -312,9 +317,22 @@ class WorkflowEngine:
             return AssessmentType.AIA_PREVIEW.value  # Default to AIA preview
 
     def _validate_dependencies(self, session: Dict[str, Any], tool_name: str) -> Dict[str, Any]:
-        """Validate tool dependencies."""
+        """Validate tool dependencies with special handling for export tools."""
         required_deps = self.dependencies.get(tool_name, [])
         completed_tools = session["completed_tools"]
+
+        # Special handling for export_assessment_report - needs either functional_preview OR assess_project
+        if tool_name == "export_assessment_report":
+            has_assessment = any(tool in completed_tools for tool in ["functional_preview", "assess_project"])
+            if has_assessment:
+                return {"valid": True}
+            else:
+                return {
+                    "valid": False,
+                    "reason": "Missing assessment results - need either functional_preview or assess_project",
+                    "missing_dependencies": ["functional_preview OR assess_project"],
+                    "recommended_action": "Execute functional_preview or assess_project first"
+                }
 
         missing_deps = [dep for dep in required_deps if dep not in completed_tools]
 
@@ -449,17 +467,78 @@ class WorkflowEngine:
         return data_requirements.get(tool_name, [])
 
     def _get_tool_description(self, tool_name: str) -> str:
-        """Get tool description for recommendations."""
+        """Get comprehensive tool description for recommendations."""
         descriptions = {
-            "validate_project_description": "Validate project description adequacy",
-            "analyze_project_description": "Analyze project and auto-answer AIA questions",
-            "functional_preview": "Get early functional risk assessment",
-            "get_questions": "Retrieve framework questions for manual assessment",
-            "assess_project": "Calculate official AIA risk score",
-            "assess_model_risk": "Conduct OSFI E-23 model risk assessment",
-            "export_assessment_report": "Generate comprehensive assessment report"
+            "validate_project_description": "🔍 Validate project description adequacy (REQUIRED FIRST STEP)",
+            "analyze_project_description": "📋 Analyze project and auto-answer AIA questions for review",
+            "functional_preview": "⚡ Get early functional risk assessment (AIA preview mode)",
+            "get_questions": "❓ Retrieve framework questions for manual assessment",
+            "assess_project": "🎯 Calculate official AIA risk score using actual responses",
+            "assess_model_risk": "🏦 Conduct OSFI E-23 model risk assessment",
+            "evaluate_lifecycle_compliance": "📊 Evaluate model lifecycle compliance (OSFI E-23)",
+            "generate_risk_rating": "⚖️ Generate detailed risk rating assessment (OSFI E-23)",
+            "create_compliance_framework": "📋 Create comprehensive compliance framework (OSFI E-23)",
+            "export_assessment_report": "📄 Generate comprehensive AIA assessment report",
+            "export_e23_report": "📄 Generate comprehensive OSFI E-23 assessment report"
         }
-        return descriptions.get(tool_name, "Execute framework tool")
+        return descriptions.get(tool_name, "🔧 Execute framework tool")
+
+    def get_detailed_workflow_sequence(self, assessment_type: str) -> List[Dict[str, Any]]:
+        """Get detailed workflow sequence with step numbers and descriptions."""
+        workflow_sequence = self.workflows.get(AssessmentType(assessment_type), [])
+
+        detailed_sequence = []
+        for index, tool_name in enumerate(workflow_sequence):
+            detailed_sequence.append({
+                "step_number": index + 1,
+                "total_steps": len(workflow_sequence),
+                "tool_name": tool_name,
+                "description": self._get_tool_description(tool_name),
+                "requires_manual_input": self._requires_manual_input(tool_name),
+                "auto_executable": not self._requires_manual_input(tool_name),
+                "dependencies": self.dependencies.get(tool_name, []),
+                "data_requirements": self._get_required_data(tool_name, {})
+            })
+
+        return detailed_sequence
+
+    def _generate_progress_display(self, session: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate enhanced progress display with step-by-step status."""
+        workflow_sequence = session["workflow_sequence"]
+        completed_tools = session["completed_tools"]
+
+        step_status = []
+        for index, tool_name in enumerate(workflow_sequence):
+            step_number = index + 1
+            is_completed = tool_name in completed_tools
+            is_current = (not is_completed and
+                         all(prev_tool in completed_tools for prev_tool in workflow_sequence[:index]))
+
+            status_icon = "✅" if is_completed else ("🔄" if is_current else "⏳")
+            step_status.append({
+                "step_number": step_number,
+                "tool_name": tool_name,
+                "description": self._get_tool_description(tool_name),
+                "status": "completed" if is_completed else ("current" if is_current else "pending"),
+                "status_icon": status_icon,
+                "display": f"{status_icon} Step {step_number}: {self._get_tool_description(tool_name)}"
+            })
+
+        return {
+            "workflow_title": f"📋 {session['assessment_type'].upper()} Assessment Progress",
+            "total_steps": len(workflow_sequence),
+            "completed_steps": len(completed_tools),
+            "progress_percentage": round((len(completed_tools) / len(workflow_sequence)) * 100, 1),
+            "step_details": step_status,
+            "visual_progress": self._create_progress_bar(len(completed_tools), len(workflow_sequence))
+        }
+
+    def _create_progress_bar(self, completed: int, total: int, width: int = 20) -> str:
+        """Create a visual progress bar."""
+        filled = int((completed / total) * width)
+        bar = "█" * filled + "░" * (width - filled)
+        percentage = round((completed / total) * 100, 1)
+        return f"[{bar}] {percentage}% ({completed}/{total})"
 
     def cleanup_expired_sessions(self):
         """Remove expired sessions."""

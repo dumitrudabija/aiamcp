@@ -417,7 +417,14 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Key Fixes and Improvements
 
-### v1.8.0 - MCP Transparency & AI Distinction System (Latest)
+### v1.9.0 - Enhanced Workflow Visibility & Dependency Resolution (Latest)
+- **Critical Fix**: Resolved workflow stopping at step 3 - fixed dependency logic for export tools
+- **Enhancement**: Complete workflow visualization with numbered steps and tool descriptions
+- **Improvement**: Clear error handling replacing silent skipping with informative messages
+- **Addition**: Visual progress tracking with step-by-step status indicators and progress bars
+- **Impact**: Users now see complete workflow roadmap upfront and workflows execute through all steps
+
+### v1.8.0 - MCP Transparency & AI Distinction System
 - **Feature**: Comprehensive transparency system distinguishing MCP official data from Claude AI interpretations
 - **Addition**: Server introduction tool providing complete capabilities overview and usage guidance
 - **Enhancement**: Visual markers (🔧 MCP SERVER vs 🧠 CLAUDE ANALYSIS) for content distinction
