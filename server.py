@@ -2408,83 +2408,17 @@ class MCPServer:
             doc.add_paragraph(f'Risk Score: {risk_score}/100 points')
             doc.add_paragraph(f'Framework: OSFI Guideline E-23 (Effective May 1, 2027)')
 
-            # Enhanced risk level summary with detailed breakdown
+            # Simplified risk level summary
             doc.add_paragraph('')
-            doc.add_heading('Risk Rating Justification', level=2)
+            doc.add_heading('Risk Rating Summary', level=2)
 
-            # Detailed risk justification
+            # Concise risk justification
             risk_justification = self._generate_e23_risk_justification(assessment_results, risk_level, risk_score)
             doc.add_paragraph(self._strip_markdown_formatting(risk_justification))
 
-            # ACTUAL CALCULATION BREAKDOWN
+            # Reference to detailed calculations
             doc.add_paragraph('')
-            doc.add_heading('Actual Risk Score Calculation', level=2)
-
-            scoring_details = self._extract_e23_scoring_details(assessment_results)
-
-            # Show the actual calculation steps
-            quant_breakdown = scoring_details.get('quantitative_breakdown', {})
-            qual_breakdown = scoring_details.get('qualitative_breakdown', {})
-
-            # Calculate actual component scores
-            quant_total = sum(details.get('score', 0) for details in quant_breakdown.values())
-            qual_total = sum(details.get('score', 0) for details in qual_breakdown.values())
-            base_score = quant_total + qual_total
-
-            # Show step-by-step calculation
-            doc.add_paragraph(f"Step 1 - Quantitative Risk Factors: {quant_total} points")
-            doc.add_paragraph(f"Step 2 - Qualitative Risk Factors: {qual_total} points")
-            doc.add_paragraph(f"Step 3 - Base Score: {quant_total} + {qual_total} = {base_score} points")
-
-            # Show amplification if applied
-            if scoring_details.get('amplification_applied'):
-                amp_details = scoring_details.get('amplification_details', {})
-                multiplier = amp_details.get('factor', 1.0)
-                doc.add_paragraph(f"Step 4 - Risk Amplification: {base_score} × {multiplier} = {risk_score} points")
-                doc.add_paragraph(f"Amplification Reason: {amp_details.get('reason', 'High-risk combinations detected')}")
-            else:
-                doc.add_paragraph(f"Step 4 - Final Score: {base_score} points (no amplification applied)")
-
-            doc.add_paragraph('')
-            doc.add_paragraph(f"CALCULATION METHOD: {scoring_details.get('calculation_method', 'actual').upper()}")
-
-            # Add methodology explanation
-            doc.add_paragraph('')
-            doc.add_heading('Scoring Methodology', level=2)
-            doc.add_paragraph("• Quantitative indicators: 10 points each (high volume, financial impact, customer facing, revenue critical, regulatory impact)")
-            doc.add_paragraph("• Qualitative indicators: 8 points each (AI/ML usage, complexity, autonomy, explainability, third-party, data sensitivity, real-time, customer impact)")
-            doc.add_paragraph("• Risk amplification: Applied when dangerous combinations detected (e.g., AI/ML + Financial Impact = +30%)")
-            doc.add_paragraph("• Final score capped at 100 points maximum")
-
-            # Key risk factors summary for immediate visibility
-            doc.add_paragraph('')
-            doc.add_heading('Primary Risk Factors', level=2)
-            scoring_details = self._extract_e23_scoring_details(assessment_results)
-
-            # Show top quantitative factors
-            quant_breakdown = scoring_details.get('quantitative_breakdown', {})
-            if quant_breakdown:
-                doc.add_paragraph("Key Quantitative Risk Factors:")
-                for factor, details in list(quant_breakdown.items())[:3]:  # Top 3
-                    factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points - {details.get('reason', 'Risk factor present')}"
-                    doc.add_paragraph(self._strip_markdown_formatting(factor_text))
-
-            # Show top qualitative factors
-            qual_breakdown = scoring_details.get('qualitative_breakdown', {})
-            if qual_breakdown:
-                doc.add_paragraph("")
-                doc.add_paragraph("Key Qualitative Risk Factors:")
-                for factor, details in list(qual_breakdown.items())[:3]:  # Top 3
-                    factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points - {details.get('reason', 'Risk factor present')}"
-                    doc.add_paragraph(self._strip_markdown_formatting(factor_text))
-
-            # Risk amplification if present
-            if scoring_details.get('amplification_applied'):
-                doc.add_paragraph("")
-                doc.add_paragraph("⚠️ Risk Amplification Applied:")
-                amplification_details = scoring_details.get('amplification_details', {})
-                amplification_text = f"• Factor: {amplification_details.get('factor', 1.0)}x - {amplification_details.get('reason', 'High-risk factor combination detected')}"
-                doc.add_paragraph(self._strip_markdown_formatting(amplification_text))
+            doc.add_paragraph('Detailed risk calculation methodology and factor analysis are provided in Annex A - Detailed Risk Impact Calculations.')
 
             # ========================================
             # 2. COMPLIANCE CHECKLIST (PRIMARY FOCUS)
@@ -2634,6 +2568,88 @@ class MCPServer:
 
             disclaimer_text = self._get_e23_assessment_disclaimer(assessment_results)
             doc.add_paragraph(self._strip_markdown_formatting(disclaimer_text))
+
+            # ========================================
+            # ANNEX A - DETAILED RISK IMPACT CALCULATIONS
+            # ========================================
+            doc.add_page_break()
+            doc.add_heading('Annex A - Detailed Risk Impact Calculations', level=1)
+
+            # Extract scoring details for annex
+            scoring_details = self._extract_e23_scoring_details(assessment_results)
+
+            # ACTUAL CALCULATION BREAKDOWN
+            doc.add_heading('Risk Score Calculation Methodology', level=2)
+
+            # Show the actual calculation steps
+            quant_breakdown = scoring_details.get('quantitative_breakdown', {})
+            qual_breakdown = scoring_details.get('qualitative_breakdown', {})
+
+            # Calculate actual component scores
+            quant_total = sum(details.get('score', 0) for details in quant_breakdown.values())
+            qual_total = sum(details.get('score', 0) for details in qual_breakdown.values())
+            base_score = quant_total + qual_total
+
+            # Show step-by-step calculation
+            doc.add_paragraph(f"Step 1 - Quantitative Risk Factors: {quant_total} points")
+            doc.add_paragraph(f"Step 2 - Qualitative Risk Factors: {qual_total} points")
+            doc.add_paragraph(f"Step 3 - Base Score: {quant_total} + {qual_total} = {base_score} points")
+
+            # Show amplification if applied
+            if scoring_details.get('amplification_applied'):
+                amp_details = scoring_details.get('amplification_details', {})
+                multiplier = amp_details.get('factor', 1.0)
+                doc.add_paragraph(f"Step 4 - Risk Amplification: {base_score} × {multiplier} = {risk_score} points")
+                doc.add_paragraph(f"Amplification Reason: {amp_details.get('reason', 'High-risk combinations detected')}")
+            else:
+                doc.add_paragraph(f"Step 4 - Final Score: {base_score} points (no amplification applied)")
+
+            doc.add_paragraph('')
+            doc.add_paragraph(f"CALCULATION METHOD: {scoring_details.get('calculation_method', 'actual').upper()}")
+
+            # Add methodology explanation
+            doc.add_paragraph('')
+            doc.add_heading('Scoring Framework', level=2)
+            doc.add_paragraph("• Quantitative indicators: 10 points each (high volume, financial impact, customer facing, revenue critical, regulatory impact)")
+            doc.add_paragraph("• Qualitative indicators: 8 points each (AI/ML usage, complexity, autonomy, explainability, third-party, data sensitivity, real-time, customer impact)")
+            doc.add_paragraph("• Risk amplification: Applied when dangerous combinations detected (e.g., AI/ML + Financial Impact = +30%)")
+            doc.add_paragraph("• Final score capped at 100 points maximum")
+
+            # Detailed risk factors breakdown
+            doc.add_paragraph('')
+            doc.add_heading('Detailed Risk Factor Analysis', level=2)
+
+            # Show all quantitative factors
+            if quant_breakdown:
+                doc.add_heading('Quantitative Risk Factors', level=3)
+                for factor, details in quant_breakdown.items():
+                    factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points - {details.get('reason', 'Risk factor present')}"
+                    doc.add_paragraph(self._strip_markdown_formatting(factor_text))
+
+            # Show all qualitative factors
+            if qual_breakdown:
+                doc.add_paragraph('')
+                doc.add_heading('Qualitative Risk Factors', level=3)
+                for factor, details in qual_breakdown.items():
+                    factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points - {details.get('reason', 'Risk factor present')}"
+                    doc.add_paragraph(self._strip_markdown_formatting(factor_text))
+
+            # Risk amplification details if present
+            if scoring_details.get('amplification_applied'):
+                doc.add_paragraph('')
+                doc.add_heading('Risk Amplification Analysis', level=3)
+                amplification_details = scoring_details.get('amplification_details', {})
+                amplification_text = f"Amplification Factor: {amplification_details.get('factor', 1.0)}x"
+                doc.add_paragraph(self._strip_markdown_formatting(amplification_text))
+                amplification_reason = f"Reason: {amplification_details.get('reason', 'High-risk factor combination detected')}"
+                doc.add_paragraph(self._strip_markdown_formatting(amplification_reason))
+
+                # Show triggering factors if available
+                triggering_factors = amplification_details.get('triggering_factors', [])
+                if triggering_factors:
+                    doc.add_paragraph('Triggering Factor Combinations:')
+                    for factor in triggering_factors:
+                        doc.add_paragraph(f"• {factor}")
 
             # Save document
             doc.save(file_path)

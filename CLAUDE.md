@@ -129,6 +129,7 @@ pip install -r requirements.txt
 - **Lifecycle Management**: 5-stage model lifecycle (Design, Review, Deployment, Monitoring, Decommission)
 - **Governance Framework**: Risk-based approval authorities and oversight requirements
 - **Professional Compliance**: Built-in warnings about regulatory validation requirements
+- **Report Structure**: Simplified Chapter 1 with executive summary, detailed calculations in Annex A for improved readability
 
 ## Critical Compliance Notes
 
@@ -175,6 +176,12 @@ pip install -r requirements.txt
 - **Rule-Based Risk Detection**: Uses keyword matching and predetermined formulas
 - **Transparent Methodology**: All scoring calculations are deterministic and auditable
 - **No AI Risk Interpretation**: Server provides structure, Claude Desktop provides reasoning
+
+### OSFI E-23 Report Structure (v1.8.1+)
+- **Simplified Chapter 1**: Focuses on executive summary and overall risk rating for improved readability
+- **Comprehensive Annex A**: Contains detailed risk calculations, step-by-step methodology, and factor analysis
+- **Enhanced User Experience**: Technical details segregated from executive summary while maintaining full transparency
+- **Mathematical Transparency**: All calculation steps preserved in Annex A with explicit factor breakdowns
 
 ### Error Handling
 - **Graceful Degradation**: Missing data files trigger default framework creation
