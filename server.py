@@ -2449,22 +2449,61 @@ class MCPServer:
             # ========================================
             doc.add_heading('3. Risk Assessment Summary', level=1)
 
+            # Risk Rating Calculation Detail
+            doc.add_heading('Risk Rating Calculation', level=2)
+            rating_breakdown = self._generate_e23_rating_breakdown(assessment_results, risk_level, risk_score)
+            doc.add_paragraph(self._strip_markdown_formatting(rating_breakdown))
+
+            # Detailed scoring breakdown
+            doc.add_heading('Scoring Breakdown', level=2)
+            scoring_details = self._extract_e23_scoring_details(assessment_results)
+
+            # Quantitative factors table
+            doc.add_paragraph("Quantitative Risk Factors:")
+            quant_breakdown = scoring_details.get('quantitative_breakdown', {})
+            for factor, details in quant_breakdown.items():
+                factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points"
+                if details.get('reason'):
+                    factor_text += f" - {details['reason']}"
+                doc.add_paragraph(factor_text)
+
+            doc.add_paragraph("")
+            doc.add_paragraph("Qualitative Risk Factors:")
+            qual_breakdown = scoring_details.get('qualitative_breakdown', {})
+            for factor, details in qual_breakdown.items():
+                factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points"
+                if details.get('reason'):
+                    factor_text += f" - {details['reason']}"
+                doc.add_paragraph(factor_text)
+
+            # Risk amplification analysis
+            if scoring_details.get('amplification_applied'):
+                doc.add_paragraph("")
+                doc.add_heading('Risk Amplification Analysis', level=2)
+                amplification_details = scoring_details.get('amplification_details', {})
+                doc.add_paragraph(f"Amplification Factor: {amplification_details.get('factor', 1.0)}x")
+                doc.add_paragraph(f"Reason: {amplification_details.get('reason', 'Standard risk level assessment')}")
+
+                amp_factors = amplification_details.get('triggering_factors', [])
+                if amp_factors:
+                    doc.add_paragraph("Triggering Factors:")
+                    for factor in amp_factors:
+                        p = doc.add_paragraph(f"• {factor}")
+
             # Model description
             doc.add_heading('Model Description', level=2)
             doc.add_paragraph(self._strip_markdown_formatting(project_description))
 
-            # Key risk factors
-            doc.add_heading('Key Risk Factors', level=2)
-            risk_factors = self._extract_e23_key_risk_factors(assessment_results)
-            for factor in risk_factors:
-                p = doc.add_paragraph(self._strip_markdown_formatting(factor))
-                p.style = 'List Bullet'
+            # Risk level justification
+            doc.add_heading('Risk Level Justification', level=2)
+            justification = self._generate_e23_risk_justification(assessment_results, risk_level, risk_score)
+            doc.add_paragraph(self._strip_markdown_formatting(justification))
 
-            # Risk interactions
-            doc.add_heading('Risk Interactions & Amplifiers', level=2)
-            risk_interactions = self._extract_e23_risk_interactions(assessment_results)
-            for interaction in risk_interactions[:5]:  # Limit to top 5
-                p = doc.add_paragraph(self._strip_markdown_formatting(interaction))
+            # Key risk factors summary
+            doc.add_heading('Primary Risk Drivers', level=2)
+            risk_factors = self._extract_e23_key_risk_factors(assessment_results)
+            for factor in risk_factors[:5]:  # Top 5 most important
+                p = doc.add_paragraph(self._strip_markdown_formatting(factor))
                 p.style = 'List Bullet'
 
             # ========================================
@@ -3084,7 +3123,151 @@ class MCPServer:
         }
 
         return requirements_map.get(risk_level, requirements_map["Medium"])
-    
+
+    def _generate_e23_rating_breakdown(self, assessment_results: Dict[str, Any], risk_level: str, risk_score: int) -> str:
+        """Generate detailed risk rating breakdown explanation."""
+        total_possible = 100
+        percentage = round((risk_score / total_possible) * 100, 1)
+
+        breakdown_text = f"The model achieved a risk score of {risk_score} out of {total_possible} possible points ({percentage}%), "
+
+        # Risk level thresholds
+        if risk_score <= 25:
+            threshold_text = "falling within the Low risk range (0-25 points)"
+        elif risk_score <= 50:
+            threshold_text = "falling within the Medium risk range (26-50 points)"
+        elif risk_score <= 75:
+            threshold_text = "falling within the High risk range (51-75 points)"
+        else:
+            threshold_text = "falling within the Critical risk range (76-100 points)"
+
+        breakdown_text += threshold_text + ". "
+
+        # Add scoring methodology explanation
+        breakdown_text += "This score reflects a combination of quantitative factors (portfolio size, financial impact, operational criticality) and qualitative factors (model complexity, AI/ML usage, explainability, third-party dependencies). "
+
+        # Add amplification note if applicable
+        amplification_applied = assessment_results.get('amplification_applied', False)
+        if amplification_applied:
+            breakdown_text += "Risk amplification was applied due to high-risk factor combinations, such as AI/ML usage in critical financial decisions."
+
+        return breakdown_text
+
+    def _extract_e23_scoring_details(self, assessment_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract detailed scoring breakdown from assessment results."""
+        scoring_details = {
+            "quantitative_breakdown": {},
+            "qualitative_breakdown": {},
+            "amplification_applied": False,
+            "amplification_details": {}
+        }
+
+        # Extract quantitative factors if available
+        quant_factors = assessment_results.get('quantitative_factors', {})
+        quant_scores = assessment_results.get('quantitative_scores', {})
+
+        for factor, present in quant_factors.items():
+            if present:
+                score = quant_scores.get(factor, 10)  # Default score
+                reason = self._get_quantitative_factor_reason(factor, assessment_results)
+                scoring_details["quantitative_breakdown"][factor] = {
+                    "score": score,
+                    "reason": reason,
+                    "present": True
+                }
+
+        # Extract qualitative factors if available
+        qual_factors = assessment_results.get('qualitative_factors', {})
+        qual_scores = assessment_results.get('qualitative_scores', {})
+
+        for factor, present in qual_factors.items():
+            if present:
+                score = qual_scores.get(factor, 8)  # Default score
+                reason = self._get_qualitative_factor_reason(factor, assessment_results)
+                scoring_details["qualitative_breakdown"][factor] = {
+                    "score": score,
+                    "reason": reason,
+                    "present": True
+                }
+
+        # Check for amplification
+        amplification = assessment_results.get('risk_amplification', {})
+        if amplification.get('applied', False):
+            scoring_details["amplification_applied"] = True
+            scoring_details["amplification_details"] = {
+                "factor": amplification.get('factor', 1.2),
+                "reason": amplification.get('reason', 'High-risk factor combination detected'),
+                "triggering_factors": amplification.get('triggers', [])
+            }
+
+        return scoring_details
+
+    def _get_quantitative_factor_reason(self, factor: str, assessment_results: Dict[str, Any]) -> str:
+        """Get explanation for why a quantitative factor was scored."""
+        reasons = {
+            "portfolio_size": "Large portfolio size increases potential impact of model errors",
+            "financial_impact": "Significant financial decisions affected by model outputs",
+            "operational_criticality": "Model is critical to core business operations",
+            "customer_base": "Large customer base affected by model decisions",
+            "transaction_volume": "High transaction volume amplifies model impact",
+            "regulatory_exposure": "Model subject to regulatory oversight and compliance"
+        }
+        return reasons.get(factor, f"Factor {factor.replace('_', ' ')} identified as risk contributor")
+
+    def _get_qualitative_factor_reason(self, factor: str, assessment_results: Dict[str, Any]) -> str:
+        """Get explanation for why a qualitative factor was scored."""
+        reasons = {
+            "ai_ml_usage": "AI/ML models present inherent interpretability and bias risks",
+            "model_complexity": "Complex models are harder to validate and control",
+            "explainability": "Limited explainability reduces oversight effectiveness",
+            "third_party_dependency": "Third-party components introduce additional risk vectors",
+            "data_quality_issues": "Poor data quality leads to unreliable model outputs",
+            "human_oversight": "Limited human oversight increases error propagation risk",
+            "update_frequency": "Frequent updates increase operational and validation burden"
+        }
+        return reasons.get(factor, f"Factor {factor.replace('_', ' ')} contributes to model risk profile")
+
+    def _generate_e23_risk_justification(self, assessment_results: Dict[str, Any], risk_level: str, risk_score: int) -> str:
+        """Generate detailed justification for the risk level assignment."""
+        justification = f"The {risk_level} risk classification is justified based on the following analysis:\n\n"
+
+        # Analyze primary risk drivers
+        quant_factors = assessment_results.get('quantitative_factors', {})
+        qual_factors = assessment_results.get('qualitative_factors', {})
+
+        primary_drivers = []
+
+        # High-impact quantitative factors
+        high_impact_quant = [factor for factor, present in quant_factors.items() if present]
+        if high_impact_quant:
+            drivers_text = ", ".join([factor.replace('_', ' ') for factor in high_impact_quant[:3]])
+            primary_drivers.append(f"Quantitative factors: {drivers_text}")
+
+        # High-impact qualitative factors
+        high_impact_qual = [factor for factor, present in qual_factors.items() if present]
+        if high_impact_qual:
+            drivers_text = ", ".join([factor.replace('_', ' ') for factor in high_impact_qual[:3]])
+            primary_drivers.append(f"Qualitative factors: {drivers_text}")
+
+        if primary_drivers:
+            justification += "Primary risk drivers include: " + "; ".join(primary_drivers) + ".\n\n"
+
+        # Risk level specific justification
+        level_justifications = {
+            "Low": "The model presents manageable risks that can be addressed through standard governance practices.",
+            "Medium": "The model requires enhanced oversight and monitoring to manage identified risk factors effectively.",
+            "High": "The model presents significant risks requiring robust governance, independent validation, and comprehensive monitoring.",
+            "Critical": "The model presents maximum risk requiring extensive controls, continuous monitoring, and board-level oversight."
+        }
+
+        justification += level_justifications.get(risk_level, "The model requires appropriate risk management controls.")
+
+        # Add amplification note if applicable
+        if assessment_results.get('risk_amplification', {}).get('applied'):
+            justification += "\n\nRisk amplification was applied due to dangerous factor combinations that multiply the individual risk components."
+
+        return justification
+
     def _generate_e23_risk_methodology(self, assessment_results: Dict[str, Any]) -> str:
         """Generate risk rating methodology description."""
         return "The model risk rating follows OSFI E-23 methodology, evaluating both quantitative and qualitative risk factors. Quantitative factors include portfolio size, financial impact, and operational criticality. Qualitative factors assess model complexity, autonomy level, explainability, and third-party dependencies. Risk amplification is applied when high-risk combinations are identified, such as AI/ML usage in critical financial decisions."
