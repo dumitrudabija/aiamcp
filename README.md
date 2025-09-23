@@ -417,7 +417,14 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Key Fixes and Improvements
 
-### v1.10.0 - Streamlined Reports & Enhanced Usability (Latest)
+### v1.11.0 - Enhanced Risk Level Granularity & Analysis (Latest)
+- **Major Enhancement**: Added detailed risk scoring breakdown with individual factor analysis and point allocation
+- **Feature**: Risk amplification analysis showing when and why risk multipliers are applied (e.g., 1.3x factor)
+- **Improvement**: Clear risk level justification explaining methodology and threshold classifications
+- **Addition**: Transparent scoring display with percentage calculations and audit trail documentation
+- **Impact**: Users now see exactly how risk scores are calculated and why specific risk levels are assigned
+
+### v1.10.0 - Streamlined Reports & Enhanced Usability
 - **Major Improvement**: Completely redesigned OSFI E-23 reports from 12 chapters to 5 focused sections
 - **Enhancement**: Compliance checklist now primary focus with priority levels (Critical/High/Medium/Low) and timelines
 - **Fix**: Removed markdown formatting artifacts (** elements) from all generated reports
