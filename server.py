@@ -2408,10 +2408,49 @@ class MCPServer:
             doc.add_paragraph(f'Risk Score: {risk_score}/100 points')
             doc.add_paragraph(f'Framework: OSFI Guideline E-23 (Effective May 1, 2027)')
 
-            # Risk level summary
+            # Enhanced risk level summary with detailed breakdown
             doc.add_paragraph('')
-            risk_summary = self._generate_e23_risk_summary(risk_level, risk_score, project_description)
-            doc.add_paragraph(self._strip_markdown_formatting(risk_summary))
+            doc.add_heading('Risk Rating Justification', level=2)
+
+            # Detailed risk justification
+            risk_justification = self._generate_e23_risk_justification(assessment_results, risk_level, risk_score)
+            doc.add_paragraph(self._strip_markdown_formatting(risk_justification))
+
+            # Quick scoring overview
+            doc.add_paragraph('')
+            doc.add_heading('Scoring Overview', level=2)
+            rating_breakdown = self._generate_e23_rating_breakdown(assessment_results, risk_level, risk_score)
+            doc.add_paragraph(self._strip_markdown_formatting(rating_breakdown))
+
+            # Key risk factors summary for immediate visibility
+            doc.add_paragraph('')
+            doc.add_heading('Primary Risk Factors', level=2)
+            scoring_details = self._extract_e23_scoring_details(assessment_results)
+
+            # Show top quantitative factors
+            quant_breakdown = scoring_details.get('quantitative_breakdown', {})
+            if quant_breakdown:
+                doc.add_paragraph("Key Quantitative Risk Factors:")
+                for factor, details in list(quant_breakdown.items())[:3]:  # Top 3
+                    factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points - {details.get('reason', 'Risk factor present')}"
+                    doc.add_paragraph(self._strip_markdown_formatting(factor_text))
+
+            # Show top qualitative factors
+            qual_breakdown = scoring_details.get('qualitative_breakdown', {})
+            if qual_breakdown:
+                doc.add_paragraph("")
+                doc.add_paragraph("Key Qualitative Risk Factors:")
+                for factor, details in list(qual_breakdown.items())[:3]:  # Top 3
+                    factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points - {details.get('reason', 'Risk factor present')}"
+                    doc.add_paragraph(self._strip_markdown_formatting(factor_text))
+
+            # Risk amplification if present
+            if scoring_details.get('amplification_applied'):
+                doc.add_paragraph("")
+                doc.add_paragraph("⚠️ Risk Amplification Applied:")
+                amplification_details = scoring_details.get('amplification_details', {})
+                amplification_text = f"• Factor: {amplification_details.get('factor', 1.0)}x - {amplification_details.get('reason', 'High-risk factor combination detected')}"
+                doc.add_paragraph(self._strip_markdown_formatting(amplification_text))
 
             # ========================================
             # 2. COMPLIANCE CHECKLIST (PRIMARY FOCUS)
