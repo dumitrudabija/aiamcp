@@ -2416,11 +2416,45 @@ class MCPServer:
             risk_justification = self._generate_e23_risk_justification(assessment_results, risk_level, risk_score)
             doc.add_paragraph(self._strip_markdown_formatting(risk_justification))
 
-            # Quick scoring overview
+            # ACTUAL CALCULATION BREAKDOWN
             doc.add_paragraph('')
-            doc.add_heading('Scoring Overview', level=2)
-            rating_breakdown = self._generate_e23_rating_breakdown(assessment_results, risk_level, risk_score)
-            doc.add_paragraph(self._strip_markdown_formatting(rating_breakdown))
+            doc.add_heading('Actual Risk Score Calculation', level=2)
+
+            scoring_details = self._extract_e23_scoring_details(assessment_results)
+
+            # Show the actual calculation steps
+            quant_breakdown = scoring_details.get('quantitative_breakdown', {})
+            qual_breakdown = scoring_details.get('qualitative_breakdown', {})
+
+            # Calculate actual component scores
+            quant_total = sum(details.get('score', 0) for details in quant_breakdown.values())
+            qual_total = sum(details.get('score', 0) for details in qual_breakdown.values())
+            base_score = quant_total + qual_total
+
+            # Show step-by-step calculation
+            doc.add_paragraph(f"Step 1 - Quantitative Risk Factors: {quant_total} points")
+            doc.add_paragraph(f"Step 2 - Qualitative Risk Factors: {qual_total} points")
+            doc.add_paragraph(f"Step 3 - Base Score: {quant_total} + {qual_total} = {base_score} points")
+
+            # Show amplification if applied
+            if scoring_details.get('amplification_applied'):
+                amp_details = scoring_details.get('amplification_details', {})
+                multiplier = amp_details.get('factor', 1.0)
+                doc.add_paragraph(f"Step 4 - Risk Amplification: {base_score} × {multiplier} = {risk_score} points")
+                doc.add_paragraph(f"Amplification Reason: {amp_details.get('reason', 'High-risk combinations detected')}")
+            else:
+                doc.add_paragraph(f"Step 4 - Final Score: {base_score} points (no amplification applied)")
+
+            doc.add_paragraph('')
+            doc.add_paragraph(f"CALCULATION METHOD: {scoring_details.get('calculation_method', 'actual').upper()}")
+
+            # Add methodology explanation
+            doc.add_paragraph('')
+            doc.add_heading('Scoring Methodology', level=2)
+            doc.add_paragraph("• Quantitative indicators: 10 points each (high volume, financial impact, customer facing, revenue critical, regulatory impact)")
+            doc.add_paragraph("• Qualitative indicators: 8 points each (AI/ML usage, complexity, autonomy, explainability, third-party, data sensitivity, real-time, customer impact)")
+            doc.add_paragraph("• Risk amplification: Applied when dangerous combinations detected (e.g., AI/ML + Financial Impact = +30%)")
+            doc.add_paragraph("• Final score capped at 100 points maximum")
 
             # Key risk factors summary for immediate visibility
             doc.add_paragraph('')
@@ -3193,60 +3227,119 @@ class MCPServer:
         return breakdown_text
 
     def _extract_e23_scoring_details(self, assessment_results: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract detailed scoring breakdown from assessment results."""
+        """Extract ACTUAL scoring breakdown from assessment results using real OSFI E-23 calculation logic."""
         scoring_details = {
             "quantitative_breakdown": {},
             "qualitative_breakdown": {},
             "amplification_applied": False,
-            "amplification_details": {}
+            "amplification_details": {},
+            "calculation_method": "actual"
         }
 
-        # Extract quantitative factors if available
-        quant_factors = assessment_results.get('quantitative_factors', {})
-        quant_scores = assessment_results.get('quantitative_scores', {})
+        # Try to get actual risk analysis data first
+        risk_analysis = assessment_results.get('risk_analysis', {})
 
-        # Extract qualitative factors if available (need to define qual_factors first)
-        qual_factors = assessment_results.get('qualitative_factors', {})
+        if risk_analysis:
+            # Extract ACTUAL quantitative indicators and scores
+            quant_indicators = risk_analysis.get('quantitative_indicators', {})
 
-        # If no detailed factors are available, infer from assessment data
-        if not quant_factors and not qual_factors:
+            for indicator, present in quant_indicators.items():
+                if present:
+                    scoring_details["quantitative_breakdown"][indicator] = {
+                        "score": 10,  # Each quantitative indicator = 10 points
+                        "reason": self._get_osfi_quantitative_reason(indicator),
+                        "present": True
+                    }
+
+            # Extract ACTUAL qualitative indicators and scores
+            qual_indicators = risk_analysis.get('qualitative_indicators', {})
+
+            for indicator, present in qual_indicators.items():
+                if present:
+                    scoring_details["qualitative_breakdown"][indicator] = {
+                        "score": 8,  # Each qualitative indicator = 8 points
+                        "reason": self._get_osfi_qualitative_reason(indicator),
+                        "present": True
+                    }
+
+            # Calculate actual multipliers applied
+            quant_score = risk_analysis.get('quantitative_score', 0)
+            qual_score = risk_analysis.get('qualitative_score', 0)
+            base_score = quant_score + qual_score
+            final_score = self._extract_e23_risk_score(assessment_results)
+
+            if base_score > 0:
+                actual_multiplier = final_score / base_score
+                if actual_multiplier > 1.05:  # More than 5% increase indicates amplification
+                    scoring_details["amplification_applied"] = True
+                    scoring_details["amplification_details"] = {
+                        "factor": round(actual_multiplier, 2),
+                        "base_score": base_score,
+                        "final_score": final_score,
+                        "reason": self._determine_amplification_reason(quant_indicators, qual_indicators),
+                        "triggering_factors": self._get_actual_amplification_triggers(quant_indicators, qual_indicators)
+                    }
+        else:
+            # Fallback to inference if no risk_analysis available
             scoring_details = self._infer_scoring_details_from_assessment(assessment_results)
-            return scoring_details
-
-        for factor, present in quant_factors.items():
-            if present:
-                score = quant_scores.get(factor, 10)  # Default score
-                reason = self._get_quantitative_factor_reason(factor, assessment_results)
-                scoring_details["quantitative_breakdown"][factor] = {
-                    "score": score,
-                    "reason": reason,
-                    "present": True
-                }
-
-        # Get qualitative scores
-        qual_scores = assessment_results.get('qualitative_scores', {})
-
-        for factor, present in qual_factors.items():
-            if present:
-                score = qual_scores.get(factor, 8)  # Default score
-                reason = self._get_qualitative_factor_reason(factor, assessment_results)
-                scoring_details["qualitative_breakdown"][factor] = {
-                    "score": score,
-                    "reason": reason,
-                    "present": True
-                }
-
-        # Check for amplification
-        amplification = assessment_results.get('risk_amplification', {})
-        if amplification.get('applied', False):
-            scoring_details["amplification_applied"] = True
-            scoring_details["amplification_details"] = {
-                "factor": amplification.get('factor', 1.2),
-                "reason": amplification.get('reason', 'High-risk factor combination detected'),
-                "triggering_factors": amplification.get('triggers', [])
-            }
+            scoring_details["calculation_method"] = "inferred"
 
         return scoring_details
+
+    def _get_osfi_quantitative_reason(self, indicator: str) -> str:
+        """Get official OSFI E-23 reasons for quantitative indicators."""
+        reasons = {
+            "high_volume": "High transaction/decision volume amplifies potential model impact",
+            "financial_impact": "Direct financial decisions create significant loss potential",
+            "customer_facing": "Customer-impacting decisions require enhanced oversight",
+            "revenue_critical": "Revenue-critical functions present business continuity risks",
+            "regulatory_impact": "Regulatory exposure requires compliance-grade governance"
+        }
+        return reasons.get(indicator, f"{indicator.replace('_', ' ').title()} contributes to operational risk")
+
+    def _get_osfi_qualitative_reason(self, indicator: str) -> str:
+        """Get official OSFI E-23 reasons for qualitative indicators."""
+        reasons = {
+            "ai_ml_usage": "AI/ML models present interpretability and bias validation challenges",
+            "high_complexity": "Complex models are difficult to validate and monitor effectively",
+            "autonomous_decisions": "Autonomous systems reduce human oversight and intervention ability",
+            "black_box": "Black-box models limit explainability and audit capability",
+            "third_party": "Third-party dependencies introduce external risk vectors",
+            "data_sensitive": "Sensitive data processing requires enhanced privacy controls",
+            "real_time": "Real-time processing limits validation and intervention windows",
+            "customer_impact": "Direct customer impact requires fairness and bias controls"
+        }
+        return reasons.get(indicator, f"{indicator.replace('_', ' ').title()} contributes to model risk profile")
+
+    def _determine_amplification_reason(self, quant_indicators: dict, qual_indicators: dict) -> str:
+        """Determine why amplification was applied based on actual indicator combinations."""
+        reasons = []
+
+        if quant_indicators.get("financial_impact") and qual_indicators.get("ai_ml_usage"):
+            reasons.append("AI/ML usage in financial decision-making (+30%)")
+        if quant_indicators.get("customer_facing") and qual_indicators.get("autonomous_decisions"):
+            reasons.append("Autonomous customer-facing decisions (+20%)")
+        if qual_indicators.get("black_box") and quant_indicators.get("regulatory_impact"):
+            reasons.append("Black-box models with regulatory impact (+25%)")
+        if qual_indicators.get("third_party") and quant_indicators.get("revenue_critical"):
+            reasons.append("Third-party dependencies in critical systems (+15%)")
+
+        return "; ".join(reasons) if reasons else "High-risk factor combination detected"
+
+    def _get_actual_amplification_triggers(self, quant_indicators: dict, qual_indicators: dict) -> list:
+        """Get actual amplification triggers that were applied."""
+        triggers = []
+
+        if quant_indicators.get("financial_impact") and qual_indicators.get("ai_ml_usage"):
+            triggers.append("Financial Impact + AI/ML Usage")
+        if quant_indicators.get("customer_facing") and qual_indicators.get("autonomous_decisions"):
+            triggers.append("Customer Facing + Autonomous Decisions")
+        if qual_indicators.get("black_box") and quant_indicators.get("regulatory_impact"):
+            triggers.append("Black Box + Regulatory Impact")
+        if qual_indicators.get("third_party") and quant_indicators.get("revenue_critical"):
+            triggers.append("Third Party + Revenue Critical")
+
+        return triggers
 
     def _infer_scoring_details_from_assessment(self, assessment_results: Dict[str, Any]) -> Dict[str, Any]:
         """Infer scoring details when detailed breakdown is not available."""
