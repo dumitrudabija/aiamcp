@@ -3872,9 +3872,12 @@ class MCPServer:
 
         logger.info(f"OSFI E-23 model risk assessment for: {project_name}")
 
-        # Validate project description adequacy for framework assessment
+        # Validate project description adequacy for OSFI E-23 framework assessment
         validation_result = self.description_validator.validate_description(project_description)
-        if not validation_result["is_valid"]:
+        # Use OSFI E-23 specific readiness instead of combined validation
+        osfi_ready = validation_result["framework_readiness"].get("osfi_e23_framework", False)
+
+        if not osfi_ready:
             return {
                 "assessment": {
                     "status": "validation_failed",
