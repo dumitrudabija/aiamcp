@@ -1,8 +1,8 @@
 # AIA Assessment MCP Project - Current Status
 
-**Last Updated**: January 19, 2025, 12:00 PM (Toronto)
+**Last Updated**: September 30, 2025, 2:00 PM (Toronto)
 **Project Location**: `/Users/dumitru.dabija/Documents/aia-assessment-mcp`
-**Status**: ✅ FULLY OPERATIONAL - COMPLETE REGULATORY FRAMEWORK WITH TRANSPARENCY SYSTEM
+**Status**: ✅ FULLY OPERATIONAL - COMPLETE REGULATORY FRAMEWORK WITH ENHANCED BEHAVIORAL CONTROLS
 
 ## Project Overview
 
@@ -42,9 +42,23 @@ It provides both MCP (Model Context Protocol) integration with Claude Desktop an
 - **Workflow Management**: ✅ INTELLIGENT AUTOMATION WITH STATE PERSISTENCE
 - **Transparency System**: ✅ MCP VS CLAUDE CONTENT DISTINCTION IMPLEMENTED
 
-## Recent Critical Updates (v1.6.0 - v1.8.0)
+## Recent Critical Updates (v1.6.0 - v1.8.1)
 
-### 🔍 **MCP TRANSPARENCY & AI DISTINCTION SYSTEM - v1.8.0 (Latest)**
+### 🎯 **BEHAVIORAL CONTROL & AUTO-TRIGGER SYSTEM - v1.8.1 (Latest)**
+**Feature**: Enhanced get_server_introduction tool with explicit behavioral instructions and anti-invention controls
+- **Mandatory Auto-Trigger**: Tool description now instructs Claude to call at START of assessment conversations
+- **Explicit Trigger Conditions**: Clear list of when to call (user mentions assessment, AIA, OSFI, compliance, etc.)
+- **Step-by-Step Workflow**: Detailed instructions on what to do after calling the tool
+- **Anti-Invention Directive**: assistant_directive in response prevents Claude from adding time estimates or invented content
+- **Framework Selection Workflow**: Requires waiting for user choice before proceeding with assessments
+
+**Technical Implementation**:
+- **Enhanced Tool Description**: Multi-line description with WHEN to call and WHAT to do after sections
+- **Wrong vs Correct Flow Examples**: Explicit examples showing incorrect immediate workflow creation vs correct introduction-first approach
+- **Assistant Directive Response Field**: New first field in tool response instructing Claude to present only official MCP data
+- **Content Distinction Requirement**: Forces Claude to state "That's my interpretation as AI, not from the official MCP data" when adding analysis
+
+### 🔍 **MCP TRANSPARENCY & AI DISTINCTION SYSTEM - v1.8.0**
 **Feature**: Complete transparency system distinguishing official regulatory data from AI interpretation
 - **Server Introduction Tool**: Comprehensive capabilities overview and usage guidance
 - **Visual Content Markers**: 🔧 MCP SERVER (Official) vs 🧠 CLAUDE ANALYSIS (AI-Generated)
@@ -53,7 +67,7 @@ It provides both MCP (Model Context Protocol) integration with Claude Desktop an
 - **Professional Validation Emphasis**: Regulatory compliance warnings throughout all responses
 
 **Technical Implementation**:
-- **get_server_introduction**: Essential transparency tool providing complete server orientation
+- **get_server_introduction**: Critical transparency tool providing complete server orientation
 - **Enhanced Tool Responses**: All tools now include visual markers distinguishing content sources
 - **Compliance Framework**: Built-in warnings and professional validation requirements
 - **One-Time Orientation**: Comprehensive introduction without need for repeated calls

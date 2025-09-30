@@ -151,7 +151,7 @@ class MCPServer:
         tools = [
             {
                 "name": "get_server_introduction",
-                "description": "🔍 TRANSPARENCY & CAPABILITIES: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework data (MCP) vs AI-generated interpretations (Claude). Essential for understanding data sources and regulatory compliance requirements.",
+                "description": "🚨 CRITICAL: This tool MUST be called at the START of any assessment conversation to orient users.\n\nWHEN TO CALL THIS TOOL:\nCall this tool IMMEDIATELY when a user:\n- Says they want to assess, evaluate, or analyze a project/system/model\n- Mentions AIA, OSFI, or compliance/regulatory requirements\n- Provides a project description asking for assessment\n- Asks about which framework to use\n- Says they're starting a new assessment or compliance process\n- Any variation of 'help me with [AI/model/system] compliance'\n\nWHAT TO DO AFTER CALLING THIS TOOL:\n1. Present the framework_selection_guide to help user choose AIA vs OSFI vs Combined\n2. Explain the workflow options available\n3. Ask the user which framework applies to their project\n4. WAIT for user to choose before proceeding with any assessment\n5. Do NOT immediately create workflows or start assessments without user choice\n\nWRONG FLOW ❌:\nUser: 'Assess my AI project'\nClaude: [Creates workflow immediately]\n\nCORRECT FLOW ✅:\nUser: 'Assess my AI project'\nClaude: [Calls get_server_introduction]\nClaude: 'Let me explain your options first. You can use: AIA for government systems, OSFI E-23 for financial institutions, or Combined. Which applies?'\nUser: [Chooses framework]\nClaude: [Proceeds with chosen approach]\n\nThis tool provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework data (MCP) vs AI-generated interpretations (Claude).",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -580,6 +580,9 @@ class MCPServer:
         """Provide comprehensive server introduction and transparency information."""
 
         return {
+            "assistant_directive": {
+                "critical_instruction": "Present ONLY the information contained in this response. Do NOT add time estimates, interpretations, recommendations, or other content not explicitly provided here. If the user asks questions requiring interpretation, clearly state 'That's my interpretation as AI, not from the official MCP data.' Distinguish between official framework data (from this tool) and your own analysis."
+            },
             "server_introduction": {
                 "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
                 "version": "1.7.0",

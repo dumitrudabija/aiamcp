@@ -84,9 +84,11 @@ pip install -r requirements.txt
 - **⚠️ COMPLIANCE WARNINGS**: Professional validation requirements, regulatory compliance notes
 
 ### Transparency Tool
-- **get_server_introduction**: Essential first-call tool that explains capabilities, workflows, and MCP vs Claude distinction
-- **Auto-triggered context**: Should be called when user inquiries suggest need for regulatory assessment tools
-- **One-time per conversation**: Provides comprehensive orientation without need for repeated calls
+- **get_server_introduction**: CRITICAL first-call tool that MUST be called at the START of assessment conversations
+- **Mandatory triggers**: User mentions assessment, AIA, OSFI, compliance, or provides project description for evaluation
+- **Behavioral instructions**: Tool description now includes explicit instructions for when to call and what to do after
+- **Anti-invention directive**: Tool response includes assistant_directive preventing Claude from adding time estimates or invented content
+- **Framework selection guidance**: After calling, present options and WAIT for user to choose before proceeding
 
 ## Workflow Management
 
