@@ -722,6 +722,44 @@ class MCPServer:
         tool_arguments = arguments.get("toolArguments", {})
 
         try:
+            # CRITICAL FIX: Auto-inject assessment results for export tools if missing
+            # This prevents generating misleading reports with default values (0/100, "Medium")
+            if tool_name in ["export_assessment_report", "export_e23_report"]:
+                session = self.workflow_engine.get_session(session_id)
+                if session:
+                    assessment_results_arg = tool_arguments.get("assessment_results", {})
+
+                    # Check if assessment_results is empty or missing required fields
+                    is_empty = not assessment_results_arg or len(assessment_results_arg) == 0
+
+                    # For OSFI E-23, check for required risk assessment fields
+                    if tool_name == "export_e23_report":
+                        has_risk_data = "risk_score" in assessment_results_arg or "risk_level" in assessment_results_arg
+                        if is_empty or not has_risk_data:
+                            # Attempt to auto-inject from workflow state
+                            framework_results = self._get_assessment_results_for_export(session, "osfi_e23")
+                            if framework_results:
+                                # Unwrap 'assessment' wrapper if present
+                                if "assessment" in framework_results and isinstance(framework_results["assessment"], dict):
+                                    tool_arguments["assessment_results"] = framework_results["assessment"]
+                                else:
+                                    tool_arguments["assessment_results"] = framework_results
+                                logger.info(f"Auto-injected OSFI E-23 assessment results from workflow state for {session_id}")
+
+                    # For AIA, check for required assessment fields
+                    elif tool_name == "export_assessment_report":
+                        has_assessment_data = "score" in assessment_results_arg or "impact_level" in assessment_results_arg
+                        if is_empty or not has_assessment_data:
+                            # Attempt to auto-inject from workflow state
+                            framework_results = self._get_assessment_results_for_export(session, "aia")
+                            if framework_results:
+                                # Unwrap 'assessment' wrapper if present
+                                if "assessment" in framework_results and isinstance(framework_results["assessment"], dict):
+                                    tool_arguments["assessment_results"] = framework_results["assessment"]
+                                else:
+                                    tool_arguments["assessment_results"] = framework_results
+                                logger.info(f"Auto-injected AIA assessment results from workflow state for {session_id}")
+
             # Execute the actual tool
             if tool_name == "validate_project_description":
                 tool_result = self._validate_project_description(tool_arguments)
@@ -2100,8 +2138,37 @@ class MCPServer:
         project_description = arguments.get("project_description", "")
         assessment_results = arguments.get("assessment_results", {})
         custom_filename = arguments.get("custom_filename")
-        
+
         logger.info(f"Exporting assessment report for project: {project_name}")
+
+        # CRITICAL FIX: Validate that assessment_results contains required data
+        # Prevent generating misleading reports with default/incomplete values
+        if not assessment_results or len(assessment_results) == 0:
+            return {
+                "error": "export_failed",
+                "reason": "Cannot export AIA report: assessment_results is empty or missing",
+                "required_action": "Execute 'assess_project' or 'functional_preview' tool first to generate assessment data",
+                "workflow_guidance": "If using workflow, the system should auto-inject results. This error indicates no assessment has been completed.",
+                "critical_warning": "⚠️ COMPLIANCE RISK: Exporting without assessment data would create misleading documents with incomplete or default values"
+            }
+
+        # Check for minimum required assessment fields (score or impact_level)
+        has_score = "score" in assessment_results or "functional_risk_score" in assessment_results
+        has_impact_level = "impact_level" in assessment_results
+
+        if not has_score and not has_impact_level:
+            return {
+                "error": "export_failed",
+                "reason": "Cannot export AIA report: assessment_results missing required assessment fields",
+                "missing_fields": {
+                    "score_missing": not has_score,
+                    "impact_level_missing": not has_impact_level
+                },
+                "required_fields": ["score (or functional_risk_score)", "impact_level"],
+                "required_action": "Execute 'assess_project' or 'functional_preview' tool to generate complete assessment",
+                "received_data": list(assessment_results.keys()) if assessment_results else [],
+                "critical_warning": "⚠️ COMPLIANCE RISK: Incomplete assessment data cannot produce valid regulatory documents"
+            }
         
         try:
             # Create AIA_Assessments directory if it doesn't exist
@@ -2368,6 +2435,35 @@ class MCPServer:
         custom_filename = arguments.get("custom_filename")
 
         logger.info(f"Exporting streamlined OSFI E-23 report for project: {project_name}")
+
+        # CRITICAL FIX: Validate that assessment_results contains required data
+        # Prevent generating misleading reports with default values (0/100, "Medium")
+        if not assessment_results or len(assessment_results) == 0:
+            return {
+                "error": "export_failed",
+                "reason": "Cannot export OSFI E-23 report: assessment_results is empty or missing",
+                "required_action": "Execute 'assess_model_risk' tool first to generate assessment data",
+                "workflow_guidance": "If using workflow, the system should auto-inject results. This error indicates no assessment has been completed.",
+                "critical_warning": "⚠️ COMPLIANCE RISK: Exporting without assessment data would create misleading documents with default values (Risk Score: 0/100, Risk Level: Medium)"
+            }
+
+        # Check for minimum required risk assessment fields
+        has_risk_score = "risk_score" in assessment_results or "overall_score" in assessment_results
+        has_risk_level = "risk_level" in assessment_results or "risk_rating" in assessment_results
+
+        if not has_risk_score or not has_risk_level:
+            return {
+                "error": "export_failed",
+                "reason": "Cannot export OSFI E-23 report: assessment_results missing required risk assessment fields",
+                "missing_fields": {
+                    "risk_score_missing": not has_risk_score,
+                    "risk_level_missing": not has_risk_level
+                },
+                "required_fields": ["risk_score (or overall_score)", "risk_level (or risk_rating)"],
+                "required_action": "Execute 'assess_model_risk' tool to generate complete assessment with risk scoring",
+                "received_data": list(assessment_results.keys()) if assessment_results else [],
+                "critical_warning": "⚠️ COMPLIANCE RISK: Incomplete assessment data cannot produce valid regulatory documents"
+            }
 
         try:
             # Create AIA_Assessments directory if it doesn't exist (reuse same directory)
