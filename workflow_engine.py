@@ -288,6 +288,33 @@ class WorkflowEngine:
             "smart_recommendations": self._generate_smart_routing(session)
         }
 
+    def _check_validation_state(self, session: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Check the validation state from the session.
+
+        Returns:
+            Dict with completed (bool), passed (bool), and validation_message (str)
+        """
+        if "validate_project_description" not in session["completed_tools"]:
+            return {
+                "completed": False,
+                "passed": False,
+                "validation_message": "Validation not yet completed"
+            }
+
+        # Get validation result from tool_results
+        validation_result = session["tool_results"].get("validate_project_description", {})
+        validation_data = validation_result.get("result", {}).get("validation", {})
+
+        is_valid = validation_data.get("is_valid", False)
+        validation_message = validation_data.get("validation_message", "Unknown validation status")
+
+        return {
+            "completed": True,
+            "passed": is_valid,
+            "validation_message": validation_message
+        }
+
     def _detect_assessment_type(self, project_description: str) -> str:
         """Auto-detect assessment type based on project description."""
         description_lower = project_description.lower()
@@ -317,9 +344,31 @@ class WorkflowEngine:
             return AssessmentType.AIA_PREVIEW.value  # Default to AIA preview
 
     def _validate_dependencies(self, session: Dict[str, Any], tool_name: str) -> Dict[str, Any]:
-        """Validate tool dependencies with special handling for export tools."""
+        """Validate tool dependencies with special handling for export tools and validation enforcement."""
         required_deps = self.dependencies.get(tool_name, [])
         completed_tools = session["completed_tools"]
+
+        # CRITICAL FIX: All assessment tools require validation to pass, not just be completed
+        # Block execution of assessment tools if validation failed
+        if tool_name != "validate_project_description":
+            validation_state = self._check_validation_state(session)
+
+            if not validation_state["completed"]:
+                return {
+                    "valid": False,
+                    "reason": "Project description validation must be completed first",
+                    "missing_dependencies": ["validate_project_description"],
+                    "recommended_action": "Execute validate_project_description before proceeding"
+                }
+
+            if not validation_state["passed"]:
+                return {
+                    "valid": False,
+                    "reason": "Project description validation failed - description does not meet minimum requirements",
+                    "missing_dependencies": ["valid project description"],
+                    "recommended_action": "Improve project description to meet validation requirements before executing assessment tools",
+                    "validation_details": validation_state.get("validation_message", "Description insufficient for framework assessment")
+                }
 
         # Special handling for export_assessment_report - needs either functional_preview OR assess_project
         if tool_name == "export_assessment_report":
@@ -445,9 +494,16 @@ class WorkflowEngine:
 
     def _can_auto_execute(self, session: Dict[str, Any]) -> bool:
         """Check if auto-execution is possible."""
-        # Allow auto-execution if not failed or completed
-        # Validation will be handled automatically as the first step
-        return session["state"] not in [WorkflowState.FAILED.value, WorkflowState.COMPLETED.value]
+        # Block auto-execution if workflow is failed or completed
+        if session["state"] in [WorkflowState.FAILED.value, WorkflowState.COMPLETED.value]:
+            return False
+
+        # CRITICAL FIX: Block auto-execution if validation completed but failed
+        validation_state = self._check_validation_state(session)
+        if validation_state["completed"] and not validation_state["passed"]:
+            return False
+
+        return True
 
     def _requires_manual_input(self, tool_name: str) -> bool:
         """Check if tool requires manual input."""

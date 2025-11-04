@@ -126,6 +126,9 @@ class ProjectDescriptionValidator:
             is_valid, word_count, covered_areas, missing_areas, coverage_details
         )
 
+        # CRITICAL FIX: Framework readiness must be consistent with is_valid
+        # All frameworks require overall validation to pass before proceeding
+        # This prevents contradictory results where is_valid=False but framework flags are True
         return {
             "is_valid": is_valid,
             "total_words": word_count,
@@ -135,8 +138,8 @@ class ProjectDescriptionValidator:
             "validation_message": validation_message,
             "recommendations": recommendations,
             "framework_readiness": {
-                "aia_framework": len(covered_areas) >= 3,
-                "osfi_e23_framework": len(covered_areas) >= 3,
+                "aia_framework": is_valid,  # Must pass overall validation
+                "osfi_e23_framework": is_valid,  # Must pass overall validation
                 "combined_readiness": is_valid
             }
         }
