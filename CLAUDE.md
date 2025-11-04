@@ -22,11 +22,15 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Enhanced Workflow Visibility**: Complete workflow roadmap with numbered steps, descriptions, and progress tracking
 - **Flexible Dependency Resolution**: Export tools can work with either preview or full assessments
-- **Streamlined Report Generation**: OSFI E-23 reports redesigned from 12 chapters to 5 focused sections
-- **Compliance-Centered Design**: Enhanced checklist with priority levels and implementation timelines
+- **Lifecycle-Focused OSFI E-23 Reports**: Reports organized by current lifecycle stage (Design/Review/Deployment/Monitoring/Decommission)
+- **OSFI E-23 Official Terminology**: Uses actual Principles (1.1-3.6), Outcomes (1-3), and Appendix 1 tracking fields
+- **Stage-Specific Compliance**: Only shows requirements relevant to current lifecycle stage
+- **Compliance-Centered Design**: Enhanced checklist with OSFI Principle references and deliverable mapping
 - **Granular Risk Analysis**: Detailed scoring breakdown with individual factor analysis and transparent calculations
 - **Risk Amplification Transparency**: Clear display of when and why risk multipliers are applied
 - **Description Validation Gates**: Mandatory validation before framework assessments ensure adequate information coverage
+- **Strict Validation Enforcement**: Contradictory validation results eliminated, workflows blocked when validation fails
+- **Export Data Validation**: Export tools validate assessment_results, auto-inject from workflow state, prevent misleading default values
 - **Anti-Hallucination Safeguards**: Rule-based risk detection using factual keyword matching, not AI interpretation
 - **Professional Validation Requirements**: All tools emphasize that results require professional review
 - **Audit Trail Support**: Complete documentation and review process tracking
@@ -54,6 +58,12 @@ python test_workflow_enhancements.py
 
 # Test transparency features
 python test_transparency_features.py
+
+# Test validation enforcement (critical bug fix)
+python test_validation_enforcement.py
+
+# Test export validation (critical bug fix)
+python test_export_validation.py
 ```
 
 ### Running the Server

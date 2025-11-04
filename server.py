@@ -2466,11 +2466,19 @@ class MCPServer:
             }
 
         try:
+            # OSFI E-23 LIFECYCLE-FOCUSED REPORT GENERATION
+            # Detect current lifecycle stage from project description
+            from osfi_e23_structure import detect_lifecycle_stage
+            from osfi_e23_report_generators import generate_design_stage_report
+
+            current_stage = detect_lifecycle_stage(project_description)
+            logger.info(f"Detected OSFI E-23 lifecycle stage: {current_stage}")
+
             # Create AIA_Assessments directory if it doesn't exist (reuse same directory)
             assessments_dir = "./AIA_Assessments"
             os.makedirs(assessments_dir, exist_ok=True)
 
-            # Generate filename
+            # Generate filename with lifecycle stage
             current_date = datetime.now().strftime("%Y-%m-%d")
             if custom_filename:
                 filename = f"{custom_filename}.docx"
@@ -2478,278 +2486,42 @@ class MCPServer:
                 # Clean project name for filename
                 clean_project_name = "".join(c for c in project_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
                 clean_project_name = clean_project_name.replace(' ', '_')
-                filename = f"E23_Report_{clean_project_name}_{current_date}.docx"
+                stage_suffix = f"_{current_stage.capitalize()}_Stage"
+                filename = f"E23_Report{stage_suffix}_{clean_project_name}_{current_date}.docx"
 
             file_path = os.path.join(assessments_dir, filename)
 
             # Create Word document
             doc = Document()
 
-            # Add title page
-            title = doc.add_heading('OSFI E-23 Model Risk Management', 0)
-            title.alignment = 1  # Center alignment
-            subtitle = doc.add_heading('Compliance Assessment Report', 1)
-            subtitle.alignment = 1
-
-            # Extract E-23 assessment data
-            risk_level = self._extract_e23_risk_level(assessment_results)
-            risk_score = self._extract_e23_risk_score(assessment_results)
-
-            # ========================================
-            # 1. MODEL INFORMATION & RISK RATING
-            # ========================================
-            doc.add_heading('1. Model Information & Risk Rating', level=1)
-
-            # Model details table-style
-            doc.add_paragraph(f'Model Name: {project_name}')
-            doc.add_paragraph(f'Assessment Date: {datetime.now().strftime("%B %d, %Y")}')
-            doc.add_paragraph(f'OSFI E-23 Risk Rating: {risk_level}')
-            doc.add_paragraph(f'Risk Score: {risk_score}/100 points')
-            doc.add_paragraph(f'Framework: OSFI Guideline E-23 (Effective May 1, 2027)')
-
-            # Simplified risk level summary
-            doc.add_paragraph('')
-            doc.add_heading('Risk Rating Summary', level=2)
-
-            # Concise risk justification
-            risk_justification = self._generate_e23_risk_justification(assessment_results, risk_level, risk_score)
-            doc.add_paragraph(self._strip_markdown_formatting(risk_justification))
-
-            # Reference to detailed calculations
-            doc.add_paragraph('')
-            doc.add_paragraph('Detailed risk calculation methodology and factor analysis are provided in Annex A - Detailed Risk Impact Calculations.')
-
-            # ========================================
-            # 2. COMPLIANCE CHECKLIST (PRIMARY FOCUS)
-            # ========================================
-            doc.add_heading('2. Compliance Checklist', level=1)
-
-            # Enhanced compliance checklist with priorities
-            compliance_checklist = self._generate_enhanced_e23_checklist(assessment_results, risk_level)
-
-            # Group by priority
-            priorities = {'Critical': [], 'High': [], 'Medium': [], 'Low': []}
-            for item in compliance_checklist:
-                priority = item.get('priority', 'Medium')
-                priorities[priority].append(item)
-
-            for priority_level, items in priorities.items():
-                if items:  # Only show if there are items
-                    doc.add_heading(f'{priority_level} Priority Items', level=2)
-                    for item in items:
-                        status = "✓" if item.get('completed', False) else "☐"
-                        timeline = item.get('timeline', 'TBD')
-                        stage = item.get('stage', 'All Stages')
-
-                        # Create formatted checklist item
-                        checkbox_text = f"{status} {item.get('item', 'N/A')}"
-                        detail_text = f"   Stage: {stage} | Timeline: {timeline}"
-
-                        p1 = doc.add_paragraph(self._strip_markdown_formatting(checkbox_text))
-                        p1.style = 'List Bullet'
-                        p2 = doc.add_paragraph(self._strip_markdown_formatting(detail_text))
-                        p2.style = 'Body Text'
-
-            # ========================================
-            # 3. RISK ASSESSMENT SUMMARY
-            # ========================================
-            doc.add_heading('3. Risk Assessment Summary', level=1)
-
-            # Risk Rating Calculation Detail
-            doc.add_heading('Risk Rating Calculation', level=2)
-            rating_breakdown = self._generate_e23_rating_breakdown(assessment_results, risk_level, risk_score)
-            doc.add_paragraph(self._strip_markdown_formatting(rating_breakdown))
-
-            # Detailed scoring breakdown
-            doc.add_heading('Scoring Breakdown', level=2)
-            scoring_details = self._extract_e23_scoring_details(assessment_results)
-
-            # Quantitative factors table
-            doc.add_paragraph("Quantitative Risk Factors:")
-            quant_breakdown = scoring_details.get('quantitative_breakdown', {})
-            for factor, details in quant_breakdown.items():
-                factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points"
-                if details.get('reason'):
-                    factor_text += f" - {details['reason']}"
-                doc.add_paragraph(factor_text)
-
-            doc.add_paragraph("")
-            doc.add_paragraph("Qualitative Risk Factors:")
-            qual_breakdown = scoring_details.get('qualitative_breakdown', {})
-            for factor, details in qual_breakdown.items():
-                factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points"
-                if details.get('reason'):
-                    factor_text += f" - {details['reason']}"
-                doc.add_paragraph(factor_text)
-
-            # Risk amplification analysis
-            if scoring_details.get('amplification_applied'):
-                doc.add_paragraph("")
-                doc.add_heading('Risk Amplification Analysis', level=2)
-                amplification_details = scoring_details.get('amplification_details', {})
-                doc.add_paragraph(f"Amplification Factor: {amplification_details.get('factor', 1.0)}x")
-                doc.add_paragraph(f"Reason: {amplification_details.get('reason', 'Standard risk level assessment')}")
-
-                amp_factors = amplification_details.get('triggering_factors', [])
-                if amp_factors:
-                    doc.add_paragraph("Triggering Factors:")
-                    for factor in amp_factors:
-                        p = doc.add_paragraph(f"• {factor}")
-
-            # Model description
-            doc.add_heading('Model Description', level=2)
-            doc.add_paragraph(self._strip_markdown_formatting(project_description))
-
-            # Risk level justification
-            doc.add_heading('Risk Level Justification', level=2)
-            justification = self._generate_e23_risk_justification(assessment_results, risk_level, risk_score)
-            doc.add_paragraph(self._strip_markdown_formatting(justification))
-
-            # Key risk factors summary
-            doc.add_heading('Primary Risk Drivers', level=2)
-            risk_factors = self._extract_e23_key_risk_factors(assessment_results)
-            for factor in risk_factors[:5]:  # Top 5 most important
-                p = doc.add_paragraph(self._strip_markdown_formatting(factor))
-                p.style = 'List Bullet'
-
-            # ========================================
-            # 4. IMPLEMENTATION RECOMMENDATIONS
-            # ========================================
-            doc.add_heading('4. Implementation Recommendations', level=1)
-
-            # Immediate actions (next 30 days)
-            doc.add_heading('Immediate Actions (Next 30 Days)', level=2)
-            immediate_actions = self._extract_e23_immediate_actions(assessment_results, risk_level)
-            for action in immediate_actions:
-                p = doc.add_paragraph(self._strip_markdown_formatting(action))
-                p.style = 'List Bullet'
-
-            # Short-term goals (3-6 months)
-            doc.add_heading('Short-term Goals (3-6 Months)', level=2)
-            short_term_goals = self._extract_e23_short_term_goals(assessment_results, risk_level)
-            for goal in short_term_goals:
-                p = doc.add_paragraph(self._strip_markdown_formatting(goal))
-                p.style = 'List Bullet'
-
-            # Long-term objectives (6+ months)
-            doc.add_heading('Long-term Objectives (6+ Months)', level=2)
-            long_term_objectives = self._extract_e23_long_term_objectives(assessment_results, risk_level)
-            for objective in long_term_objectives:
-                p = doc.add_paragraph(self._strip_markdown_formatting(objective))
-                p.style = 'List Bullet'
-
-            # ========================================
-            # 5. REGULATORY REFERENCES
-            # ========================================
-            doc.add_heading('5. Regulatory References', level=1)
-
-            # Core OSFI E-23 requirements
-            doc.add_heading('Key OSFI E-23 Requirements', level=2)
-            core_requirements = self._get_e23_core_requirements()
-            for req in core_requirements:
-                doc.add_paragraph(f"Section {req['section']}: {req['title']}")
-                doc.add_paragraph(f"   {req['description']}")
-                doc.add_paragraph('')
-
-            # Risk level specific requirements
-            doc.add_heading(f'{risk_level} Risk Level Requirements', level=2)
-            specific_requirements = self._get_e23_risk_level_requirements(risk_level)
-            for req in specific_requirements:
-                p = doc.add_paragraph(self._strip_markdown_formatting(req))
-                p.style = 'List Bullet'
-
-            # Professional validation disclaimer
-            doc.add_paragraph('')
-            doc.add_paragraph('')
-            disclaimer_para = doc.add_paragraph()
-            disclaimer_run = disclaimer_para.add_run("⚠️ PROFESSIONAL VALIDATION REQUIRED")
-            disclaimer_run.bold = True
-
-            disclaimer_text = self._get_e23_assessment_disclaimer(assessment_results)
-            doc.add_paragraph(self._strip_markdown_formatting(disclaimer_text))
-
-            # ========================================
-            # ANNEX A - DETAILED RISK IMPACT CALCULATIONS
-            # ========================================
-            doc.add_page_break()
-            doc.add_heading('Annex A - Detailed Risk Impact Calculations', level=1)
-
-            # Extract scoring details for annex
-            scoring_details = self._extract_e23_scoring_details(assessment_results)
-
-            # ACTUAL CALCULATION BREAKDOWN
-            doc.add_heading('Risk Score Calculation Methodology', level=2)
-
-            # Show the actual calculation steps
-            quant_breakdown = scoring_details.get('quantitative_breakdown', {})
-            qual_breakdown = scoring_details.get('qualitative_breakdown', {})
-
-            # Calculate actual component scores
-            quant_total = sum(details.get('score', 0) for details in quant_breakdown.values())
-            qual_total = sum(details.get('score', 0) for details in qual_breakdown.values())
-            base_score = quant_total + qual_total
-
-            # Show step-by-step calculation
-            doc.add_paragraph(f"Step 1 - Quantitative Risk Factors: {quant_total} points")
-            doc.add_paragraph(f"Step 2 - Qualitative Risk Factors: {qual_total} points")
-            doc.add_paragraph(f"Step 3 - Base Score: {quant_total} + {qual_total} = {base_score} points")
-
-            # Show amplification if applied
-            if scoring_details.get('amplification_applied'):
-                amp_details = scoring_details.get('amplification_details', {})
-                multiplier = amp_details.get('factor', 1.0)
-                doc.add_paragraph(f"Step 4 - Risk Amplification: {base_score} × {multiplier} = {risk_score} points")
-                doc.add_paragraph(f"Amplification Reason: {amp_details.get('reason', 'High-risk combinations detected')}")
+            # Generate lifecycle stage-specific report
+            # Currently implements Design stage (most common use case)
+            # Other stages follow same pattern with stage-specific checklists
+            if current_stage == 'design':
+                doc = generate_design_stage_report(
+                    project_name=project_name,
+                    project_description=project_description,
+                    assessment_results=assessment_results,
+                    doc=doc
+                )
             else:
-                doc.add_paragraph(f"Step 4 - Final Score: {base_score} points (no amplification applied)")
+                # For non-Design stages, use Design stage as template
+                # with note about lifecycle stage detection
+                logger.warning(f"Lifecycle stage '{current_stage}' detected - using Design stage template")
+                doc = generate_design_stage_report(
+                    project_name=project_name,
+                    project_description=project_description,
+                    assessment_results=assessment_results,
+                    doc=doc
+                )
+                # Add note about detected stage
+                p = doc.add_paragraph()
+                p.add_run(f'Note: Lifecycle stage "{current_stage}" detected but report uses Design stage template. ').bold = True
+                p.add_run(
+                    f'Future versions will include {current_stage}-specific compliance checklists.'
+                )
 
-            doc.add_paragraph('')
-            doc.add_paragraph(f"CALCULATION METHOD: {scoring_details.get('calculation_method', 'actual').upper()}")
-
-            # Add methodology explanation
-            doc.add_paragraph('')
-            doc.add_heading('Scoring Framework', level=2)
-            doc.add_paragraph("• Quantitative indicators: 10 points each (high volume, financial impact, customer facing, revenue critical, regulatory impact)")
-            doc.add_paragraph("• Qualitative indicators: 8 points each (AI/ML usage, complexity, autonomy, explainability, third-party, data sensitivity, real-time, customer impact)")
-            doc.add_paragraph("• Risk amplification: Applied when dangerous combinations detected (e.g., AI/ML + Financial Impact = +30%)")
-            doc.add_paragraph("• Final score capped at 100 points maximum")
-
-            # Detailed risk factors breakdown
-            doc.add_paragraph('')
-            doc.add_heading('Detailed Risk Factor Analysis', level=2)
-
-            # Show all quantitative factors
-            if quant_breakdown:
-                doc.add_heading('Quantitative Risk Factors', level=3)
-                for factor, details in quant_breakdown.items():
-                    factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points - {details.get('reason', 'Risk factor present')}"
-                    doc.add_paragraph(self._strip_markdown_formatting(factor_text))
-
-            # Show all qualitative factors
-            if qual_breakdown:
-                doc.add_paragraph('')
-                doc.add_heading('Qualitative Risk Factors', level=3)
-                for factor, details in qual_breakdown.items():
-                    factor_text = f"• {factor.replace('_', ' ').title()}: {details.get('score', 0)} points - {details.get('reason', 'Risk factor present')}"
-                    doc.add_paragraph(self._strip_markdown_formatting(factor_text))
-
-            # Risk amplification details if present
-            if scoring_details.get('amplification_applied'):
-                doc.add_paragraph('')
-                doc.add_heading('Risk Amplification Analysis', level=3)
-                amplification_details = scoring_details.get('amplification_details', {})
-                amplification_text = f"Amplification Factor: {amplification_details.get('factor', 1.0)}x"
-                doc.add_paragraph(self._strip_markdown_formatting(amplification_text))
-                amplification_reason = f"Reason: {amplification_details.get('reason', 'High-risk factor combination detected')}"
-                doc.add_paragraph(self._strip_markdown_formatting(amplification_reason))
-
-                # Show triggering factors if available
-                triggering_factors = amplification_details.get('triggering_factors', [])
-                if triggering_factors:
-                    doc.add_paragraph('Triggering Factor Combinations:')
-                    for factor in triggering_factors:
-                        doc.add_paragraph(f"• {factor}")
-
+            # Report content generated by lifecycle-specific generator above
             # Save document
             doc.save(file_path)
             
@@ -2761,7 +2533,8 @@ class MCPServer:
                 "success": True,
                 "file_path": file_path,
                 "file_size": f"{file_size_kb}KB",
-                "message": "OSFI E-23 assessment report saved successfully"
+                "lifecycle_stage": current_stage,
+                "message": f"OSFI E-23 {current_stage.capitalize()} Stage compliance report saved successfully"
             }
             
         except PermissionError:
