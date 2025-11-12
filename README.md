@@ -25,8 +25,11 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 - **4-Tier Risk Rating**: Low, Medium, High, Critical risk levels
 - **Comprehensive Risk Analysis**: Quantitative and qualitative risk factor assessment
 - **Lifecycle Management**: Complete model lifecycle compliance (Design, Review, Deployment, Monitoring, Decommission)
+- **Lifecycle-Focused Reports**: Stage-specific reports using official "Principle X.X" terminology
+- **OSFI Appendix 1 Compliance**: All model inventory tracking fields included
+- **Stage Detection**: Automatic lifecycle stage detection from project descriptions
 - **Governance Framework**: Risk-based governance requirements and approval authorities
-- **Professional Document Export**: 12-chapter comprehensive E-23 compliance reports
+- **Professional Document Export**: Lifecycle-appropriate comprehensive E-23 compliance reports
 
 ### General Features
 - **Claude Desktop Integration**: Seamless integration with enhanced workflow guidance
@@ -417,7 +420,25 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Key Fixes and Improvements
 
-### v1.11.0 - Enhanced Risk Level Granularity & Analysis (Latest)
+### v1.12.0 - OSFI E-23 Lifecycle-Focused Reports (Latest)
+- **Major Enhancement**: Automatic lifecycle stage detection from project descriptions
+- **Critical Compliance**: Reports now use official "Principle X.X" terminology (not "Section X.X")
+- **Stage-Specific Content**: Reports focus only on current lifecycle stage (Design/Review/Deployment/Monitoring/Decommission)
+- **OSFI Appendix 1**: All model inventory tracking fields included in reports
+- **Architecture**: New modular structure with osfi_e23_structure.py and osfi_e23_report_generators.py
+- **Test Results**: 6/6 tests passing with 100% terminology compliance (46 "Principle X.X" references, 0 "Section X.X")
+- **Impact**: 100% alignment with OSFI E-23 Guideline structure, reduced server.py by 264 lines
+
+### v1.11.1 - Export Validation Fix
+- **Critical Fix**: Prevents export tools from generating misleading documents with empty assessment_results
+- **Three-Layer Defense**: Workflow auto-injection, input validation, and clear error messages
+- **Compliance Protection**: Eliminates risk of documents with default values (0/100, "Medium")
+- **Impact**: 5/5 tests passing, no more false compliance documents
+
+### v1.11.0 - Validation Enforcement & Enhanced Risk Analysis
+- **Critical Fix**: Eliminates contradictory validation states (is_valid: false but framework: true)
+- **Strict Blocking**: Assessment tools now properly blocked when validation fails
+- **Clear Guidance**: Error messages specify missing validation requirements
 - **Major Enhancement**: Added detailed risk scoring breakdown with individual factor analysis and point allocation
 - **Feature**: Risk amplification analysis showing when and why risk multipliers are applied (e.g., 1.3x factor)
 - **Improvement**: Clear risk level justification explaining methodology and threshold classifications

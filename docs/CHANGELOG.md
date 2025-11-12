@@ -2,6 +2,291 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [1.12.0] - 2025-11-04
+
+### 🎯 OSFI E-23 Lifecycle-Focused Reports with Official Terminology
+
+#### Problem Resolved
+- **CRITICAL ISSUE**: Reports used incorrect "Section X.X" terminology instead of official "Principle X.X"
+- **Root Cause**: No lifecycle stage detection; all stages mixed together in reports
+- **User Impact**: Reports did not align with official OSFI E-23 Guideline structure
+- **Compliance Risk**: Non-compliance with OSFI E-23 terminology and lifecycle organization
+
+#### Solution Implemented
+- **Lifecycle Stage Detection**: Automatic detection from project descriptions (Design/Review/Deployment/Monitoring/Decommission)
+- **Official Terminology**: All reports now use "Principle X.X" not "Section X.X"
+- **Stage-Specific Reports**: Reports focus only on current lifecycle stage requirements
+- **OSFI Appendix 1 Compliance**: All model inventory tracking fields included
+- **Stage-Specific Checklists**: 34-item Design stage checklist with forward planning
+
+#### Technical Implementation
+- **New Module**: `osfi_e23_structure.py` (846 lines) - All 12 OSFI Principles and lifecycle definitions
+- **New Module**: `osfi_e23_report_generators.py` (892 lines) - Stage-specific report generation
+- **Modified**: `server.py` - Integrated lifecycle detection and stage-specific generation
+- **Test Suite**: `test_osfi_e23_lifecycle.py` (493 lines) - Comprehensive lifecycle testing
+
+#### Test Results
+- ✅ 6/6 test suites passing
+- ✅ 46 "Principle X.X" references (correct)
+- ✅ 0 "Section X.X" references (incorrect)
+- ✅ All OSFI Appendix 1 tracking fields present
+- ✅ Stage-specific content validated
+
+#### Impact
+- **Regulatory Compliance**: 100% alignment with OSFI E-23 official terminology
+- **User Experience**: Reports now focus on relevant stage requirements only
+- **Code Quality**: Server.py reduced by 264 lines (-6.3%)
+- **Maintainability**: Modular architecture easy to extend for additional stages
+
+#### Files Changed
+- Modified: `server.py` (52 insertions, 269 deletions)
+- New: `osfi_e23_structure.py` (846 lines)
+- New: `osfi_e23_report_generators.py` (892 lines)
+- New: `test_osfi_e23_lifecycle.py` (493 lines)
+- Updated: `CLAUDE.md` (14 insertions)
+
+## [1.11.1] - 2025-11-04
+
+### 🔒 Export Validation Fix - Critical Data Quality Enhancement
+
+#### Problem Resolved
+- **CRITICAL BUG**: Export tools accepted empty `assessment_results` and generated misleading documents
+- **Risk Impact**: Could produce false compliance documents with default values (Risk Score: 0/100, Risk Level: "Medium")
+- **User Impact**: Users could unknowingly submit invalid regulatory reports
+- **Compliance Risk**: Severe regulatory violation risk from misleading documentation
+
+#### Solution Implemented - Three-Layer Defense
+1. **Workflow Auto-Injection** (Preferred UX)
+   - Automatically retrieves assessment results from completed workflow steps
+   - Unwraps nested data structures
+   - Logs auto-injection for audit trail
+
+2. **Input Validation** (Safety Net)
+   - Validates assessment_results is not empty
+   - Checks for required fields (risk_score + risk_level for E-23)
+   - Returns clear error with missing fields identified
+
+3. **Clear Error Messages** (User Guidance)
+   - Specifies which fields are missing
+   - Explains required action
+   - Distinguishes workflow vs direct call context
+
+#### Technical Details
+- **Modified**: `server.py` - Added validation and auto-injection (498 insertions, 1 deletion)
+- **Test Suite**: `test_export_validation.py` - Comprehensive validation testing
+- **Commit**: ad8e372
+
+#### Test Results
+- ✅ 5/5 test suites passing
+- ✅ Empty assessment_results rejected
+- ✅ Incomplete assessment data validated
+- ✅ Workflow auto-injection working
+- ✅ Direct export validation working
+
+#### Impact
+- **Security**: Eliminates false compliance documents
+- **Compliance**: Prevents regulatory violations
+- **UX**: Seamless auto-injection for workflow users
+- **Quality**: Clear error messages guide proper usage
+
+## [1.11.0] - 2025-11-04
+
+### 🛡️ Validation Enforcement Fix - Critical Logic Correction
+
+#### Problem Resolved
+- **CRITICAL BUG**: `validate_project_description` returned contradictory results
+- **Issue**: Set `is_valid: false` but also `osfi_e23_framework: true`
+- **Impact**: Workflows continued to Steps 2-6 even when validation explicitly failed
+- **Root Cause**: Framework flags independent of overall validation status
+
+#### Solution Implemented
+1. **Validation Consistency** (`description_validator.py`)
+   - Framework readiness flags now require `is_valid = True`
+   - Eliminates contradictory validation states
+
+2. **Workflow Blocking** (`workflow_engine.py`)
+   - Added `_check_validation_state()` helper method
+   - Enhanced dependency validation to check validation passed, not just completed
+   - Blocked auto-execution when validation fails
+
+3. **Clear Error Messages**
+   - Helpful guidance when validation fails
+   - Specific recommendations for improving descriptions
+
+#### Technical Details
+- **Modified**: `description_validator.py` (lines 129-145)
+- **Modified**: `workflow_engine.py` (291-316, 319-369, 468-479)
+- **Test Suite**: `test_validation_enforcement.py`
+- **Commit**: 13663c7
+
+#### Test Results
+- ✅ 4/4 test suites passing
+- ✅ Validation consistency verified
+- ✅ Workflow blocking working
+- ✅ Valid execution allowed
+
+#### Impact
+- **Data Quality**: Enforces minimum information requirements
+- **Compliance**: Prevents assessments with insufficient context
+- **Audit Trail**: Clear validation gates documented
+
+### 📊 Enhanced Risk Level Granularity & Analysis
+
+#### Features Added
+- **Detailed Risk Scoring Breakdown**: Individual factor analysis with point allocation
+- **Risk Amplification Analysis**: Clear display of when and why multipliers applied (e.g., 1.3x)
+- **Transparent Methodology**: Step-by-step calculation display with audit trail
+- **Risk Level Justification**: Explanations for threshold classifications
+
+#### Technical Implementation
+- Enhanced `osfi_e23_processor.py` with detailed scoring breakdowns
+- Added risk amplification transparency to reports
+- Improved Chapter 1 with actual calculation display
+- Commits: e7f108c, 412ede3, 7f107af, 9011be5, cae156e, fcfc377
+
+#### Impact
+- Users now see exactly how risk scores are calculated
+- Transparent risk level determination
+- Complete audit trail for regulatory reviews
+
+## [1.10.0] - 2025-10-15
+
+### 🎨 Streamlined Reports & Enhanced Usability
+
+#### Major Changes
+- **Report Redesign**: Reduced from 12 chapters to 5 focused sections
+- **Compliance-First**: Checklist now primary focus with priority levels (Critical/High/Medium/Low)
+- **Actionable Roadmap**: Implementation timeline with 30-day, 3-6 month, and 6+ month goals
+- **Clean Formatting**: Removed markdown artifacts (** elements) from all reports
+
+#### Technical Implementation
+- Improved OSFI E-23 report structure
+- Enhanced Chapter 1 with detailed Annex A
+- Simplified executive summary
+- Commit: 5679837, 62cd775
+
+#### Impact
+- Reports focused on practical checklist utility
+- Reduced verbosity while maintaining compliance
+- Better user experience for compliance professionals
+
+## [1.9.0] - 2025-10-10
+
+### 🔄 Enhanced Workflow Visibility & Dependency Resolution
+
+#### Problem Resolved
+- **Critical Fix**: Resolved workflow stopping at step 3
+- **Root Cause**: Export tools had rigid dependencies blocking execution
+- **Impact**: Workflows couldn't complete automatically
+
+#### Solution Implemented
+- **Complete Workflow Visualization**: Numbered steps with tool descriptions
+- **Flexible Dependencies**: Export tools work with preview or full assessments
+- **Clear Error Handling**: Informative messages replace silent skipping
+- **Visual Progress**: Step-by-step status indicators and progress bars
+
+#### Technical Implementation
+- Enhanced `workflow_engine.py` with dependency resolution
+- Improved workflow status reporting
+- Added complete roadmap display
+- Commit: fc3313a, 25133ef
+
+#### Impact
+- Workflows now execute through all steps
+- Users see complete workflow upfront
+- Better error messages for debugging
+
+## [1.8.1] - 2025-10-05
+
+### 🎯 Behavioral Controls & Auto-Trigger Enhancement
+
+#### Features Added
+- **Mandatory Auto-Trigger**: Tool description instructs Claude to call at START of conversations
+- **Explicit Trigger Conditions**: Clear list of when to call get_server_introduction
+- **Step-by-Step Workflow**: Detailed post-call instructions
+- **Anti-Invention Directive**: Prevents Claude from adding time estimates or invented content
+- **Framework Selection**: Requires waiting for user choice before proceeding
+
+#### Technical Implementation
+- Enhanced `get_server_introduction` tool description with behavioral instructions
+- Added `assistant_directive` field in responses
+- Wrong vs Correct flow examples in tool metadata
+- Commit: 7526a84
+
+#### Impact
+- Consistent transparency introduction at conversation start
+- Clear distinction between MCP official data and AI interpretation
+- Better user understanding of server capabilities
+
+## [1.8.0] - 2025-10-01
+
+### 🔍 MCP Transparency & AI Distinction System
+
+#### Major Feature
+- **Server Introduction Tool**: Comprehensive capabilities overview and usage guidance
+- **Visual Content Markers**: 🔧 MCP SERVER (Official) vs 🧠 CLAUDE ANALYSIS (AI-Generated)
+- **Data Source Attribution**: Clear distinction between government sources and AI interpretation
+- **Anti-Hallucination Design**: Official calculations protected from AI modification
+- **Professional Validation**: Regulatory compliance warnings throughout
+
+#### Technical Implementation
+- New tool: `get_server_introduction` - Critical transparency and orientation
+- Enhanced all tool responses with visual content markers
+- Built-in compliance framework with validation requirements
+- One-time orientation without repeated calls needed
+- Commits: 3f4de06, 40cbd6f
+
+#### Impact
+- Clear regulatory compliance through data source transparency
+- Users understand distinction between official data and AI analysis
+- Reduced risk of AI hallucination in regulatory contexts
+
+## [1.7.0] - 2025-09-25
+
+### 🔄 Intelligent Workflow Management System
+
+#### Major Feature
+- **Workflow Creation**: `create_workflow` tool with auto-detection of assessment types
+- **Auto-Execution**: `auto_execute_workflow` with dependency validation and smart routing
+- **State Persistence**: 2-hour session management with progress tracking
+- **Smart Routing**: Intelligent next-step recommendations based on current state
+
+#### Technical Implementation
+- New module: `workflow_engine.py` - Complete workflow management system
+- 4 new workflow tools: create_workflow, execute_workflow_step, get_workflow_status, auto_execute_workflow
+- Assessment type detection (AIA/OSFI E-23/Combined)
+- Export integration for complete automation
+- Commits: 0f562ca, 25133ef
+
+#### Impact
+- Streamlined assessment processes
+- Automated tool sequencing
+- Session-based state management
+- Guided workflow progression
+
+## [1.6.0] - 2025-09-20
+
+### 📋 Project Description Validation Guardrails
+
+#### Major Feature
+- **6 Content Areas**: System/Technology, Business Purpose, Data Sources, Impact Scope, Decision Process, Technical Architecture
+- **Progressive Feedback**: Coverage analysis showing covered vs missing areas
+- **Framework Readiness**: Assessment for both AIA and OSFI E-23 requirements
+- **Validation Gates**: Prevents insufficient descriptions from proceeding
+
+#### Technical Implementation
+- New module: `description_validator.py` - Comprehensive validation system
+- New tool: `validate_project_description` - Essential first-step validation
+- Minimum requirements: 100+ words total, 3+ content areas (50%+ coverage)
+- Content templates for improvement guidance
+- Commit: 3eab34a
+
+#### Impact
+- Ensures adequate project information before assessments
+- Prevents incomplete or inaccurate compliance reports
+- Reduces risk of false compliance claims
+- Improved data quality for risk calculations
+
 ## [1.5.0] - 2025-09-11
 
 ### 🛡️ Anti-Hallucination Safeguards for Regulatory Compliance
