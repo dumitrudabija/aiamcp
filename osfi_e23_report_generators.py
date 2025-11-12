@@ -85,8 +85,11 @@ def generate_design_stage_report(
     # 8. Implementation Roadmap
     _add_implementation_roadmap_design(doc, assessment_results)
 
-    # 9. Model Description
-    doc.add_heading('9. Model Description', level=1)
+    # 9. Critical Recommendations & Next Steps
+    _add_critical_recommendations_next_steps(doc, assessment_results, project_description)
+
+    # 10. Model Description
+    doc.add_heading('10. Model Description', level=1)
     doc.add_paragraph(project_description)
 
     # Appendices
@@ -103,39 +106,103 @@ def _add_design_stage_executive_summary(
     project_name: str,
     assessment_results: Dict[str, Any]
 ):
-    """Add executive summary for Design stage report."""
+    """Add enhanced executive summary for Design stage report."""
     doc.add_heading('Executive Summary', level=1)
 
-    # Model Information
-    doc.add_heading('Model Information', level=2)
+    # Opening narrative
     risk_level = assessment_results.get("risk_level", "Not Assessed")
     risk_score = assessment_results.get("risk_score", 0)
 
-    doc.add_paragraph(f'Model Name: {project_name}')
-    doc.add_paragraph(f'Current Lifecycle Stage: Design')
-    doc.add_paragraph(f'Assessment Date: {datetime.now().strftime("%B %d, %Y")}')
-    doc.add_paragraph(
-        f'Institution Risk Rating: {risk_level} '
-        f'(per institution\'s risk rating methodology - Principle 2.2)'
+    opening_text = (
+        f'{project_name} has been assessed against OSFI Guideline E-23 Model Risk Management '
+        f'requirements for federally regulated financial institutions in Canada. The model is currently '
+        f'in the Design stage of the OSFI E-23 lifecycle.'
     )
+    doc.add_paragraph(opening_text)
+    doc.add_paragraph()  # Spacing
+
+    # Critical Risk Assessment Results Box
+    doc.add_heading('Critical Risk Assessment Results', level=2)
+
+    p = doc.add_paragraph()
+    p.add_run('Institution Risk Rating: ').bold = True
+    run = p.add_run(f'{risk_level}')
+    run.bold = True
+    if risk_level in ['Critical', 'High']:
+        run.font.color.rgb = RGBColor(220, 20, 60)  # Crimson for high risk
+
+    p = doc.add_paragraph()
+    p.add_run('Risk Score: ').bold = True
+    p.add_run(f'{risk_score}/100 (per institution\'s risk rating methodology - Principle 2.2)')
+
+    p = doc.add_paragraph()
+    p.add_run('Current Lifecycle Stage: ').bold = True
+    p.add_run('Design')
+
+    p = doc.add_paragraph()
+    p.add_run('Assessment Date: ').bold = True
+    p.add_run(datetime.now().strftime("%B %d, %Y"))
+
+    doc.add_paragraph()  # Spacing
+
+    # Key Risk Factors Identified
+    doc.add_heading('Key Risk Factors Identified', level=2)
+    risk_analysis = assessment_results.get("risk_analysis", {})
+    quant_indicators = risk_analysis.get("quantitative_indicators", {})
+    qual_indicators = risk_analysis.get("qualitative_indicators", {})
+
+    risk_factors = []
+
+    # Quantitative factors
+    if quant_indicators.get("financial_impact"):
+        risk_factors.append("Financial Impact: Model directly impacts financial decisions and outcomes")
+    if quant_indicators.get("regulatory_impact"):
+        risk_factors.append("Regulatory Impact: Model affects regulatory compliance and reporting requirements")
+    if quant_indicators.get("customer_facing"):
+        risk_factors.append("Customer-Facing: Direct impact on customer decisions and outcomes")
+    if quant_indicators.get("high_volume"):
+        risk_factors.append("High Volume: Large-scale deployment affecting significant transaction volumes")
+    if quant_indicators.get("revenue_critical"):
+        risk_factors.append("Revenue Critical: Model directly impacts revenue generation or business operations")
+
+    # Qualitative factors
+    if qual_indicators.get("ai_ml_usage"):
+        risk_factors.append("AI/ML Usage: Complex machine learning architecture requiring specialized oversight")
+    if qual_indicators.get("high_complexity"):
+        risk_factors.append("High Complexity: Sophisticated model structure and methodology")
+    if qual_indicators.get("third_party"):
+        risk_factors.append("Third-Party Dependencies: Reliance on external vendors or data providers")
+    if qual_indicators.get("data_sensitive"):
+        risk_factors.append("Sensitive Data: Processing personal or confidential information")
+    if qual_indicators.get("autonomous_decisions"):
+        risk_factors.append("Autonomous Decisions: Automated decision-making with limited human intervention")
+    if qual_indicators.get("real_time"):
+        risk_factors.append("Real-Time Processing: Immediate decision requirements")
+    if qual_indicators.get("black_box"):
+        risk_factors.append("Limited Explainability: Complex algorithms requiring enhanced transparency measures")
+
+    if risk_factors:
+        for factor in risk_factors:
+            doc.add_paragraph(f'• {factor}', style='List Bullet')
+    else:
+        doc.add_paragraph('Risk factors to be determined through detailed assessment.')
+
+    doc.add_paragraph()  # Spacing
 
     # Design Stage Status
-    doc.add_heading('Design Stage Status', level=2)
-    doc.add_paragraph('Design Stage Completion: Assessment based on available project information')
-    doc.add_paragraph('Note: Formal completion tracking requires detailed documentation review')
-
-    # Key Findings placeholder
-    doc.add_heading('Key Findings', level=2)
+    doc.add_heading('Design Stage Compliance Status', level=2)
     doc.add_paragraph(
-        'This assessment provides an initial evaluation of Design stage compliance based on '
-        'available project information. Formal gap analysis requires comprehensive documentation review.'
+        'This assessment evaluates compliance against OSFI E-23 Principles 3.2 (Model Rationale and Data) '
+        'and 3.3 (Model Development). The model is currently in the Design stage, focusing on establishing '
+        'clear organizational rationale, data governance, and development methodology per OSFI requirements.'
     )
 
-    # Readiness for Review Stage
-    doc.add_heading('Readiness for Review Stage', level=2)
-    doc.add_paragraph(
-        'Formal assessment of Review stage readiness requires completion of all Design stage '
-        'deliverables and documentation review per Principle 3.4.'
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    p.add_run('⚠️ Note: ').bold = True
+    p.add_run(
+        'Formal completion tracking and gap analysis require comprehensive documentation review by qualified '
+        'model risk professionals. This assessment is based on available project information.'
     )
 
 
@@ -496,6 +563,162 @@ def _add_implementation_roadmap_design(doc: Document, assessment_results: Dict[s
 
     doc.add_paragraph().add_run('Success Criteria: ').bold = True
     doc.add_paragraph('All Design stage deliverables complete and documented per OSFI Principles 3.2 and 3.3')
+
+
+def _add_critical_recommendations_next_steps(
+    doc: Document,
+    assessment_results: Dict[str, Any],
+    project_description: str
+):
+    """Add critical recommendations and immediate next steps section."""
+    doc.add_heading('9. Critical Recommendations & Next Steps', level=1)
+
+    risk_level = assessment_results.get("risk_level", "Not Assessed")
+    risk_analysis = assessment_results.get("risk_analysis", {})
+    quant_indicators = risk_analysis.get("quantitative_indicators", {})
+    qual_indicators = risk_analysis.get("qualitative_indicators", {})
+    recommendations = assessment_results.get("recommendations", [])
+
+    # Immediate Actions Required
+    doc.add_heading('Immediate Actions Required', level=2)
+
+    immediate_actions = []
+
+    # Critical risk level actions
+    if risk_level in ['Critical', 'High']:
+        immediate_actions.append(
+            '🔴 CRITICAL: Obtain Board of Directors (or equivalent senior authority) approval before '
+            'proceeding to Review stage (required for Critical/High risk models per Principle 2.3)'
+        )
+
+    # Design stage completion actions
+    immediate_actions.append(
+        '📋 Complete Design stage documentation: Finalize all required deliverables per Principles 3.2 and 3.3'
+    )
+
+    # Data governance actions
+    if qual_indicators.get("data_sensitive") or qual_indicators.get("ai_ml_usage"):
+        immediate_actions.append(
+            '📊 Establish comprehensive data governance framework: Document data quality standards, '
+            'lineage, validation procedures, and ongoing monitoring per Principle 3.2'
+        )
+
+    # Model Risk Committee
+    if risk_level in ['Critical', 'High']:
+        immediate_actions.append(
+            '👥 Establish Model Risk Committee: Form dedicated committee with senior management '
+            'representation and clear governance mandate per Principle 1.2'
+        )
+
+    # External validation
+    if risk_level == 'Critical':
+        immediate_actions.append(
+            '🔍 Engage external validator: Select and contract independent third-party validation firm '
+            'for mandatory external validation (required for Critical risk models per Principle 3.4)'
+        )
+
+    # AI/ML specific actions
+    if qual_indicators.get("ai_ml_usage"):
+        immediate_actions.append(
+            '🤖 Conduct comprehensive bias and fairness testing: Implement assessment framework '
+            'across all relevant dimensions per Principle 3.2'
+        )
+        immediate_actions.append(
+            '📖 Develop explainability framework: Document model interpretability approach, '
+            'including SHAP values, feature importance, and decision transparency per Principle 3.2'
+        )
+
+    # Third-party actions
+    if qual_indicators.get("third_party"):
+        immediate_actions.append(
+            '🤝 Document third-party dependencies: Establish vendor risk management controls '
+            'and contractual safeguards per Principle 3.2'
+        )
+
+    for action in immediate_actions:
+        doc.add_paragraph(action, style='List Bullet')
+
+    doc.add_paragraph()  # Spacing
+
+    # Ongoing Governance Requirements
+    doc.add_heading('Ongoing Governance Requirements', level=2)
+
+    ongoing_requirements = [
+        '📊 Implement real-time monitoring infrastructure with automated alert thresholds',
+        '📝 Establish contingency and rollback procedures for model failures',
+        '📅 Define and document periodic review schedule based on risk rating per Principle 2.3',
+        '✅ Maintain comprehensive audit trail of all model changes and decisions',
+        '📢 Establish clear escalation protocols for risk issues'
+    ]
+
+    # Add risk-specific ongoing requirements
+    if risk_level == 'Critical':
+        ongoing_requirements.append(
+            '📈 Monthly Model Risk Committee reporting (mandatory for Critical risk models)'
+        )
+        ongoing_requirements.append(
+            '📊 Quarterly Board of Directors updates (mandatory for Critical risk models)'
+        )
+        ongoing_requirements.append(
+            '🔍 Annual independent third-party validation (mandatory for Critical risk models)'
+        )
+    elif risk_level == 'High':
+        ongoing_requirements.append(
+            '📈 Quarterly Model Risk Committee reporting (mandatory for High risk models)'
+        )
+        ongoing_requirements.append(
+            '📊 Semi-annual Board updates (recommended for High risk models)'
+        )
+
+    for requirement in ongoing_requirements:
+        doc.add_paragraph(requirement, style='List Bullet')
+
+    doc.add_paragraph()  # Spacing
+
+    # Success Criteria for Design Stage Completion
+    doc.add_heading('Success Criteria for Design Stage Completion', level=2)
+
+    success_criteria = [
+        '✅ All OSFI Appendix 1 tracking fields populated',
+        '✅ Model rationale clearly documented per Principle 3.2',
+        '✅ Data governance framework established per Principle 3.2',
+        '✅ Development methodology documented per Principle 3.3',
+        '✅ Performance criteria and success metrics defined',
+        '✅ Independent Review stage scope and criteria agreed',
+        '✅ Appropriate governance authority approval obtained',
+        '✅ All Design stage compliance checklist items addressed'
+    ]
+
+    for criterion in success_criteria:
+        doc.add_paragraph(criterion, style='List Bullet')
+
+    doc.add_paragraph()  # Spacing
+
+    # Next Major Milestone
+    doc.add_heading('Next Major Milestone', level=2)
+
+    p = doc.add_paragraph()
+    p.add_run('Milestone: ').bold = True
+    p.add_run('Transition to Model Review Stage (Principle 3.4)')
+
+    doc.add_paragraph(
+        'Upon completion of all Design stage requirements, the model will proceed to the Review stage '
+        'for independent validation per OSFI E-23 Principle 3.4. The Review stage requires independent '
+        'assessment by qualified personnel separate from model development, with scope and rigor '
+        'commensurate with the model\'s risk rating.'
+    )
+
+    doc.add_paragraph()  # Spacing
+
+    # Regulatory Compliance Reminder
+    p = doc.add_paragraph()
+    p.add_run('⚠️ REGULATORY COMPLIANCE REMINDER: ').bold = True
+    run = p.add_run(
+        'All activities must comply with OSFI Guideline E-23 requirements. This assessment provides '
+        'guidance but does not replace professional validation by qualified model risk management personnel. '
+        'Obtain appropriate governance approvals before implementing recommendations.'
+    )
+    run.font.color.rgb = RGBColor(139, 69, 19)  # Saddle brown for warnings
 
 
 def _add_appendices_design_stage(doc: Document):
