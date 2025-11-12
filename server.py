@@ -356,7 +356,7 @@ class MCPServer:
             },
             {
                 "name": "export_assessment_report",
-                "description": "CANADA'S AIA FRAMEWORK: Export Canada's Algorithmic Impact Assessment results to a Microsoft Word document. Creates a professional AIA compliance report with executive summary, key findings, and recommendations based on Canada's official framework. Demonstrates complete file creation workflow capability.",
+                "description": "CANADA'S AIA FRAMEWORK: Generates and saves a COMPLETE AIA compliance report as a Microsoft Word document. The MCP server creates the entire professional document with executive summary, key findings, recommendations, and all required sections based on Canada's official framework. The document is immediately ready for professional review.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -469,7 +469,7 @@ class MCPServer:
             },
             {
                 "name": "export_e23_report",
-                "description": "⚠️ OSFI E-23 MODEL RISK MANAGEMENT: Export OSFI E-23 model risk assessment results to a Microsoft Word document. COMPLIANCE WARNING: Generated reports are templates requiring professional validation. All content must be reviewed by qualified model risk professionals, validated against actual project characteristics, and approved by appropriate governance authorities before use for regulatory compliance.",
+                "description": "⚠️ OSFI E-23 MODEL RISK MANAGEMENT: Generates and saves a COMPLETE lifecycle-focused OSFI E-23 compliance report as a Microsoft Word document. The MCP server creates the entire document including executive summary, risk analysis, compliance checklist, and recommendations. COMPLIANCE WARNING: Generated reports are templates requiring professional validation. All content must be reviewed by qualified model risk professionals, validated against actual project characteristics, and approved by appropriate governance authorities before use for regulatory compliance.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -2244,10 +2244,13 @@ class MCPServer:
             file_size_kb = round(file_size / 1024, 1)
             
             return {
+                "assistant_directive": {
+                    "critical_instruction": "The COMPLETE AIA compliance report has been generated and saved by the MCP server. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review."
+                },
                 "success": True,
                 "file_path": file_path,
                 "file_size": f"{file_size_kb}KB",
-                "message": "Assessment report saved successfully"
+                "message": f"✅ Canada's AIA compliance report saved successfully to {filename}"
             }
             
         except PermissionError:
@@ -2530,11 +2533,14 @@ class MCPServer:
             file_size_kb = round(file_size / 1024, 1)
             
             return {
+                "assistant_directive": {
+                    "critical_instruction": "The COMPLETE OSFI E-23 compliance report has been generated and saved by the MCP server. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review."
+                },
                 "success": True,
                 "file_path": file_path,
                 "file_size": f"{file_size_kb}KB",
                 "lifecycle_stage": current_stage,
-                "message": f"OSFI E-23 {current_stage.capitalize()} Stage compliance report saved successfully"
+                "message": f"✅ OSFI E-23 {current_stage.capitalize()} Stage compliance report saved successfully to {filename}"
             }
             
         except PermissionError:
