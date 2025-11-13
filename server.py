@@ -22,7 +22,7 @@ import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from docx import Document
-from docx.shared import Inches
+from docx.shared import Inches, Pt
 from aia_processor import AIAProcessor
 from osfi_e23_processor import OSFIE23Processor
 from description_validator import ProjectDescriptionValidator
@@ -47,7 +47,7 @@ class MCPServer:
         self.workflow_engine = WorkflowEngine()
         self.server_info = {
             "name": "aia-assessment-server",
-            "version": "1.13.0"
+            "version": "1.14.0"
         }
 
         # Session state for workflow enforcement
@@ -592,7 +592,7 @@ class MCPServer:
             },
             "server_introduction": {
                 "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
-                "version": "1.13.0",
+                "version": "1.14.0",
                 "purpose": "Official framework compliance for Canada's Algorithmic Impact Assessment (AIA) and OSFI Guideline E-23 Model Risk Management",
                 "transparency_notice": {
                     "critical_distinction": "This server provides OFFICIAL regulatory framework data. All calculations, scores, and compliance determinations come from verified government sources - NOT AI generation.",
@@ -2479,8 +2479,329 @@ class MCPServer:
         else:
             return "This assessment is based on available project information and automated analysis. Final AIA compliance requires complete stakeholder input and official government review process."
     
+    def _generate_streamlined_e23_report(self, doc: Document, project_name: str,
+                                          project_description: str, assessment_results: Dict[str, Any]) -> Document:
+        """
+        Generate concise, risk-adaptive OSFI E-23 report (4-6 pages).
+
+        Structure:
+        1. Executive Summary (1 page) - Risk-adaptive tone
+        2. Risk Scoring & Justification (1-2 pages) - Only TRUE risk factors
+        3. Next Steps to Progress to Review Stage (2-3 pages) - Risk-appropriate deliverables
+        """
+        # Extract key data
+        risk_level = assessment_results.get("risk_level", assessment_results.get("risk_rating", "Medium"))
+        risk_score = assessment_results.get("risk_score", assessment_results.get("overall_score", 0))
+        risk_analysis = assessment_results.get("risk_analysis", {})
+
+        # Detect lifecycle stage and model type
+        from osfi_e23_structure import detect_lifecycle_stage, is_ai_ml_model
+        current_stage = detect_lifecycle_stage(project_description)
+        is_ai_ml = is_ai_ml_model(project_description)
+
+        # DOCUMENT HEADER
+        title = doc.add_heading('OSFI E-23 Model Risk Assessment', 0)
+        title.alignment = 1  # Center
+
+        subtitle = doc.add_paragraph()
+        run = subtitle.add_run(project_name)
+        run.bold = True
+        run.font.size = Pt(14)
+        subtitle.alignment = 1
+
+        date_para = doc.add_paragraph(f'Assessment Date: {datetime.now().strftime("%B %d, %Y")}')
+        date_para.alignment = 1
+
+        doc.add_paragraph()  # Spacing
+
+        # SECTION 1: EXECUTIVE SUMMARY (1 page)
+        doc.add_heading('1. Executive Summary', level=1)
+
+        # Risk-adaptive summary paragraph
+        summary_text = self._generate_risk_adaptive_summary(
+            risk_level, risk_score, current_stage, is_ai_ml, project_description
+        )
+        doc.add_paragraph(summary_text)
+
+        doc.add_paragraph()  # Spacing
+
+        # SECTION 2: RISK SCORING & JUSTIFICATION (1-2 pages)
+        doc.add_heading('2. Risk Scoring & Justification', level=1)
+
+        # 2.1 Overall Assessment
+        doc.add_heading('2.1 Overall Assessment', level=2)
+        para = doc.add_paragraph()
+        para.add_run('Risk Rating: ').bold = True
+        para.add_run(f'{risk_level}\n')
+        para.add_run('Risk Score: ').bold = True
+        para.add_run(f'{risk_score}/100\n')
+        para.add_run('Scoring Methodology: ').bold = True
+        para.add_run("Institution's risk rating per OSFI Principle 2.2 (Model Risk Rating)")
+
+        # 2.2 Risk Factors Identified
+        doc.add_heading('2.2 Risk Factors Identified', level=2)
+
+        true_risk_factors = self._extract_true_risk_factors(risk_analysis)
+
+        if true_risk_factors:
+            doc.add_paragraph("The following risk factors are present in this model:")
+            for factor in true_risk_factors:
+                doc.add_paragraph(factor, style='List Bullet')
+        else:
+            doc.add_paragraph("No significant risk factors identified. This model exhibits low inherent risk profile.")
+
+        # 2.3 OSFI E-23 Risk-Based Approach
+        doc.add_heading('2.3 OSFI E-23 Risk-Based Approach', level=2)
+
+        risk_approach_text = self._generate_risk_approach_text(risk_level, is_ai_ml)
+        doc.add_paragraph(risk_approach_text)
+
+        doc.add_paragraph()  # Spacing
+
+        # SECTION 3: NEXT STEPS TO PROGRESS TO REVIEW STAGE (2-3 pages)
+        doc.add_heading('3. Next Steps to Progress to Review Stage', level=1)
+
+        doc.add_paragraph(
+            'Per OSFI E-23 Model Lifecycle (Outcome 3), progression from Design to Review stage '
+            'requires completion of Design stage deliverables.'
+        )
+
+        # 3.1 Design Stage Deliverables Required
+        doc.add_heading('3.1 Design Stage Deliverables Required', level=2)
+
+        self._add_design_deliverables(doc, risk_level, is_ai_ml)
+
+        # 3.2 Review Stage Setup
+        doc.add_heading('3.2 Review Stage Setup', level=2)
+
+        self._add_review_setup(doc, risk_level)
+
+        # 3.3 Governance Implications (if not Low risk)
+        if risk_level != "Low":
+            doc.add_heading('3.3 Governance Implications', level=2)
+            governance_text = self._generate_governance_implications(risk_level)
+            doc.add_paragraph(governance_text)
+
+        # Professional validation footer
+        doc.add_paragraph()
+        doc.add_paragraph()
+        footer = doc.add_paragraph()
+        run = footer.add_run('⚠️ PROFESSIONAL VALIDATION REQUIRED')
+        run.bold = True
+        doc.add_paragraph(
+            'This assessment provides structured analysis based on OSFI E-23 framework. '
+            'All results require validation by qualified professionals and approval by '
+            'appropriate governance authorities before use in regulatory compliance.'
+        )
+
+        return doc
+
+    def _generate_risk_adaptive_summary(self, risk_level: str, risk_score: int,
+                                        current_stage: str, is_ai_ml: bool,
+                                        project_description: str) -> str:
+        """Generate risk-adaptive executive summary text."""
+        description_lower = project_description.lower()
+
+        # Model characteristics
+        characteristics = []
+        if is_ai_ml:
+            characteristics.append("AI/ML-based")
+        if any(term in description_lower for term in ['financial', 'loan', 'credit', 'lending']):
+            characteristics.append("financial decision-making")
+        if any(term in description_lower for term in ['customer', 'client', 'consumer']):
+            characteristics.append("customer-facing")
+
+        model_desc = " ".join(characteristics) if characteristics else "decision-making"
+
+        if risk_level in ["Critical", "High"]:
+            return (
+                f'This {model_desc} model has been assessed as {risk_level} risk (score: {risk_score}/100) '
+                f'under OSFI Guideline E-23. The elevated risk profile requires enhanced governance '
+                f'commensurate with the model\'s potential impact (OSFI Principle 2.3). Comprehensive Design '
+                f'stage documentation is required before progressing to Model Review stage. Key risk factors '
+                f'necessitate thorough validation, robust oversight processes, and heightened senior management '
+                f'attention throughout the model lifecycle.'
+            )
+        elif risk_level == "Medium":
+            return (
+                f'This {model_desc} model has been assessed as Medium risk (score: {risk_score}/100) '
+                f'under OSFI Guideline E-23. The model requires proportionate governance aligned with OSFI\'s '
+                f'risk-based approach (Principle 2.3). Standard Design stage requirements apply, with moderate '
+                f'oversight appropriate for the risk profile. Complete Design stage deliverables are needed '
+                f'before progressing to Model Review stage.'
+            )
+        else:  # Low risk
+            return (
+                f'This {model_desc} model has been assessed as Low risk (score: {risk_score}/100) '
+                f'under OSFI Guideline E-23. The low risk profile reflects '
+                + ('limited financial impact, ' if 'financial' not in description_lower else '')
+                + ('non-customer-facing usage, ' if 'customer' not in description_lower else '')
+                + ('and straightforward methodology. ' if not is_ai_ml else '')
+                + f'Per OSFI\'s proportionality principle (Principle 2.3), streamlined governance is '
+                f'appropriate. Basic Design stage documentation is required, but the low risk nature '
+                f'allows for an efficient compliance path with reduced oversight burden.'
+            )
+
+    def _extract_true_risk_factors(self, risk_analysis: Dict[str, Any]) -> List[str]:
+        """Extract only TRUE risk factors from assessment."""
+        factors = []
+
+        # Quantitative indicators
+        quant = risk_analysis.get("quantitative_indicators", {})
+        if quant.get("financial_impact"):
+            factors.append("Financial Impact: Model influences material financial decisions or exposures")
+        if quant.get("large_transaction_volume"):
+            factors.append("Large Transaction Volume: Model processes significant number of transactions")
+        if quant.get("customer_impact"):
+            factors.append("Customer Impact: Model directly affects customer outcomes or decisions")
+
+        # Qualitative indicators
+        qual = risk_analysis.get("qualitative_indicators", {})
+        if qual.get("complex_methodology"):
+            factors.append("Complex Methodology: Advanced analytical or computational techniques employed")
+        if qual.get("ai_ml_usage"):
+            factors.append("AI/ML Usage: Model utilizes artificial intelligence or machine learning algorithms")
+        if qual.get("data_quality_concerns"):
+            factors.append("Data Quality Sensitivity: Model performance significantly dependent on data quality")
+        if qual.get("regulatory_sensitivity"):
+            factors.append("Regulatory Sensitivity: Model outputs subject to regulatory scrutiny or reporting")
+
+        return factors
+
+    def _generate_risk_approach_text(self, risk_level: str, is_ai_ml: bool) -> str:
+        """Generate OSFI risk-based approach explanation."""
+        base_text = (
+            'OSFI Principle 2.2 requires institutions to establish a model risk rating methodology. '
+            'Principle 2.3 mandates that governance intensity be commensurate with the model\'s risk profile. '
+        )
+
+        if risk_level in ["Critical", "High"]:
+            return base_text + (
+                f'This model\'s {risk_level} risk rating requires enhanced scrutiny, including: '
+                f'heightened approval authorities, comprehensive validation, frequent monitoring, and '
+                f'senior management involvement. '
+                + ('For AI/ML models of this risk level, explainability and bias assessment are particularly important. ' if is_ai_ml else '')
+            )
+        elif risk_level == "Medium":
+            return base_text + (
+                'This Medium risk rating requires standard governance procedures with regular monitoring '
+                'and oversight appropriate to the risk profile. Balanced documentation and review processes apply.'
+            )
+        else:
+            return base_text + (
+                'This Low risk rating permits streamlined governance with reduced oversight burden. '
+                'OSFI\'s proportionality principle ensures compliance requirements match the actual risk, '
+                'avoiding unnecessary regulatory burden for minimal-risk models.'
+            )
+
+    def _add_design_deliverables(self, doc: Document, risk_level: str, is_ai_ml: bool):
+        """Add Design stage deliverables checklist."""
+        doc.add_paragraph('Extract from OSFI E-23 Principles 3.2 (Model Design) and 3.3 (Model Development):')
+        doc.add_paragraph()
+
+        # Model Rationale
+        para = doc.add_paragraph('☐ ', style='List Bullet')
+        run = para.add_run('Model Rationale (Principle 3.2)')
+        run.bold = True
+        doc.add_paragraph('    • Document model purpose, scope, and business use case', style='List Bullet')
+        doc.add_paragraph('    • Assess risk of intended usage', style='List Bullet')
+        if is_ai_ml:
+            doc.add_paragraph('    • Document explainability approach and bias assessment procedures', style='List Bullet')
+
+        # Model Data
+        para = doc.add_paragraph('☐ ', style='List Bullet')
+        run = para.add_run('Model Data (Principle 3.2)')
+        run.bold = True
+        doc.add_paragraph('    • Document data governance framework', style='List Bullet')
+        doc.add_paragraph('    • Establish data quality standards (accuracy, relevance, representativeness, '
+                         'compliance, traceability, timeliness)', style='List Bullet')
+        doc.add_paragraph('    • Document data sources and provenance', style='List Bullet')
+        doc.add_paragraph('    • Define data quality check procedures', style='List Bullet')
+
+        # Model Development
+        para = doc.add_paragraph('☐ ', style='List Bullet')
+        run = para.add_run('Model Development (Principle 3.3)')
+        run.bold = True
+        doc.add_paragraph('    • Document model methodology and assumptions', style='List Bullet')
+        doc.add_paragraph('    • Document limitations and restrictions on use', style='List Bullet')
+        doc.add_paragraph('    • Define performance criteria', style='List Bullet')
+        doc.add_paragraph('    • Establish monitoring standards', style='List Bullet')
+        doc.add_paragraph('    • Document role of expert judgment', style='List Bullet')
+
+        # Model Inventory
+        para = doc.add_paragraph('☐ ', style='List Bullet')
+        run = para.add_run('Model Inventory Entry (OSFI Appendix 1)')
+        run.bold = True
+        doc.add_paragraph('    • Complete minimum tracking fields per OSFI Appendix 1', style='List Bullet')
+        doc.add_paragraph('    • Confirm or update provisional risk rating', style='List Bullet')
+
+        # Risk-adaptive note
+        if risk_level in ["Critical", "High"]:
+            doc.add_paragraph()
+            note = doc.add_paragraph()
+            run = note.add_run('Note: ')
+            run.bold = True
+            note.add_run(f'{risk_level} risk models require enhanced documentation depth and thoroughness.')
+        elif risk_level == "Low":
+            doc.add_paragraph()
+            note = doc.add_paragraph()
+            run = note.add_run('Note: ')
+            run.bold = True
+            note.add_run('Low risk models may use streamlined documentation formats per proportionality principle.')
+
+    def _add_review_setup(self, doc: Document, risk_level: str):
+        """Add Review stage setup requirements."""
+        para = doc.add_paragraph('☐ ', style='List Bullet')
+        run = para.add_run('Assign Independent Model Reviewer')
+        run.bold = True
+        doc.add_paragraph(f'    • Identify qualified reviewer with appropriate independence', style='List Bullet')
+
+        para = doc.add_paragraph('☐ ', style='List Bullet')
+        run = para.add_run('Define Review Scope')
+        run.bold = True
+        doc.add_paragraph(f'    • Establish review depth commensurate with {risk_level} risk level', style='List Bullet')
+
+        if risk_level == "Critical":
+            doc.add_paragraph('    • Consider external validation for Critical-rated models', style='List Bullet')
+            doc.add_paragraph('    • Enhanced documentation requirements apply', style='List Bullet')
+        elif risk_level == "High":
+            doc.add_paragraph('    • Comprehensive internal validation required', style='List Bullet')
+        elif risk_level == "Low":
+            doc.add_paragraph('    • Streamlined review appropriate for low-risk profile', style='List Bullet')
+
+        para = doc.add_paragraph('☐ ', style='List Bullet')
+        run = para.add_run('Establish Review Schedule')
+        run.bold = True
+        if risk_level in ["Critical", "High"]:
+            doc.add_paragraph('    • Prioritize review given elevated risk profile', style='List Bullet')
+        else:
+            doc.add_paragraph('    • Schedule review according to institution priorities', style='List Bullet')
+
+    def _generate_governance_implications(self, risk_level: str) -> str:
+        """Generate governance implications for non-Low risk models."""
+        if risk_level == "Critical":
+            return (
+                'Critical risk models typically require: Board or Board Committee approval; '
+                'external validation or independent expert review; enhanced monitoring with '
+                'frequent reporting to senior management; formal escalation procedures; '
+                'comprehensive documentation meeting highest standards.'
+            )
+        elif risk_level == "High":
+            return (
+                'High risk models typically require: Senior Management (CEO/CFO) approval; '
+                'comprehensive internal validation; regular monitoring with management reporting; '
+                'formal change management procedures; thorough documentation meeting enhanced standards.'
+            )
+        elif risk_level == "Medium":
+            return (
+                'Medium risk models typically require: Appropriate Management approval; '
+                'standard validation procedures; periodic monitoring; documented change control; '
+                'standard documentation completeness.'
+            )
+        return ""
+
     def _export_e23_report(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Export streamlined OSFI E-23 model risk assessment report focused on compliance checklist."""
+        """Export streamlined OSFI E-23 model risk assessment report (4-6 pages, risk-adaptive)."""
         project_name = arguments.get("project_name", "")
         project_description = arguments.get("project_description", "")
         assessment_results = arguments.get("assessment_results", {})
@@ -2518,19 +2839,17 @@ class MCPServer:
             }
 
         try:
-            # OSFI E-23 LIFECYCLE-FOCUSED REPORT GENERATION
-            # Detect current lifecycle stage from project description
+            # STREAMLINED OSFI E-23 REPORT GENERATION (4-6 pages, risk-adaptive)
             from osfi_e23_structure import detect_lifecycle_stage
-            from osfi_e23_report_generators import generate_design_stage_report
 
             current_stage = detect_lifecycle_stage(project_description)
             logger.info(f"Detected OSFI E-23 lifecycle stage: {current_stage}")
 
-            # Create AIA_Assessments directory if it doesn't exist (reuse same directory)
+            # Create AIA_Assessments directory if it doesn't exist
             assessments_dir = "./AIA_Assessments"
             os.makedirs(assessments_dir, exist_ok=True)
 
-            # Generate filename with lifecycle stage
+            # Generate filename
             current_date = datetime.now().strftime("%Y-%m-%d")
             if custom_filename:
                 filename = f"{custom_filename}.docx"
@@ -2538,42 +2857,21 @@ class MCPServer:
                 # Clean project name for filename
                 clean_project_name = "".join(c for c in project_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
                 clean_project_name = clean_project_name.replace(' ', '_')
-                stage_suffix = f"_{current_stage.capitalize()}_Stage"
-                filename = f"E23_Report{stage_suffix}_{clean_project_name}_{current_date}.docx"
+                filename = f"OSFI_E23_Assessment_{clean_project_name}_{current_date}_Streamlined.docx"
 
             file_path = os.path.join(assessments_dir, filename)
 
-            # Create Word document
+            # Create Word document with streamlined content
             doc = Document()
 
-            # Generate lifecycle stage-specific report
-            # Currently implements Design stage (most common use case)
-            # Other stages follow same pattern with stage-specific checklists
-            if current_stage == 'design':
-                doc = generate_design_stage_report(
-                    project_name=project_name,
-                    project_description=project_description,
-                    assessment_results=assessment_results,
-                    doc=doc
-                )
-            else:
-                # For non-Design stages, use Design stage as template
-                # with note about lifecycle stage detection
-                logger.warning(f"Lifecycle stage '{current_stage}' detected - using Design stage template")
-                doc = generate_design_stage_report(
-                    project_name=project_name,
-                    project_description=project_description,
-                    assessment_results=assessment_results,
-                    doc=doc
-                )
-                # Add note about detected stage
-                p = doc.add_paragraph()
-                p.add_run(f'Note: Lifecycle stage "{current_stage}" detected but report uses Design stage template. ').bold = True
-                p.add_run(
-                    f'Future versions will include {current_stage}-specific compliance checklists.'
-                )
+            # Generate streamlined, risk-adaptive report (3 sections only)
+            doc = self._generate_streamlined_e23_report(
+                doc=doc,
+                project_name=project_name,
+                project_description=project_description,
+                assessment_results=assessment_results
+            )
 
-            # Report content generated by lifecycle-specific generator above
             # Save document
             doc.save(file_path)
             
@@ -2581,15 +2879,19 @@ class MCPServer:
             file_size = os.path.getsize(file_path)
             file_size_kb = round(file_size / 1024, 1)
             
+            risk_level = assessment_results.get("risk_level", assessment_results.get("risk_rating", "Medium"))
+
             return {
                 "assistant_directive": {
-                    "critical_instruction": "The COMPLETE OSFI E-23 compliance report has been generated and saved by the MCP server. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review."
+                    "critical_instruction": "The COMPLETE OSFI E-23 streamlined assessment report (4-6 pages, risk-adaptive) has been generated and saved by the MCP server. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review."
                 },
                 "success": True,
                 "file_path": file_path,
                 "file_size": f"{file_size_kb}KB",
                 "lifecycle_stage": current_stage,
-                "message": f"✅ OSFI E-23 {current_stage.capitalize()} Stage compliance report saved successfully to {filename}"
+                "risk_level": risk_level,
+                "report_type": "Streamlined (4-6 pages, risk-adaptive)",
+                "message": f"✅ OSFI E-23 streamlined assessment report ({risk_level} risk) saved successfully to {filename}"
             }
             
         except PermissionError:

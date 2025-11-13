@@ -420,7 +420,18 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Key Fixes and Improvements
 
-### v1.13.0 - Introduction Workflow Enforcement (Latest)
+### v1.14.0 - Streamlined Risk-Adaptive OSFI E-23 Reports (Latest)
+- **Major Transformation**: Redesigned OSFI E-23 export from verbose 40KB+ reports to concise 4-6 page, risk-adaptive documents
+- **Three-Section Structure**: Executive Summary (1 page), Risk Scoring & Justification (1-2 pages), Next Steps (2-3 pages)
+- **Risk-Adaptive Content**: Tone and depth automatically adjust based on risk level (Critical/High/Medium/Low)
+- **Focus on Action**: Eliminates verbose compliance checklists, focuses on actionable next steps for Design stage completion
+- **OSFI-Pure Requirements**: Only includes deliverables mandated by OSFI E-23 Principles 3.2, 3.3, and Appendix 1
+- **Proportionality Principle**: Low-risk models get reassuring efficiency messaging; Critical models get enhanced governance emphasis
+- **Simplified Filename**: `OSFI_E23_Assessment_[ProjectName]_[Date]_Streamlined.docx`
+- **Testing**: Comprehensive test suite validates risk-adaptive content across all risk levels
+- **Impact**: Users receive concise, actionable assessments instead of overwhelming compliance frameworks
+
+### v1.13.0 - Introduction Workflow Enforcement
 - **Critical Feature**: Mandatory introduction flow - all assessment tools require `get_server_introduction` to be called first
 - **Session-Based Gating**: Introduction shown flag tracked per MCP server session
 - **Educational Errors**: Clear error messages with correct workflow steps when introduction is skipped

@@ -20,6 +20,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 ### Key Design Patterns
 - **Official Framework Compliance**: Strict adherence to Canada's official AIA (104 questions) and OSFI E-23 frameworks
 - **Introduction Workflow Enforcement**: Mandatory get_server_introduction call before any assessment tools, ensuring users understand frameworks and data sources
+- **Streamlined Risk-Adaptive Reports**: OSFI E-23 exports generate concise 4-6 page documents with risk-adaptive content (tone/depth varies by risk level)
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Enhanced Workflow Visibility**: Complete workflow roadmap with numbered steps, descriptions, and progress tracking
 - **Flexible Dependency Resolution**: Export tools can work with either preview or full assessments
@@ -68,6 +69,9 @@ python test_export_validation.py
 
 # Test introduction workflow enforcement
 python test_introduction_enforcement.py
+
+# Test streamlined E-23 report generation
+python test_streamlined_e23_report.py
 ```
 
 ### Running the Server
