@@ -420,7 +420,15 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Key Fixes and Improvements
 
-### v1.12.0 - OSFI E-23 Lifecycle-Focused Reports (Latest)
+### v1.13.0 - Introduction Workflow Enforcement (Latest)
+- **Critical Feature**: Mandatory introduction flow - all assessment tools require `get_server_introduction` to be called first
+- **Session-Based Gating**: Introduction shown flag tracked per MCP server session
+- **Educational Errors**: Clear error messages with correct workflow steps when introduction is skipped
+- **Behavioral Guidance**: Ensures users understand available frameworks and data sources before starting assessments
+- **Testing**: New `test_introduction_enforcement.py` validates enforcement across all 8 assessment tools
+- **Impact**: Prevents premature tool execution, ensures users understand regulatory frameworks and compliance requirements
+
+### v1.12.0 - OSFI E-23 Lifecycle-Focused Reports
 - **Major Enhancement**: Automatic lifecycle stage detection from project descriptions
 - **Critical Compliance**: Reports now use official "Principle X.X" terminology (not "Section X.X")
 - **Stage-Specific Content**: Reports focus only on current lifecycle stage (Design/Review/Deployment/Monitoring/Decommission)

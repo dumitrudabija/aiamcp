@@ -47,8 +47,11 @@ class MCPServer:
         self.workflow_engine = WorkflowEngine()
         self.server_info = {
             "name": "aia-assessment-server",
-            "version": "1.7.0"
+            "version": "1.13.0"
         }
+
+        # Session state for workflow enforcement
+        self.introduction_shown = False  # Tracks if get_server_introduction has been called
         
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle incoming MCP requests."""
@@ -579,13 +582,17 @@ class MCPServer:
     def _get_server_introduction(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Provide comprehensive server introduction and transparency information."""
 
+        # Mark introduction as shown for this session
+        self.introduction_shown = True
+        logger.info("Introduction shown - workflow enforcement gate unlocked")
+
         return {
             "assistant_directive": {
                 "critical_instruction": "Present ONLY the information contained in this response. Do NOT add time estimates, interpretations, recommendations, or other content not explicitly provided here. If the user asks questions requiring interpretation, clearly state 'That's my interpretation as AI, not from the official MCP data.' Distinguish between official framework data (from this tool) and your own analysis."
             },
             "server_introduction": {
                 "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
-                "version": "1.7.0",
+                "version": "1.13.0",
                 "purpose": "Official framework compliance for Canada's Algorithmic Impact Assessment (AIA) and OSFI Guideline E-23 Model Risk Management",
                 "transparency_notice": {
                     "critical_distinction": "This server provides OFFICIAL regulatory framework data. All calculations, scores, and compliance determinations come from verified government sources - NOT AI generation.",
@@ -667,8 +674,35 @@ class MCPServer:
             }
         }
 
+    def _check_introduction_requirement(self) -> Optional[Dict[str, Any]]:
+        """
+        Check if get_server_introduction has been called before allowing assessment tools.
+
+        Returns:
+            None if introduction shown, error dict otherwise
+        """
+        if not self.introduction_shown:
+            return {
+                "error": "INTRODUCTION_REQUIRED",
+                "message": "Must call get_server_introduction first to understand available frameworks and workflows",
+                "correct_flow": [
+                    "1. Call get_server_introduction",
+                    "2. Review framework options (AIA, OSFI E-23, Combined)",
+                    "3. Choose appropriate framework for your project",
+                    "4. Proceed with chosen assessment approach"
+                ],
+                "required_tool": "get_server_introduction",
+                "educational_note": "This workflow ensures you understand the available regulatory frameworks and select the appropriate assessment type before beginning. The introduction provides critical context about official data sources, compliance requirements, and anti-hallucination safeguards."
+            }
+        return None
+
     def _create_workflow(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new workflow session."""
+        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
+
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
         assessment_type = arguments.get("assessmentType")
@@ -1021,6 +1055,11 @@ class MCPServer:
 
     def _assess_project(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle project assessment requests."""
+        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
+
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
         responses = arguments.get("responses")
@@ -1113,9 +1152,14 @@ class MCPServer:
     
     def _analyze_project_description(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle project description analysis requests with intelligent automatic scoring."""
+        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
+
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
-        
+
         logger.info(f"Analyzing project description: {project_name}")
         
         # Get Design phase questions for all calculations
@@ -1755,6 +1799,11 @@ class MCPServer:
     
     def _functional_preview(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle functional preview requests - early risk assessment focused on technical characteristics."""
+        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
+
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
 
@@ -3761,6 +3810,11 @@ class MCPServer:
     
     def _assess_model_risk(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle OSFI E-23 model risk assessment requests."""
+        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
+
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
 
@@ -3799,10 +3853,15 @@ class MCPServer:
     
     def _evaluate_lifecycle_compliance(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle OSFI E-23 lifecycle compliance evaluation requests."""
+        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
+
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
         current_stage = arguments.get("currentStage")
-        
+
         logger.info(f"OSFI E-23 lifecycle compliance evaluation for: {project_name}")
         
         # Use the OSFI E-23 processor
@@ -3816,9 +3875,14 @@ class MCPServer:
     
     def _generate_risk_rating(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle OSFI E-23 risk rating generation requests."""
+        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
+
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
-        
+
         logger.info(f"OSFI E-23 risk rating generation for: {project_name}")
         
         # Use the OSFI E-23 processor
@@ -3831,10 +3895,15 @@ class MCPServer:
     
     def _create_compliance_framework(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle OSFI E-23 compliance framework creation requests."""
+        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
+
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
         risk_level = arguments.get("riskLevel")
-        
+
         logger.info(f"OSFI E-23 compliance framework creation for: {project_name}")
         
         # If risk_level is provided, create a mock risk assessment
