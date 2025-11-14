@@ -465,7 +465,7 @@ def _add_review_stage_readiness(doc: Document, assessment_results: Dict[str, Any
 
 
 def _add_risk_rating_summary(doc: Document, assessment_results: Dict[str, Any]):
-    """Add institution's risk rating summary."""
+    """Add institution's risk rating summary with detailed calculation methodology."""
     doc.add_heading('6. Institution\'s Risk Rating Summary', level=1)
 
     risk_level = assessment_results.get("risk_level", "Not Assessed")
@@ -484,11 +484,233 @@ def _add_risk_rating_summary(doc: Document, assessment_results: Dict[str, Any]):
     doc.add_paragraph().add_run('Risk Score: ').bold = True
     doc.add_paragraph(f'{risk_score}/100 (using institution\'s scoring framework)')
 
+    # Add detailed calculation methodology
+    doc.add_heading('Risk Calculation Methodology', level=2)
+    doc.add_paragraph(
+        'The following section provides full transparency into how the risk rating was calculated, '
+        'showing each step from risk factor detection through final score determination.'
+    )
+
+    _add_risk_calculation_steps(doc, assessment_results)
+
     doc.add_heading('Governance Intensity Implications (Principle 2.3)', level=2)
     doc.add_paragraph(
         'Based on the assigned risk rating, the following governance intensity applies. '
         'These are illustrative examples - actual requirements determined by institution\'s MRM framework.'
     )
+
+
+def _add_risk_calculation_steps(doc: Document, assessment_results: Dict[str, Any]):
+    """Add detailed step-by-step risk calculation methodology."""
+    risk_analysis = assessment_results.get("risk_analysis", {})
+    quant_indicators = risk_analysis.get("quantitative_indicators", {})
+    qual_indicators = risk_analysis.get("qualitative_indicators", {})
+    quant_score = risk_analysis.get("quantitative_score", 0)
+    qual_score = risk_analysis.get("qualitative_score", 0)
+    risk_score = assessment_results.get("risk_score", 0)
+
+    # Step 1: Risk Factor Detection
+    doc.add_heading('Step 1: Risk Factor Detection', level=3)
+    doc.add_paragraph(
+        'The institution\'s risk methodology analyzes the model description to identify '
+        'specific risk indicators across quantitative and qualitative dimensions.'
+    )
+
+    doc.add_paragraph().add_run('Quantitative Risk Indicators Detected:').bold = True
+    quant_detected = [k for k, v in quant_indicators.items() if v]
+    if quant_detected:
+        quant_labels = {
+            'high_volume': 'High Volume - Large-scale deployment affecting significant transaction volumes',
+            'financial_impact': 'Financial Impact - Model directly impacts financial decisions and capital',
+            'customer_facing': 'Customer-Facing - Direct impact on customer decisions and outcomes',
+            'revenue_critical': 'Revenue Critical - Model directly impacts revenue generation',
+            'regulatory_impact': 'Regulatory Impact - Model affects regulatory compliance and reporting'
+        }
+        for indicator in quant_detected:
+            doc.add_paragraph(f'• {quant_labels.get(indicator, indicator)}', style='List Bullet')
+    else:
+        doc.add_paragraph('• No quantitative risk indicators detected', style='List Bullet')
+
+    doc.add_paragraph().add_run('Qualitative Risk Indicators Detected:').bold = True
+    qual_detected = [k for k, v in qual_indicators.items() if v]
+    if qual_detected:
+        qual_labels = {
+            'ai_ml_usage': 'AI/ML Usage - Complex machine learning architecture',
+            'high_complexity': 'High Complexity - Sophisticated model structure and methodology',
+            'autonomous_decisions': 'Autonomous Decisions - Automated decision-making with limited human oversight',
+            'black_box': 'Limited Explainability - Complex algorithms requiring enhanced transparency',
+            'third_party': 'Third-Party Dependencies - Reliance on external vendors or data providers',
+            'data_sensitive': 'Sensitive Data - Processing personal or confidential information',
+            'real_time': 'Real-Time Processing - Immediate decision requirements',
+            'customer_impact': 'Customer Impact - Model decisions directly affect customer outcomes'
+        }
+        for indicator in qual_detected:
+            doc.add_paragraph(f'• {qual_labels.get(indicator, indicator)}', style='List Bullet')
+    else:
+        doc.add_paragraph('• No qualitative risk indicators detected', style='List Bullet')
+
+    doc.add_paragraph()  # Spacing
+
+    # Step 2: Quantitative Scoring
+    doc.add_heading('Step 2: Quantitative Risk Scoring', level=3)
+    doc.add_paragraph(
+        'Each detected quantitative risk indicator is assigned a weighted score based on '
+        'its potential impact on the institution\'s risk profile.'
+    )
+
+    quant_weights = {
+        'high_volume': 10,
+        'financial_impact': 10,
+        'customer_facing': 10,
+        'revenue_critical': 10,
+        'regulatory_impact': 10
+    }
+
+    if quant_detected:
+        doc.add_paragraph().add_run('Quantitative Factor Scoring:').bold = True
+        for indicator in quant_detected:
+            weight = quant_weights.get(indicator, 10)
+            doc.add_paragraph(
+                f'• {indicator.replace("_", " ").title()}: {weight} points',
+                style='List Bullet'
+            )
+
+        p = doc.add_paragraph()
+        p.add_run('Quantitative Subtotal: ').bold = True
+        p.add_run(f'{quant_score} points')
+    else:
+        p = doc.add_paragraph()
+        p.add_run('Quantitative Subtotal: ').bold = True
+        p.add_run('0 points (no quantitative indicators detected)')
+
+    doc.add_paragraph()  # Spacing
+
+    # Step 3: Qualitative Scoring
+    doc.add_heading('Step 3: Qualitative Risk Scoring', level=3)
+    doc.add_paragraph(
+        'Each detected qualitative risk indicator is assigned a weighted score based on '
+        'operational complexity and governance requirements.'
+    )
+
+    qual_weights = {
+        'ai_ml_usage': 8,
+        'high_complexity': 8,
+        'autonomous_decisions': 8,
+        'black_box': 8,
+        'third_party': 8,
+        'data_sensitive': 8,
+        'real_time': 8,
+        'customer_impact': 8
+    }
+
+    if qual_detected:
+        doc.add_paragraph().add_run('Qualitative Factor Scoring:').bold = True
+        for indicator in qual_detected:
+            weight = qual_weights.get(indicator, 8)
+            doc.add_paragraph(
+                f'• {indicator.replace("_", " ").title()}: {weight} points',
+                style='List Bullet'
+            )
+
+        p = doc.add_paragraph()
+        p.add_run('Qualitative Subtotal: ').bold = True
+        p.add_run(f'{qual_score} points')
+    else:
+        p = doc.add_paragraph()
+        p.add_run('Qualitative Subtotal: ').bold = True
+        p.add_run('0 points (no qualitative indicators detected)')
+
+    doc.add_paragraph()  # Spacing
+
+    # Step 4: Base Score Calculation
+    doc.add_heading('Step 4: Base Score Calculation', level=3)
+    base_score = quant_score + qual_score
+
+    p = doc.add_paragraph()
+    p.add_run('Base Score = Quantitative + Qualitative').bold = True
+
+    doc.add_paragraph(f'Base Score = {quant_score} + {qual_score} = {base_score} points')
+
+    doc.add_paragraph()  # Spacing
+
+    # Step 5: Risk Amplification Analysis
+    doc.add_heading('Step 5: Risk Amplification Analysis', level=3)
+    doc.add_paragraph(
+        'The institution\'s methodology applies amplification multipliers when high-risk '
+        'factor combinations are detected, reflecting elevated governance requirements.'
+    )
+
+    amplifications = []
+    multiplier = 1.0
+
+    # Check for amplification conditions
+    if quant_indicators.get("financial_impact") and qual_indicators.get("ai_ml_usage"):
+        amplifications.append('AI/ML in Financial Decisions: +30% (financial impact + AI/ML usage)')
+        multiplier += 0.3
+
+    if quant_indicators.get("customer_facing") and qual_indicators.get("autonomous_decisions"):
+        amplifications.append('Autonomous Customer Decisions: +20% (customer-facing + autonomous decisions)')
+        multiplier += 0.2
+
+    if qual_indicators.get("black_box") and quant_indicators.get("regulatory_impact"):
+        amplifications.append('Unexplainable Regulatory Models: +25% (limited explainability + regulatory impact)')
+        multiplier += 0.25
+
+    if qual_indicators.get("third_party") and quant_indicators.get("revenue_critical"):
+        amplifications.append('Critical Third-Party Dependencies: +15% (third-party + revenue critical)')
+        multiplier += 0.15
+
+    if amplifications:
+        doc.add_paragraph().add_run('Risk Amplification Factors Applied:').bold = True
+        for amp in amplifications:
+            doc.add_paragraph(f'• {amp}', style='List Bullet')
+
+        p = doc.add_paragraph()
+        p.add_run('Total Amplification Multiplier: ').bold = True
+        p.add_run(f'{multiplier:.2f}x')
+    else:
+        p = doc.add_paragraph()
+        p.add_run('No risk amplification factors detected. ').bold = True
+        p.add_run('Multiplier = 1.0x (no high-risk combinations present)')
+
+    doc.add_paragraph()  # Spacing
+
+    # Step 6: Final Risk Rating
+    doc.add_heading('Step 6: Final Risk Score and Rating', level=3)
+
+    p = doc.add_paragraph()
+    p.add_run('Final Score Calculation:').bold = True
+
+    if multiplier > 1.0:
+        amplified_score = int(base_score * multiplier)
+        doc.add_paragraph(f'Final Score = Base Score × Amplification Multiplier')
+        doc.add_paragraph(f'Final Score = {base_score} × {multiplier:.2f} = {amplified_score} points')
+        doc.add_paragraph(f'Capped at 100: {min(amplified_score, 100)} points')
+    else:
+        doc.add_paragraph(f'Final Score = Base Score (no amplification)')
+        doc.add_paragraph(f'Final Score = {base_score} points')
+
+    doc.add_paragraph()  # Spacing
+
+    p = doc.add_paragraph()
+    p.add_run('Risk Rating Determination:').bold = True
+
+    # Show rating thresholds
+    doc.add_paragraph('Risk rating levels per institution\'s methodology:')
+    doc.add_paragraph('• Low: 0-25 points', style='List Bullet')
+    doc.add_paragraph('• Medium: 26-50 points', style='List Bullet')
+    doc.add_paragraph('• High: 51-75 points', style='List Bullet')
+    doc.add_paragraph('• Critical: 76-100 points', style='List Bullet')
+
+    doc.add_paragraph()  # Spacing
+
+    risk_level = assessment_results.get("risk_level", "Not Assessed")
+    p = doc.add_paragraph()
+    p.add_run(f'Assigned Risk Rating: ').bold = True
+    run = p.add_run(f'{risk_level} ({risk_score} points)')
+    run.bold = True
+    if risk_level in ['Critical', 'High']:
+        run.font.color.rgb = RGBColor(220, 20, 60)  # Crimson for high risk
 
 
 def _add_osfi_principles_mapping_design(doc: Document, assessment_results: Dict[str, Any]):

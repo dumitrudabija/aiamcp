@@ -20,27 +20,21 @@ def test_streamlined_report_generation():
     print("\n1. Testing HIGH RISK Model (Commercial Lending)")
     print("-" * 80)
 
-    high_risk_assessment = {
-        "risk_level": "High",
-        "risk_score": 72,
-        "risk_analysis": {
-            "quantitative_indicators": {
-                "financial_impact": True,
-                "large_transaction_volume": True,
-                "customer_impact": True
-            },
-            "qualitative_indicators": {
-                "complex_methodology": True,
-                "ai_ml_usage": True,
-                "data_quality_concerns": True,
-                "regulatory_sensitivity": True
-            }
-        }
-    }
+    # Use REAL assessment instead of fake data
+    high_risk_description = (
+        "AI-powered commercial lending model using machine learning for credit risk assessment. "
+        "Processes $150-200M annual lending volume. Makes automated lending decisions for loans up to $2M. "
+        "Customer-facing system affecting business credit access. Uses ensemble ML models with complex feature engineering."
+    )
+
+    high_risk_assessment = server.osfi_e23_processor.assess_model_risk(
+        project_name="Commercial Lending AI Model",
+        project_description=high_risk_description
+    )
 
     result = server._export_e23_report({
         "project_name": "Commercial Lending AI Model",
-        "project_description": "AI-powered commercial lending model using machine learning for credit risk assessment. Processes $150-200M annual lending volume. Makes automated lending decisions for loans up to $2M. Customer-facing system affecting business credit access. Uses ensemble ML models with complex feature engineering.",
+        "project_description": high_risk_description,
         "assessment_results": high_risk_assessment
     })
 
@@ -56,27 +50,21 @@ def test_streamlined_report_generation():
     print("\n2. Testing MEDIUM RISK Model (Fraud Detection Support)")
     print("-" * 80)
 
-    medium_risk_assessment = {
-        "risk_level": "Medium",
-        "risk_score": 45,
-        "risk_analysis": {
-            "quantitative_indicators": {
-                "financial_impact": True,
-                "large_transaction_volume": False,
-                "customer_impact": False
-            },
-            "qualitative_indicators": {
-                "complex_methodology": True,
-                "ai_ml_usage": False,
-                "data_quality_concerns": True,
-                "regulatory_sensitivity": False
-            }
-        }
-    }
+    # Use REAL assessment instead of fake data
+    medium_risk_description = (
+        "Statistical fraud detection model supporting human analysts. Generates fraud risk scores for internal review. "
+        "Uses traditional statistical methods (logistic regression). Human analysts make final decisions. "
+        "Processes transaction data for anomaly flagging."
+    )
+
+    medium_risk_assessment = server.osfi_e23_processor.assess_model_risk(
+        project_name="Fraud Detection Support Tool",
+        project_description=medium_risk_description
+    )
 
     result = server._export_e23_report({
         "project_name": "Fraud Detection Support Tool",
-        "project_description": "Statistical fraud detection model supporting human analysts. Generates fraud risk scores for internal review. Uses traditional statistical methods (logistic regression). Human analysts make final decisions. Processes transaction data for anomaly flagging.",
+        "project_description": medium_risk_description,
         "assessment_results": medium_risk_assessment
     })
 
@@ -92,27 +80,21 @@ def test_streamlined_report_generation():
     print("\n3. Testing LOW RISK Model (Internal Reporting)")
     print("-" * 80)
 
-    low_risk_assessment = {
-        "risk_level": "Low",
-        "risk_score": 18,
-        "risk_analysis": {
-            "quantitative_indicators": {
-                "financial_impact": False,
-                "large_transaction_volume": False,
-                "customer_impact": False
-            },
-            "qualitative_indicators": {
-                "complex_methodology": False,
-                "ai_ml_usage": False,
-                "data_quality_concerns": False,
-                "regulatory_sensitivity": False
-            }
-        }
-    }
+    # Use REAL assessment instead of fake data
+    low_risk_description = (
+        "Internal reporting dashboard for risk metrics aggregation. Simple statistical calculations (averages, counts, percentiles). "
+        "No customer impact. Non-financial decision support. Used only by internal risk team for trend analysis. "
+        "Data sources are well-established internal systems."
+    )
+
+    low_risk_assessment = server.osfi_e23_processor.assess_model_risk(
+        project_name="Internal Risk Dashboard",
+        project_description=low_risk_description
+    )
 
     result = server._export_e23_report({
         "project_name": "Internal Risk Dashboard",
-        "project_description": "Internal reporting dashboard for risk metrics aggregation. Simple statistical calculations (averages, counts, percentiles). No customer impact. Non-financial decision support. Used only by internal risk team for trend analysis. Data sources are well-established internal systems.",
+        "project_description": low_risk_description,
         "assessment_results": low_risk_assessment
     })
 
@@ -128,27 +110,22 @@ def test_streamlined_report_generation():
     print("\n4. Testing CRITICAL RISK Model (Regulatory Capital)")
     print("-" * 80)
 
-    critical_risk_assessment = {
-        "risk_level": "Critical",
-        "risk_score": 88,
-        "risk_analysis": {
-            "quantitative_indicators": {
-                "financial_impact": True,
-                "large_transaction_volume": True,
-                "customer_impact": True
-            },
-            "qualitative_indicators": {
-                "complex_methodology": True,
-                "ai_ml_usage": True,
-                "data_quality_concerns": True,
-                "regulatory_sensitivity": True
-            }
-        }
-    }
+    # Use REAL assessment instead of fake data
+    critical_risk_description = (
+        "AI/ML-powered regulatory capital calculation model for Basel III compliance. "
+        "Calculates required capital reserves affecting billions in capital allocation. Direct regulatory reporting to OSFI. "
+        "Uses advanced machine learning for credit risk weighted assets (RWA). Customer portfolio risk assessment impacting lending capacity. "
+        "Complex neural network architecture with multiple data sources."
+    )
+
+    critical_risk_assessment = server.osfi_e23_processor.assess_model_risk(
+        project_name="Basel III Regulatory Capital Model",
+        project_description=critical_risk_description
+    )
 
     result = server._export_e23_report({
         "project_name": "Basel III Regulatory Capital Model",
-        "project_description": "AI/ML-powered regulatory capital calculation model for Basel III compliance. Calculates required capital reserves affecting billions in capital allocation. Direct regulatory reporting to OSFI. Uses advanced machine learning for credit risk weighted assets (RWA). Customer portfolio risk assessment impacting lending capacity. Complex neural network architecture with multiple data sources.",
+        "project_description": critical_risk_description,
         "assessment_results": critical_risk_assessment
     })
 
