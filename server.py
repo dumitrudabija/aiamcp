@@ -486,14 +486,14 @@ class MCPServer:
                         },
                         "assessment_results": {
                             "type": "object",
-                            "description": "Assessment results object from previous E-23 assessment (assess_model_risk, generate_risk_rating, or create_compliance_framework)"
+                            "description": "OPTIONAL: Assessment results object from previous E-23 assessment. If not provided, will automatically retrieve from session state. The MCP server automatically stores assessment results when tools are called in sequence."
                         },
                         "custom_filename": {
                             "type": "string",
                             "description": "Optional custom filename (without extension). If not provided, will use E23_Report_[ProjectName]_[YYYY-MM-DD].docx format"
                         }
                     },
-                    "required": ["project_name", "project_description", "assessment_results"],
+                    "required": ["project_name", "project_description"],
                     "additionalProperties": False
                 }
             }
@@ -507,11 +507,82 @@ class MCPServer:
             }
         }
     
+    def _get_or_create_auto_session(self, project_name: str, assessment_type: str = "osfi_e23") -> str:
+        """
+        Get or create an automatic session for direct tool calls.
+        This enables session state management without explicit workflow creation.
+        """
+        # Create a session ID based on project name and type
+        session_id = f"auto-{assessment_type}-{project_name.replace(' ', '_')[:50]}"
+
+        # Check if session exists
+        existing_session = self.workflow_engine.get_session(session_id)
+        if existing_session:
+            logger.info(f"Retrieved existing auto-session: {session_id}")
+            return session_id
+
+        # Create new session manually with our desired session_id
+        from workflow_engine import AssessmentType, WorkflowState
+
+        workflow_type = AssessmentType.OSFI_E23 if assessment_type == "osfi_e23" else AssessmentType.AIA_FULL
+
+        session = {
+            "session_id": session_id,
+            "project_name": project_name,
+            "project_description": "",  # Will be filled by first tool call
+            "assessment_type": workflow_type.value,
+            "state": WorkflowState.CREATED.value,
+            "created_at": datetime.now().isoformat(),
+            "last_accessed": datetime.now().isoformat(),
+            "completed_tools": [],
+            "tool_results": {},
+            "current_step": 0,
+            "workflow_sequence": self.workflow_engine.workflows.get(workflow_type, []),
+            "is_auto_session": True  # Mark as auto-created
+        }
+
+        # Store in workflow engine's sessions
+        self.workflow_engine.sessions[session_id] = session
+
+        logger.info(f"Created auto-session for direct tool calls: {session_id}")
+        return session_id
+
+    def _store_tool_result_in_session(self, session_id: str, tool_name: str, tool_result: Dict[str, Any]):
+        """Store tool result in session for later retrieval."""
+        session = self.workflow_engine.get_session(session_id)
+        if session:
+            session["tool_results"][tool_name] = {
+                "result": tool_result,
+                "executed_at": datetime.now().isoformat(),
+                "success": True
+            }
+            if tool_name not in session["completed_tools"]:
+                session["completed_tools"].append(tool_name)
+            logger.info(f"Stored {tool_name} result in session {session_id}")
+
+    def _get_assessment_results_for_export_from_session(self, session_id: str, framework_type: str) -> Optional[Dict[str, Any]]:
+        """Extract assessment results from auto-session for export tools."""
+        session = self.workflow_engine.get_session(session_id)
+        if not session:
+            return None
+
+        return self._get_assessment_results_for_export(session, framework_type)
+
     def _call_tool(self, request_id: Any, params: Dict[str, Any]) -> Dict[str, Any]:
         """Call a specific tool."""
         tool_name = params.get("name")
         arguments = params.get("arguments", {})
-        
+
+        # Auto-session management for OSFI E-23 tools
+        osfi_tools = ["assess_model_risk", "evaluate_lifecycle_compliance", "generate_risk_rating",
+                      "create_compliance_framework", "export_e23_report"]
+
+        session_id = None
+        if tool_name in osfi_tools:
+            project_name = arguments.get("projectName") or arguments.get("project_name", "UnnamedProject")
+            session_id = self._get_or_create_auto_session(project_name, "osfi_e23")
+            logger.info(f"Using auto-session {session_id} for {tool_name}")
+
         try:
             if tool_name == "get_server_introduction":
                 result = self._get_server_introduction(arguments)
@@ -544,6 +615,15 @@ class MCPServer:
             elif tool_name == "create_compliance_framework":
                 result = self._create_compliance_framework(arguments)
             elif tool_name == "export_e23_report":
+                # Auto-inject assessment_results from session if not provided
+                if session_id:
+                    assessment_results = arguments.get("assessment_results", {})
+                    if not assessment_results or len(assessment_results) == 0:
+                        # Try to get from session
+                        framework_results = self._get_assessment_results_for_export_from_session(session_id, "osfi_e23")
+                        if framework_results:
+                            arguments["assessment_results"] = framework_results
+                            logger.info(f"Auto-injected assessment_results from session {session_id}")
                 result = self._export_e23_report(arguments)
             else:
                 return {
@@ -554,7 +634,11 @@ class MCPServer:
                         "message": f"Unknown tool: {tool_name}"
                     }
                 }
-            
+
+            # Store result in session for OSFI tools (except export which is terminal)
+            if session_id and tool_name in osfi_tools and tool_name != "export_e23_report":
+                self._store_tool_result_in_session(session_id, tool_name, result)
+
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -3083,15 +3167,15 @@ class MCPServer:
 
         logger.info(f"Exporting streamlined OSFI E-23 report for project: {project_name}")
 
-        # CRITICAL FIX: Validate that assessment_results contains required data
-        # Prevent generating misleading reports with default values (0/100, "Medium")
+        # VALIDATION: Check if assessment_results is available
+        # Note: assessment_results should be auto-injected from session if tools were called in sequence
         if not assessment_results or len(assessment_results) == 0:
             return {
                 "error": "export_failed",
-                "reason": "Cannot export OSFI E-23 report: assessment_results is empty or missing",
-                "required_action": "Execute 'assess_model_risk' tool first to generate assessment data",
-                "workflow_guidance": "If using workflow, the system should auto-inject results. This error indicates no assessment has been completed.",
-                "critical_warning": "⚠️ COMPLIANCE RISK: Exporting without assessment data would create misleading documents with default values (Risk Score: 0/100, Risk Level: Medium)"
+                "reason": "Cannot export OSFI E-23 report: No assessment data available",
+                "required_action": "Execute 'assess_model_risk' tool first to generate assessment data for this project",
+                "workflow_guidance": "The MCP server automatically stores assessment results when you call assess_model_risk. Make sure you call it for the same project_name before export_e23_report.",
+                "critical_warning": "⚠️ COMPLIANCE RISK: Cannot generate report without assessment data. Please run assess_model_risk first."
             }
 
         # Check for minimum required risk assessment fields
@@ -4396,35 +4480,35 @@ class MCPServer:
 
         logger.info(f"OSFI E-23 model risk assessment for: {project_name}")
 
-        # Validate project description adequacy for OSFI E-23 framework assessment
+        # Validate project description adequacy (NON-BLOCKING - results included as warnings)
         validation_result = self.description_validator.validate_description(project_description)
-        # Use OSFI E-23 specific readiness instead of combined validation
         osfi_ready = validation_result["framework_readiness"].get("osfi_e23_framework", False)
 
-        if not osfi_ready:
-            return {
-                "assessment": {
-                    "status": "validation_failed",
-                    "message": "❌ Insufficient project description for OSFI E-23 framework assessment",
-                    "validation_details": validation_result,
-                    "required_action": "Use 'validate_project_description' tool to check requirements and improve description"
-                },
-                "framework_readiness": validation_result["framework_readiness"],
-                "recommendations": [
-                    "Project description does not meet minimum requirements for OSFI E-23 assessment",
-                    "Please provide more detailed information covering the missing areas",
-                    "Use the 'validate_project_description' tool to check specific requirements",
-                    "Re-run assessment after improving the description"
-                ],
-                "compliance_warning": "⚠️ COMPLIANCE WARNING: OSFI E-23 assessments require detailed, factual project descriptions for regulatory compliance"
-            }
-
-        # Use the OSFI E-23 processor
+        # Use the OSFI E-23 processor to perform assessment
         result = self.osfi_e23_processor.assess_model_risk(
             project_name=project_name,
             project_description=project_description
         )
-        
+
+        # Add validation warnings if description has issues
+        if not osfi_ready:
+            # Add validation warnings to the result (non-blocking)
+            result["description_validation"] = {
+                "validation_status": "warning",
+                "message": "⚠️ Project description may not meet all recommended requirements for OSFI E-23 framework",
+                "total_words": validation_result["total_words"],
+                "areas_covered": validation_result["areas_covered"],
+                "areas_missing": validation_result["areas_missing"],
+                "recommendation": "For more comprehensive results, consider using 'validate_project_description' tool to check detailed requirements and improve description coverage."
+            }
+            logger.warning(f"Description validation warning for {project_name}: {validation_result['areas_missing']} areas may need more detail")
+        else:
+            # Add confirmation that description is adequate
+            result["description_validation"] = {
+                "validation_status": "passed",
+                "message": "✅ Project description meets OSFI E-23 framework requirements"
+            }
+
         return result
     
     def _evaluate_lifecycle_compliance(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
