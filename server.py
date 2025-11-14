@@ -22,7 +22,7 @@ import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from docx import Document
-from docx.shared import Inches, Pt
+from docx.shared import Inches, Pt, RGBColor
 from aia_processor import AIAProcessor
 from osfi_e23_processor import OSFIE23Processor
 from description_validator import ProjectDescriptionValidator
@@ -47,7 +47,7 @@ class MCPServer:
         self.workflow_engine = WorkflowEngine()
         self.server_info = {
             "name": "aia-assessment-server",
-            "version": "1.14.0"
+            "version": "1.15.0"
         }
 
         # Session state for workflow enforcement
@@ -154,7 +154,7 @@ class MCPServer:
         tools = [
             {
                 "name": "get_server_introduction",
-                "description": "🚨 CRITICAL: This tool MUST be called at the START of any assessment conversation to orient users.\n\nWHEN TO CALL THIS TOOL:\nCall this tool IMMEDIATELY when a user:\n- Says they want to assess, evaluate, or analyze a project/system/model\n- Mentions AIA, OSFI, or compliance/regulatory requirements\n- Provides a project description asking for assessment\n- Asks about which framework to use\n- Says they're starting a new assessment or compliance process\n- Any variation of 'help me with [AI/model/system] compliance'\n\nWHAT TO DO AFTER CALLING THIS TOOL:\n1. Present the framework_selection_guide to help user choose AIA vs OSFI vs Combined\n2. Explain the workflow options available\n3. Ask the user which framework applies to their project\n4. WAIT for user to choose before proceeding with any assessment\n5. Do NOT immediately create workflows or start assessments without user choice\n\nWRONG FLOW ❌:\nUser: 'Assess my AI project'\nClaude: [Creates workflow immediately]\n\nCORRECT FLOW ✅:\nUser: 'Assess my AI project'\nClaude: [Calls get_server_introduction]\nClaude: 'Let me explain your options first. You can use: AIA for government systems, OSFI E-23 for financial institutions, or Combined. Which applies?'\nUser: [Chooses framework]\nClaude: [Proceeds with chosen approach]\n\nThis tool provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework data (MCP) vs AI-generated interpretations (Claude).",
+                "description": "🚨 CRITICAL FIRST CALL - CALL THIS ALONE: This tool MUST be called BY ITSELF at the START of any assessment conversation.\n\n⚠️ CALL THIS TOOL ALONE - Do NOT call other tools in the same response!\n\nWHEN TO CALL THIS TOOL:\nCall IMMEDIATELY when a user:\n- Says 'run through OSFI framework' or 'run through AIA'\n- Wants to assess, evaluate, or analyze a project/system/model\n- Mentions AIA, OSFI, or compliance/regulatory requirements\n- Provides a project description asking for assessment\n- Asks about which framework to use or available workflows\n- Says they're starting a new assessment or compliance process\n- Any variation of 'help me with [AI/model/system] compliance'\n\nWHAT THIS TOOL PROVIDES:\n- Complete 6-step OSFI E-23 workflow sequence (validate → assess_model_risk → evaluate_lifecycle → generate_risk_rating → create_compliance_framework → export_e23_report)\n- Complete 5-step AIA workflow sequence\n- Framework selection guidance\n- Critical data source distinctions (MCP official data vs AI interpretation)\n\nWHAT TO DO AFTER CALLING THIS TOOL:\n1. PRESENT the complete introduction including ALL workflow sequences\n2. SHOW the user all 4 framework options (AIA, OSFI E-23, Workflow Mode, Combined)\n3. ASK which framework applies to their project\n4. WAIT for explicit user choice\n5. THEN follow the appropriate workflow sequence step-by-step\n\nWRONG FLOW ❌:\nUser: 'Run through OSFI framework'\nClaude: [Calls get_server_introduction AND assess_model_risk together]\n\nCORRECT FLOW ✅:\nUser: 'Run through OSFI framework'\nClaude: [Calls ONLY get_server_introduction]\nClaude: [Shows complete OSFI 6-step workflow + explains all options]\nClaude: 'Would you like me to run through all 6 OSFI E-23 steps, or start with specific steps?'\nUser: [Makes choice]\nClaude: [Follows workflow sequence: Step 1 validate_project_description, Step 2 assess_model_risk, etc.]",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -163,7 +163,7 @@ class MCPServer:
             },
             {
                 "name": "validate_project_description",
-                "description": "🔍 FRAMEWORK READINESS VALIDATOR: Validate project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. Ensures descriptions contain sufficient information across key areas required by both frameworks. Use this as a first step before framework assessments to prevent 'insufficient description' errors.",
+                "description": "🔍 STEP 1 - FRAMEWORK READINESS VALIDATOR: Validate project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. This is STEP 1 for both AIA and OSFI E-23 workflows. Ensures descriptions contain sufficient information across key areas required by both frameworks. Use this as the first step before framework assessments to prevent 'insufficient description' errors.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -386,7 +386,7 @@ class MCPServer:
             },
             {
                 "name": "assess_model_risk",
-                "description": "⚠️ OSFI E-23 MODEL RISK MANAGEMENT: Assess model risk using Canada's OSFI Guideline E-23 framework for federally regulated financial institutions. COMPLIANCE WARNING: This tool provides structured assessment framework only. All results must be validated by qualified model risk professionals and approved by appropriate governance authorities. Risk assessments must be based on factual, verifiable project information - not AI interpretation.",
+                "description": "🏦 OSFI E-23 STEP 2 OF 6 - MODEL RISK ASSESSMENT: Comprehensive model risk assessment using Canada's OSFI Guideline E-23 framework. This is STEP 2 in the complete OSFI E-23 workflow. COMPLETE OSFI WORKFLOW: (1) validate_project_description → (2) assess_model_risk [YOU ARE HERE] → (3) evaluate_lifecycle_compliance → (4) generate_risk_rating → (5) create_compliance_framework → (6) export_e23_report. When user says 'run through OSFI framework', you should execute ALL 6 steps in sequence. ⚠️ COMPLIANCE WARNING: This tool provides structured assessment framework only. All results must be validated by qualified model risk professionals and approved by appropriate governance authorities. Risk assessments must be based on factual, verifiable project information - not AI interpretation.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -405,7 +405,7 @@ class MCPServer:
             },
             {
                 "name": "evaluate_lifecycle_compliance",
-                "description": "OSFI E-23 MODEL RISK MANAGEMENT: Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages (Design, Review, Deployment, Monitoring, Decommission). Identifies compliance gaps and provides stage-specific recommendations.",
+                "description": "🏦 OSFI E-23 STEP 3 OF 6 - LIFECYCLE COMPLIANCE: Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages (Design, Review, Deployment, Monitoring, Decommission). This is STEP 3 in the complete OSFI E-23 workflow. Identifies compliance gaps and provides stage-specific recommendations.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -429,7 +429,7 @@ class MCPServer:
             },
             {
                 "name": "generate_risk_rating",
-                "description": "OSFI E-23 MODEL RISK MANAGEMENT: Generate detailed risk rating assessment using OSFI E-23 methodology. Provides comprehensive risk analysis with quantitative scoring, qualitative factors, and risk amplification analysis for financial institution compliance.",
+                "description": "🏦 OSFI E-23 STEP 4 OF 6 - RISK RATING DOCUMENTATION: Generate detailed risk rating assessment using OSFI E-23 methodology. This is STEP 4 in the complete OSFI E-23 workflow. Provides comprehensive risk analysis with quantitative scoring, qualitative factors, and risk amplification analysis for financial institution compliance.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -448,7 +448,7 @@ class MCPServer:
             },
             {
                 "name": "create_compliance_framework",
-                "description": "OSFI E-23 MODEL RISK MANAGEMENT: Create comprehensive compliance framework based on OSFI E-23 requirements. Generates detailed governance structure, policies, procedures, and controls tailored to the model's risk level and business context.",
+                "description": "🏦 OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK: Create comprehensive compliance framework based on OSFI E-23 requirements. This is STEP 5 in the complete OSFI E-23 workflow. Generates detailed governance structure, policies, procedures, and controls tailored to the model's risk level and business context.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -472,7 +472,7 @@ class MCPServer:
             },
             {
                 "name": "export_e23_report",
-                "description": "⚠️ OSFI E-23 MODEL RISK MANAGEMENT: Generates and saves a COMPLETE lifecycle-focused OSFI E-23 compliance report as a Microsoft Word document. The MCP server creates the entire document including executive summary, risk analysis, compliance checklist, and recommendations. COMPLIANCE WARNING: Generated reports are templates requiring professional validation. All content must be reviewed by qualified model risk professionals, validated against actual project characteristics, and approved by appropriate governance authorities before use for regulatory compliance.",
+                "description": "🏦 OSFI E-23 STEP 6 OF 6 - REPORT GENERATION: Generates and saves a COMPLETE lifecycle-focused OSFI E-23 compliance report as a Microsoft Word document. This is the FINAL STEP (Step 6) in the complete OSFI E-23 workflow. The MCP server creates the entire document including executive summary, risk analysis, compliance checklist, and recommendations. ⚠️ COMPLIANCE WARNING: Generated reports are templates requiring professional validation. All content must be reviewed by qualified model risk professionals, validated against actual project characteristics, and approved by appropriate governance authorities before use for regulatory compliance.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -588,11 +588,12 @@ class MCPServer:
 
         return {
             "assistant_directive": {
-                "critical_instruction": "Present ONLY the information contained in this response. Do NOT add time estimates, interpretations, recommendations, or other content not explicitly provided here. If the user asks questions requiring interpretation, clearly state 'That's my interpretation as AI, not from the official MCP data.' Distinguish between official framework data (from this tool) and your own analysis."
+                "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Do NOT call any other tools immediately after this. Present this complete introduction to the user, then WAIT for them to choose their assessment approach. Do NOT add time estimates, interpretations, recommendations, or other content not explicitly provided here. If the user asks questions requiring interpretation, clearly state 'That's my interpretation as AI, not from the official MCP data.' Distinguish between official framework data (from this tool) and your own analysis.",
+                "behavioral_requirement": "After presenting this introduction, you MUST ask the user which framework they want to use (AIA, OSFI E-23, or workflow-based approach) and WAIT for their response before proceeding with any assessment tools."
             },
             "server_introduction": {
                 "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
-                "version": "1.14.0",
+                "version": "1.15.0",
                 "purpose": "Official framework compliance for Canada's Algorithmic Impact Assessment (AIA) and OSFI Guideline E-23 Model Risk Management",
                 "transparency_notice": {
                     "critical_distinction": "This server provides OFFICIAL regulatory framework data. All calculations, scores, and compliance determinations come from verified government sources - NOT AI generation.",
@@ -627,6 +628,95 @@ class MCPServer:
                     "official_source": "Office of the Superintendent of Financial Institutions Canada"
                 }
             },
+            "framework_workflows": {
+                "aia_workflow": {
+                    "title": "🇨🇦 AIA Framework Complete Workflow",
+                    "description": "Canada's Algorithmic Impact Assessment for automated decision-making systems",
+                    "sequence": [
+                        {
+                            "step": 1,
+                            "tool": "validate_project_description",
+                            "purpose": "Ensure project description has sufficient detail for assessment",
+                            "output": "Validation report with coverage analysis"
+                        },
+                        {
+                            "step": 2,
+                            "tool": "functional_preview OR analyze_project_description",
+                            "purpose": "Get preliminary risk assessment or auto-answer questions",
+                            "output": "Initial risk level and question analysis"
+                        },
+                        {
+                            "step": 3,
+                            "tool": "get_questions",
+                            "purpose": "Review all 104 official AIA questions if needed",
+                            "output": "Complete question set with categories"
+                        },
+                        {
+                            "step": 4,
+                            "tool": "assess_project",
+                            "purpose": "Complete full AIA assessment with all responses",
+                            "output": "Official AIA score and impact level (1-4)"
+                        },
+                        {
+                            "step": 5,
+                            "tool": "export_assessment_report",
+                            "purpose": "Generate professional Word document for compliance",
+                            "output": "Complete AIA report (.docx file)"
+                        }
+                    ],
+                    "recommended_use": "Federal government automated decision-making systems"
+                },
+                "osfi_e23_workflow": {
+                    "title": "🏦 OSFI E-23 Framework Complete Workflow",
+                    "description": "OSFI Guideline E-23 Model Risk Management for federally regulated financial institutions",
+                    "sequence": [
+                        {
+                            "step": 1,
+                            "tool": "validate_project_description",
+                            "purpose": "Ensure model description has sufficient detail for risk assessment",
+                            "output": "Validation report confirming OSFI E-23 readiness"
+                        },
+                        {
+                            "step": 2,
+                            "tool": "assess_model_risk",
+                            "purpose": "Comprehensive model risk assessment using quantitative and qualitative factors",
+                            "output": "Risk rating (Low/Medium/High/Critical) with detailed factor analysis"
+                        },
+                        {
+                            "step": 3,
+                            "tool": "evaluate_lifecycle_compliance",
+                            "purpose": "Assess compliance requirements for current model lifecycle stage",
+                            "output": "Stage-specific compliance requirements and deliverables"
+                        },
+                        {
+                            "step": 4,
+                            "tool": "generate_risk_rating",
+                            "purpose": "Generate detailed risk rating documentation",
+                            "output": "Comprehensive risk rating report with methodology"
+                        },
+                        {
+                            "step": 5,
+                            "tool": "create_compliance_framework",
+                            "purpose": "Build complete governance and compliance framework",
+                            "output": "Full E-23 compliance structure with policies and controls"
+                        },
+                        {
+                            "step": 6,
+                            "tool": "export_e23_report",
+                            "purpose": "Generate executive-ready risk-adaptive report",
+                            "output": "Professional Word document (4-6 pages) with risk-adaptive content"
+                        }
+                    ],
+                    "recommended_use": "Models used by federally regulated financial institutions (banks, credit unions, insurance companies)",
+                    "note": "All 6 steps provide comprehensive OSFI E-23 coverage. Minimum viable assessment: steps 1-2 and 6."
+                },
+                "combined_workflow": {
+                    "title": "🇨🇦🏦 Combined AIA + OSFI E-23 Workflow",
+                    "description": "For AI systems in financial institutions requiring both frameworks",
+                    "use_case": "Automated decision-making systems in federally regulated financial institutions",
+                    "approach": "Run both complete workflows sequentially, starting with project description validation"
+                }
+            },
             "workflow_guidance": {
                 "recommended_approach": [
                     "1. 🔄 Use 'create_workflow' to start guided assessment",
@@ -634,10 +724,11 @@ class MCPServer:
                     "3. 📊 Use 'get_workflow_status' for progress tracking",
                     "4. 🎯 Use 'execute_workflow_step' for manual control when needed"
                 ],
-                "traditional_approach": [
-                    "1. 🔍 Start with 'validate_project_description'",
-                    "2. 📋 Use framework-specific tools individually",
-                    "3. 📄 Export results with report generation tools"
+                "manual_approach": [
+                    "1. 🔍 Review the framework workflows above",
+                    "2. ✅ Choose AIA, OSFI E-23, or Combined workflow",
+                    "3. 📝 Follow the sequence step-by-step",
+                    "4. 📄 Export final reports for compliance documentation"
                 ],
                 "automatic_features": [
                     "✅ Assessment type auto-detection (AIA/OSFI E-23/Combined)",
@@ -657,20 +748,27 @@ class MCPServer:
                 "proper_usage": [
                     "✅ Use workflows for complete guided assessments",
                     "✅ Validate project descriptions before framework tools",
+                    "✅ Follow the complete framework workflow sequences",
                     "✅ Use official scores for regulatory compliance",
                     "✅ Export generated documents for audit trails"
                 ],
                 "improper_usage": [
+                    "❌ Do NOT skip workflow steps or call tools out of sequence",
                     "❌ Do NOT use AI interpretations for regulatory decisions",
                     "❌ Do NOT bypass description validation requirements",
                     "❌ Do NOT use framework tools without proper project information",
                     "❌ Do NOT modify or substitute official scoring calculations"
                 ]
             },
-            "next_steps": {
-                "for_new_assessment": "Use 'create_workflow' with your project details to begin guided assessment",
-                "for_specific_framework": "Use 'validate_project_description' first, then proceed with AIA or OSFI E-23 tools",
-                "for_help": "This introduction provides all available capabilities - no additional help tools needed"
+            "next_steps_guidance": {
+                "user_choice_required": "ASK THE USER: Which framework do you want to use?",
+                "options": {
+                    "option_1": "🇨🇦 AIA Framework - For federal government automated decision systems",
+                    "option_2": "🏦 OSFI E-23 Framework - For financial institution models",
+                    "option_3": "🔄 Workflow Mode - For guided assessment with automatic progression",
+                    "option_4": "🇨🇦🏦 Both Frameworks - For AI systems in regulated financial institutions"
+                },
+                "after_user_choice": "Once user selects a framework, follow the appropriate workflow sequence shown above"
             }
         }
 
@@ -2538,6 +2636,20 @@ class MCPServer:
         para.add_run('Scoring Methodology: ').bold = True
         para.add_run("Institution's risk rating per OSFI Principle 2.2 (Model Risk Rating)")
 
+        # Add detailed risk calculation methodology
+        doc.add_heading('Risk Calculation Methodology', level=3)
+
+        # MCP SERVER transparency marker
+        transparency_para = doc.add_paragraph()
+        run = transparency_para.add_run('🔧 MCP SERVER (Official Rule-Based Calculation)')
+        run.bold = True
+        doc.add_paragraph(
+            'The following calculation is performed by the MCP server using deterministic, '
+            'rule-based logic from OSFI E-23 framework requirements. This is NOT AI interpretation.'
+        )
+
+        self._add_detailed_risk_calculation(doc, risk_analysis, risk_score, risk_level)
+
         # 2.2 Risk Factors Identified
         doc.add_heading('2.2 Risk Factors Identified', level=2)
 
@@ -2799,6 +2911,168 @@ class MCPServer:
                 'standard documentation completeness.'
             )
         return ""
+
+    def _add_detailed_risk_calculation(self, doc: Document, risk_analysis: Dict[str, Any],
+                                      risk_score: int, risk_level: str):
+        """Add detailed step-by-step risk calculation methodology to report."""
+        quant_indicators = risk_analysis.get("quantitative_indicators", {})
+        qual_indicators = risk_analysis.get("qualitative_indicators", {})
+
+        # Get scores from risk_analysis, or calculate from indicators if missing
+        quant_score = risk_analysis.get("quantitative_score")
+        if quant_score is None:
+            # Calculate from indicators: each True indicator = 10 points
+            quant_score = sum(1 for v in quant_indicators.values() if v) * 10
+
+        qual_score = risk_analysis.get("qualitative_score")
+        if qual_score is None:
+            # Calculate from indicators: each True indicator = 8 points
+            qual_score = sum(1 for v in qual_indicators.values() if v) * 8
+
+        # Step 1: Risk Factor Detection
+        doc.add_heading('Step 1: Risk Factor Detection', level=4)
+        doc.add_paragraph(
+            'Rule-based keyword matching against project description to identify risk indicators.'
+        )
+
+        para = doc.add_paragraph()
+        para.add_run('Quantitative Risk Indicators Detected:').bold = True
+        quant_detected = [k for k, v in quant_indicators.items() if v]
+        if quant_detected:
+            quant_labels = {
+                'high_volume': 'High Volume - Large-scale deployment',
+                'financial_impact': 'Financial Impact - Direct impact on financial decisions',
+                'customer_facing': 'Customer-Facing - Direct customer impact',
+                'revenue_critical': 'Revenue Critical - Core business function',
+                'regulatory_impact': 'Regulatory Impact - Regulatory compliance/reporting'
+            }
+            for indicator in quant_detected:
+                doc.add_paragraph(f'  • {quant_labels.get(indicator, indicator)}', style='List Bullet')
+        else:
+            doc.add_paragraph('  • None detected', style='List Bullet')
+
+        para = doc.add_paragraph()
+        para.add_run('Qualitative Risk Indicators Detected:').bold = True
+        qual_detected = [k for k, v in qual_indicators.items() if v]
+        if qual_detected:
+            qual_labels = {
+                'ai_ml_usage': 'AI/ML Usage - Machine learning architecture',
+                'high_complexity': 'High Complexity - Sophisticated methodology',
+                'autonomous_decisions': 'Autonomous Decisions - Automated decision-making',
+                'black_box': 'Limited Explainability - Complex algorithms',
+                'third_party': 'Third-Party Dependencies - External vendors',
+                'data_sensitive': 'Sensitive Data - Personal/confidential information',
+                'real_time': 'Real-Time Processing - Immediate decisions',
+                'customer_impact': 'Customer Impact - Direct customer outcomes'
+            }
+            for indicator in qual_detected:
+                doc.add_paragraph(f'  • {qual_labels.get(indicator, indicator)}', style='List Bullet')
+        else:
+            doc.add_paragraph('  • None detected', style='List Bullet')
+
+        # Step 2: Quantitative Scoring
+        doc.add_heading('Step 2: Quantitative Risk Scoring', level=4)
+        if quant_detected:
+            para = doc.add_paragraph()
+            para.add_run('Quantitative Factor Scoring (10 points each):').bold = True
+            for indicator in quant_detected:
+                doc.add_paragraph(f'  • {indicator.replace("_", " ").title()}: 10 points', style='List Bullet')
+            para = doc.add_paragraph()
+            para.add_run('Quantitative Subtotal: ').bold = True
+            para.add_run(f'{quant_score} points')
+        else:
+            para = doc.add_paragraph()
+            para.add_run('Quantitative Subtotal: ').bold = True
+            para.add_run('0 points')
+
+        # Step 3: Qualitative Scoring
+        doc.add_heading('Step 3: Qualitative Risk Scoring', level=4)
+        if qual_detected:
+            para = doc.add_paragraph()
+            para.add_run('Qualitative Factor Scoring (8 points each):').bold = True
+            for indicator in qual_detected:
+                doc.add_paragraph(f'  • {indicator.replace("_", " ").title()}: 8 points', style='List Bullet')
+            para = doc.add_paragraph()
+            para.add_run('Qualitative Subtotal: ').bold = True
+            para.add_run(f'{qual_score} points')
+        else:
+            para = doc.add_paragraph()
+            para.add_run('Qualitative Subtotal: ').bold = True
+            para.add_run('0 points')
+
+        # Step 4: Base Score Calculation
+        doc.add_heading('Step 4: Base Score Calculation', level=4)
+        base_score = quant_score + qual_score
+        para = doc.add_paragraph()
+        para.add_run('Formula: Base Score = Quantitative + Qualitative').bold = True
+        doc.add_paragraph(f'Base Score = {quant_score} + {qual_score} = {base_score} points')
+
+        # Step 5: Risk Amplification Analysis
+        doc.add_heading('Step 5: Risk Amplification Analysis', level=4)
+        doc.add_paragraph(
+            'High-risk factor combinations trigger amplification multipliers:'
+        )
+
+        amplifications = []
+        multiplier = 1.0
+
+        if quant_indicators.get("financial_impact") and qual_indicators.get("ai_ml_usage"):
+            amplifications.append('AI/ML in Financial Decisions: +30%')
+            multiplier += 0.3
+
+        if quant_indicators.get("customer_facing") and qual_indicators.get("autonomous_decisions"):
+            amplifications.append('Autonomous Customer Decisions: +20%')
+            multiplier += 0.2
+
+        if qual_indicators.get("black_box") and quant_indicators.get("regulatory_impact"):
+            amplifications.append('Unexplainable Regulatory Models: +25%')
+            multiplier += 0.25
+
+        if qual_indicators.get("third_party") and quant_indicators.get("revenue_critical"):
+            amplifications.append('Critical Third-Party Dependencies: +15%')
+            multiplier += 0.15
+
+        if amplifications:
+            para = doc.add_paragraph()
+            para.add_run('Amplification Factors Applied:').bold = True
+            for amp in amplifications:
+                doc.add_paragraph(f'  • {amp}', style='List Bullet')
+            para = doc.add_paragraph()
+            para.add_run('Total Amplification Multiplier: ').bold = True
+            para.add_run(f'{multiplier:.2f}x')
+        else:
+            para = doc.add_paragraph()
+            para.add_run('No amplification factors detected. ').bold = True
+            para.add_run('Multiplier = 1.0x')
+
+        # Step 6: Final Risk Rating
+        doc.add_heading('Step 6: Final Risk Score and Rating', level=4)
+
+        if multiplier > 1.0:
+            amplified_score = int(base_score * multiplier)
+            para = doc.add_paragraph()
+            para.add_run('Formula: Final Score = Base Score × Amplification Multiplier').bold = True
+            doc.add_paragraph(f'Final Score = {base_score} × {multiplier:.2f} = {amplified_score} points')
+            doc.add_paragraph(f'Capped at 100: {min(amplified_score, 100)} points')
+        else:
+            para = doc.add_paragraph()
+            para.add_run('Formula: Final Score = Base Score (no amplification)').bold = True
+            doc.add_paragraph(f'Final Score = {base_score} points')
+
+        doc.add_paragraph()
+        para = doc.add_paragraph()
+        para.add_run('Risk Rating Thresholds:').bold = True
+        doc.add_paragraph('  • Low: 0-25 points', style='List Bullet')
+        doc.add_paragraph('  • Medium: 26-50 points', style='List Bullet')
+        doc.add_paragraph('  • High: 51-75 points', style='List Bullet')
+        doc.add_paragraph('  • Critical: 76-100 points', style='List Bullet')
+
+        para = doc.add_paragraph()
+        para.add_run(f'Assigned Risk Rating: ').bold = True
+        run = para.add_run(f'{risk_level} ({risk_score} points)')
+        run.bold = True
+        if risk_level in ['Critical', 'High']:
+            run.font.color.rgb = RGBColor(220, 20, 60)
 
     def _export_e23_report(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Export streamlined OSFI E-23 model risk assessment report (4-6 pages, risk-adaptive)."""
