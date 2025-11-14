@@ -20,6 +20,9 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 ### Key Design Patterns
 - **Official Framework Compliance**: Strict adherence to Canada's official AIA (104 questions) and OSFI E-23 frameworks
 - **Introduction Workflow Enforcement**: Mandatory get_server_introduction call before any assessment tools, ensuring users understand frameworks and data sources
+- **Explicit Workflow Sequences (v1.15.0)**: Complete 6-step OSFI E-23 and 5-step AIA workflows embedded in get_server_introduction response with step-by-step guidance
+- **Step-Numbered Tool Descriptions (v1.15.0)**: All OSFI E-23 tools labeled with their position (STEP X OF 6) and full workflow context
+- **Behavioral Directives (v1.15.0)**: Strong instructions to present introduction first, show all workflow steps, and wait for user choice before proceeding
 - **Streamlined Risk-Adaptive Reports**: OSFI E-23 exports generate concise 4-6 page documents with risk-adaptive content (tone/depth varies by risk level)
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Enhanced Workflow Visibility**: Complete workflow roadmap with numbered steps, descriptions, and progress tracking
@@ -72,6 +75,9 @@ python test_introduction_enforcement.py
 
 # Test streamlined E-23 report generation
 python test_streamlined_e23_report.py
+
+# Test workflow guidance (v1.15.0)
+python test_workflow_guidance.py
 ```
 
 ### Running the Server
@@ -103,10 +109,13 @@ pip install -r requirements.txt
 
 ### Transparency Tool
 - **get_server_introduction**: CRITICAL first-call tool that MUST be called at the START of assessment conversations
-- **Mandatory triggers**: User mentions assessment, AIA, OSFI, compliance, or provides project description for evaluation
-- **Behavioral instructions**: Tool description now includes explicit instructions for when to call and what to do after
+- **Mandatory triggers**: User mentions assessment, AIA, OSFI, compliance, or provides project description for evaluation; especially "run through OSFI/AIA framework"
+- **Complete Workflow Sequences (v1.15.0)**: Response includes explicit 6-step OSFI E-23 workflow and 5-step AIA workflow with detailed purpose/output for each step
+- **Behavioral instructions**: Tool description includes "CALL THIS ALONE" warning to prevent calling other tools simultaneously
+- **Enhanced Directives (v1.15.0)**: Response includes "STOP AND PRESENT THIS INTRODUCTION FIRST" to ensure workflow visibility before assessment execution
 - **Anti-invention directive**: Tool response includes assistant_directive preventing Claude from adding time estimates or invented content
-- **Framework selection guidance**: After calling, present options and WAIT for user to choose before proceeding
+- **Framework selection guidance**: After calling, present 4 clear options (AIA, OSFI E-23, Workflow Mode, Combined) and WAIT for user to choose before proceeding
+- **Step Context**: All tools show their position in the workflow (e.g., "STEP 2 OF 6") for better navigation
 
 ## Workflow Management
 
@@ -145,11 +154,13 @@ pip install -r requirements.txt
 - **Official Question IDs**: Preserve question IDs matching Canada.ca Tables 3 & 4
 
 ### OSFI E-23 Framework Requirements
+- **Complete 6-Step Workflow (v1.15.0)**: (1) validate_project_description, (2) assess_model_risk, (3) evaluate_lifecycle_compliance, (4) generate_risk_rating, (5) create_compliance_framework, (6) export_e23_report
 - **Risk Rating Methodology**: Quantitative and qualitative risk factors with amplification logic
 - **Lifecycle Management**: 5-stage model lifecycle (Design, Review, Deployment, Monitoring, Decommission)
 - **Governance Framework**: Risk-based approval authorities and oversight requirements
 - **Professional Compliance**: Built-in warnings about regulatory validation requirements
 - **Report Structure**: Simplified Chapter 1 with executive summary, detailed calculations in Annex A for improved readability
+- **Minimum Viable Assessment**: Steps 1, 2, and 6 provide basic compliance; all 6 steps provide comprehensive coverage
 
 ## Critical Compliance Notes
 

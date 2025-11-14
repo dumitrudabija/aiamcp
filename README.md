@@ -77,20 +77,28 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 
 ### Transparency & Information Tools
 
-#### 1. `get_server_introduction`
-**TRANSPARENCY & CAPABILITIES**: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework data (MCP) vs AI-generated interpretations (Claude). Essential for understanding data sources and regulatory compliance requirements.
+#### 1. `get_server_introduction` (v1.15.0 Enhanced)
+**TRANSPARENCY & CAPABILITIES**: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework data (MCP) vs AI-generated interpretations (Claude). **NOW INCLUDES**: Complete 6-step OSFI E-23 workflow sequence and 5-step AIA workflow sequence with step-by-step guidance.
 
 **Parameters:**
 - None required
 
 **Returns:**
 - Complete server capabilities overview
+- **NEW**: Complete 6-step OSFI E-23 workflow sequence (validate → assess → evaluate → generate → create → export)
+- **NEW**: Complete 5-step AIA workflow sequence
+- **NEW**: 4 framework selection options with user choice prompting
 - Tool categories and descriptions
-- Workflow guidance (recommended vs traditional approaches)
+- Workflow guidance (recommended vs manual approaches)
 - Critical distinction between MCP official data vs Claude AI analysis
 - Compliance warnings and professional validation requirements
 - Usage examples (proper vs improper usage)
 - Data source attribution and anti-hallucination design
+
+**Behavioral Directives (v1.15.0):**
+- "STOP AND PRESENT THIS INTRODUCTION FIRST" - ensures workflow visibility
+- "WAIT for user choice" - prevents premature assessment execution
+- "CALL THIS ALONE" - prevents simultaneous tool calls
 
 **Visual Markers:**
 - 🔧 MCP SERVER (Official): Official government data, validated calculations
@@ -154,7 +162,7 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 ### Description Validation Tool
 
 #### 6. `validate_project_description`
-**FIRST STEP**: Validates project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. Ensures descriptions contain sufficient information across key areas required by both frameworks.
+**STEP 1 - FRAMEWORK READINESS**: Validates project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. This is STEP 1 for both AIA and OSFI E-23 workflows. Ensures descriptions contain sufficient information across key areas required by both frameworks.
 
 **Parameters:**
 - `projectName`: Name of the project being validated
@@ -215,14 +223,16 @@ Export AIA assessment results to a Microsoft Word document.
 ### OSFI E-23 Framework Tools
 
 #### 12. `assess_model_risk`
-⚠️ **COMPLIANCE WARNING**: Assess model risk using OSFI E-23 framework. Requires professional validation.
+🏦 **OSFI E-23 STEP 2 OF 6 - MODEL RISK ASSESSMENT**: Comprehensive model risk assessment using Canada's OSFI Guideline E-23 framework. This is STEP 2 in the complete OSFI E-23 workflow: (1) validate → **(2) assess_model_risk** → (3) evaluate_lifecycle → (4) generate_risk_rating → (5) create_compliance_framework → (6) export_e23_report.
+
+⚠️ **COMPLIANCE WARNING**: Requires professional validation.
 
 **Parameters:**
 - `projectName`: Name of the model being assessed
 - `projectDescription`: **CRITICAL**: Factual, detailed description with specific technical architecture, documented data sources/volumes, explicit business use cases
 
 #### 13. `evaluate_lifecycle_compliance`
-Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages.
+🏦 **OSFI E-23 STEP 3 OF 6 - LIFECYCLE COMPLIANCE**: Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages.
 
 **Parameters:**
 - `projectName`: Name of the model being evaluated
@@ -230,14 +240,14 @@ Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 
 - `currentStage` (optional): Current lifecycle stage (Design, Review, Deployment, Monitoring, Decommission)
 
 #### 14. `generate_risk_rating`
-Generate detailed risk rating assessment using OSFI E-23 methodology.
+🏦 **OSFI E-23 STEP 4 OF 6 - RISK RATING DOCUMENTATION**: Generate detailed risk rating assessment using OSFI E-23 methodology.
 
 **Parameters:**
 - `projectName`: Name of the model being rated
 - `projectDescription`: Detailed description including technical details, business impact, and usage context
 
 #### 15. `create_compliance_framework`
-Create comprehensive compliance framework based on OSFI E-23 requirements.
+🏦 **OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK**: Create comprehensive compliance framework based on OSFI E-23 requirements.
 
 **Parameters:**
 - `projectName`: Name of the model requiring compliance framework
@@ -245,7 +255,9 @@ Create comprehensive compliance framework based on OSFI E-23 requirements.
 - `riskLevel` (optional): Pre-determined risk level (Low, Medium, High, Critical)
 
 #### 16. `export_e23_report`
-⚠️ **COMPLIANCE WARNING**: Export OSFI E-23 assessment results to Microsoft Word document. Requires professional validation.
+🏦 **OSFI E-23 STEP 6 OF 6 - REPORT GENERATION**: Export OSFI E-23 assessment results to Microsoft Word document. This is the FINAL STEP in the complete OSFI E-23 workflow.
+
+⚠️ **COMPLIANCE WARNING**: Requires professional validation.
 
 **Parameters:**
 - `project_name`: Name of the model being assessed
@@ -313,14 +325,18 @@ Our implementation achieves 98% compliance with Canada's official AIA framework 
 
 ### Option 1: Server Introduction (Recommended First Step)
 
-⚠️ **NEW**: Start with transparency introduction to understand capabilities and data distinction:
+⚠️ **CRITICAL FIRST CALL (v1.15.0 Enhanced)**: Start with transparency introduction to understand complete workflow sequences:
 
 ```javascript
 use_mcp_tool("aia-assessment", "get_server_introduction", {});
 ```
+- **NEW**: Shows complete 6-step OSFI E-23 workflow sequence
+- **NEW**: Shows complete 5-step AIA workflow sequence
+- **NEW**: Presents 4 framework selection options (AIA, OSFI E-23, Workflow Mode, Combined)
 - Provides comprehensive server capabilities overview
 - Explains MCP official data vs Claude AI analysis distinction
 - Shows workflow guidance and best practices
+- **Must be called before any assessment tools**
 - One-time orientation for new users
 
 ### Option 2: Managed Workflow (Recommended)
@@ -420,7 +436,18 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Key Fixes and Improvements
 
-### v1.14.0 - Streamlined Risk-Adaptive OSFI E-23 Reports (Latest)
+### v1.15.0 - Enhanced Workflow Guidance with Explicit Sequences (Latest)
+- **Major Enhancement**: Complete 6-step OSFI E-23 workflow and 5-step AIA workflow now embedded in `get_server_introduction` response
+- **Workflow Visibility**: Users see complete assessment sequences upfront when saying "run through OSFI/AIA framework"
+- **Step-Numbered Tools**: All OSFI E-23 tools labeled with position (STEP X OF 6) and full workflow context
+- **Stronger Behavioral Directives**: "STOP AND PRESENT THIS INTRODUCTION FIRST" ensures workflow visibility before execution
+- **Framework Selection**: 4 clear options (AIA, OSFI E-23, Workflow Mode, Combined) with explicit user choice prompting
+- **Enhanced Tool Descriptions**: Each tool shows complete workflow sequence and emphasizes executing ALL steps
+- **Call Isolation**: "CALL THIS ALONE" warning prevents get_server_introduction from being called with other tools simultaneously
+- **Testing**: New `test_workflow_guidance.py` validates complete workflow sequences and step numbering
+- **Impact**: Users understand complete assessment process before execution, preventing premature tool calls
+
+### v1.14.0 - Streamlined Risk-Adaptive OSFI E-23 Reports
 - **Major Transformation**: Redesigned OSFI E-23 export from verbose 40KB+ reports to concise 4-6 page, risk-adaptive documents
 - **Three-Section Structure**: Executive Summary (1 page), Risk Scoring & Justification (1-2 pages), Next Steps (2-3 pages)
 - **Risk-Adaptive Content**: Tone and depth automatically adjust based on risk level (Critical/High/Medium/Low)
