@@ -154,10 +154,19 @@ class MCPServer:
         tools = [
             {
                 "name": "get_server_introduction",
-                "description": "🚨 CRITICAL FIRST CALL - CALL THIS ALONE: This tool MUST be called BY ITSELF at the START of any assessment conversation.\n\n⚠️ CALL THIS TOOL ALONE - Do NOT call other tools in the same response!\n\nWHEN TO CALL THIS TOOL:\nCall IMMEDIATELY when a user:\n- Says 'run through OSFI framework' or 'run through AIA'\n- Wants to assess, evaluate, or analyze a project/system/model\n- Mentions AIA, OSFI, or compliance/regulatory requirements\n- Provides a project description asking for assessment\n- Asks about which framework to use or available workflows\n- Says they're starting a new assessment or compliance process\n- Any variation of 'help me with [AI/model/system] compliance'\n\nWHAT THIS TOOL PROVIDES:\n- Complete 6-step OSFI E-23 workflow sequence (validate → assess_model_risk → evaluate_lifecycle → generate_risk_rating → create_compliance_framework → export_e23_report)\n- Complete 5-step AIA workflow sequence\n- Framework selection guidance\n- Critical data source distinctions (MCP official data vs AI interpretation)\n\nWHAT TO DO AFTER CALLING THIS TOOL:\n1. PRESENT the complete introduction including ALL workflow sequences\n2. SHOW the user all 4 framework options (AIA, OSFI E-23, Workflow Mode, Combined)\n3. ASK which framework applies to their project\n4. WAIT for explicit user choice\n5. THEN follow the appropriate workflow sequence step-by-step\n\nWRONG FLOW ❌:\nUser: 'Run through OSFI framework'\nClaude: [Calls get_server_introduction AND assess_model_risk together]\n\nCORRECT FLOW ✅:\nUser: 'Run through OSFI framework'\nClaude: [Calls ONLY get_server_introduction]\nClaude: [Shows complete OSFI 6-step workflow + explains all options]\nClaude: 'Would you like me to run through all 6 OSFI E-23 steps, or start with specific steps?'\nUser: [Makes choice]\nClaude: [Follows workflow sequence: Step 1 validate_project_description, Step 2 assess_model_risk, etc.]",
+                "description": "🚨 CRITICAL FIRST CALL - CALL THIS ALONE: This tool MUST be called BY ITSELF at the START of any assessment conversation.\n\n⚠️ CALL THIS TOOL ALONE - Do NOT call other tools in the same response!\n\n✨ NEW: SMART FRAMEWORK DETECTION - This tool now automatically detects which framework the user needs based on context, showing only the relevant workflow to reduce confusion.\n\nWHEN TO CALL THIS TOOL:\nCall IMMEDIATELY when a user:\n- Says 'run through OSFI framework' or 'run through AIA'\n- Wants to assess, evaluate, or analyze a project/system/model\n- Mentions AIA, OSFI, or compliance/regulatory requirements\n- Provides a project description asking for assessment\n- Asks about which framework to use or available workflows\n- Says they're starting a new assessment or compliance process\n- Any variation of 'help me with [AI/model/system] compliance'\n\nHOW IT WORKS:\n- If user mentions 'OSFI', 'bank', 'financial institution' → Shows ONLY OSFI E-23 workflow\n- If user mentions 'AIA', 'government', 'federal' → Shows ONLY AIA workflow\n- If context is unclear → Shows BOTH workflows and asks user to choose\n- You can pass the user's message as 'user_context' for better detection\n\nWHAT THIS TOOL PROVIDES:\n- Framework-specific or combined introduction based on context\n- Complete workflow sequences (6 steps for OSFI E-23, 5 steps for AIA)\n- Framework selection guidance if context unclear\n- Critical data source distinctions (MCP official data vs AI interpretation)\n\nWHAT TO DO AFTER CALLING THIS TOOL:\n1. PRESENT the introduction (either AIA-only, OSFI-only, or both)\n2. If only one framework shown: Proceed with Step 1 unless user wants options\n3. If both frameworks shown: ASK which one applies and WAIT for response\n4. THEN follow the appropriate workflow sequence step-by-step\n\nEXAMPLES:\n\nScenario 1 - Clear OSFI Context:\nUser: 'Run through OSFI framework for my credit model'\nClaude: [Calls get_server_introduction with user_context='Run through OSFI framework for my credit model']\nClaude: [Shows ONLY OSFI E-23 6-step workflow]\nClaude: 'I'll guide you through OSFI E-23 compliance. Let's start with Step 1...'\n\nScenario 2 - Clear AIA Context:\nUser: 'I need an AIA for my benefits system'\nClaude: [Calls get_server_introduction with user_context='I need an AIA for my benefits system']\nClaude: [Shows ONLY AIA 5-step workflow]\nClaude: 'I'll help with the Algorithmic Impact Assessment. Let's start with Step 1...'\n\nScenario 3 - Unclear Context:\nUser: 'Help me assess my AI system'\nClaude: [Calls get_server_introduction with user_context='Help me assess my AI system']\nClaude: [Shows BOTH workflows]\nClaude: 'Which framework applies? OSFI E-23 for financial institutions, or AIA for government?'",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {},
+                    "properties": {
+                        "user_context": {
+                            "type": "string",
+                            "description": "Optional: The user's message or project context for framework detection. Include this to enable smart framework detection (e.g., user mentions 'OSFI' → show only OSFI workflow, user mentions 'AIA' → show only AIA workflow). If omitted, shows both frameworks by default."
+                        },
+                        "session_id": {
+                            "type": "string",
+                            "description": "Optional: Session ID for context detection from existing workflow"
+                        }
+                    },
                     "additionalProperties": False
                 }
             },
@@ -663,18 +672,298 @@ class MCPServer:
                 }
             }
 
+    def _detect_framework_context(self, user_context: str = "", session_id: str = None) -> str:
+        """
+        Detect which framework to emphasize based on user context and session state.
+
+        Args:
+            user_context: User's statement or project context
+            session_id: Optional session ID to check for existing workflow type
+
+        Returns:
+            'aia' | 'osfi_e23' | 'both'
+        """
+        # First, check if there's an existing session with a defined assessment type
+        if session_id and session_id in self.workflow_engine.sessions:
+            session = self.workflow_engine.sessions[session_id]
+            assessment_type = session.get('assessment_type', '')
+
+            if 'aia' in assessment_type.lower():
+                logger.info(f"Framework detection: 'aia' (from session {session_id})")
+                return 'aia'
+            elif 'osfi' in assessment_type.lower():
+                logger.info(f"Framework detection: 'osfi_e23' (from session {session_id})")
+                return 'osfi_e23'
+
+        # If no session or no clear type, use keyword detection
+        if user_context:
+            context_lower = user_context.lower()
+
+            # OSFI E-23 indicators (financial institutions)
+            osfi_keywords = [
+                'osfi', 'e-23', 'e23', 'guideline e-23',
+                'bank', 'financial institution', 'credit union', 'insurance',
+                'model risk', 'basel', 'regulatory capital',
+                'credit risk model', 'credit scoring', 'lending model',
+                'financial model', 'risk rating', 'model governance'
+            ]
+
+            # AIA indicators (government/public sector)
+            aia_keywords = [
+                'aia', 'algorithmic impact', 'impact assessment',
+                'government', 'federal', 'public service', 'public sector',
+                'automated decision', 'treasury board', 'canada.ca',
+                'government service', 'benefits', 'eligibility',
+                'administrative decision'
+            ]
+
+            # Combined indicators (need both frameworks)
+            combined_keywords = [
+                'both frameworks', 'aia and osfi', 'osfi and aia',
+                'government and bank', 'combined assessment',
+                'both assessments'
+            ]
+
+            # Check for combined first (most specific)
+            if any(kw in context_lower for kw in combined_keywords):
+                logger.info("Framework detection: 'both' (explicit combined request)")
+                return 'both'
+
+            # Count keyword matches for each framework
+            osfi_matches = sum(1 for kw in osfi_keywords if kw in context_lower)
+            aia_matches = sum(1 for kw in aia_keywords if kw in context_lower)
+
+            # If one framework has significantly more matches, choose it
+            if osfi_matches > aia_matches and osfi_matches >= 1:
+                logger.info(f"Framework detection: 'osfi_e23' ({osfi_matches} keyword matches)")
+                return 'osfi_e23'
+            elif aia_matches > osfi_matches and aia_matches >= 1:
+                logger.info(f"Framework detection: 'aia' ({aia_matches} keyword matches)")
+                return 'aia'
+
+        # Default: show both if context is unclear
+        logger.info("Framework detection: 'both' (default - unclear context)")
+        return 'both'
+
+    def _build_aia_workflow_section(self) -> Dict[str, Any]:
+        """Build AIA-focused workflow information."""
+        return {
+            "title": "🇨🇦 AIA Framework Assessment",
+            "description": "Canada's Algorithmic Impact Assessment for automated decision-making systems",
+            "framework": "aia",
+            "sequence": [
+                {
+                    "step": 1,
+                    "tool": "validate_project_description",
+                    "purpose": "Ensure project description has sufficient detail for assessment",
+                    "output": "Validation report with coverage analysis"
+                },
+                {
+                    "step": 2,
+                    "tool": "functional_preview OR analyze_project_description",
+                    "purpose": "Get preliminary risk assessment or auto-answer questions",
+                    "output": "Initial risk level and question analysis"
+                },
+                {
+                    "step": 3,
+                    "tool": "get_questions",
+                    "purpose": "Review all 104 official AIA questions if needed",
+                    "output": "Complete question set with categories"
+                },
+                {
+                    "step": 4,
+                    "tool": "assess_project",
+                    "purpose": "Complete full AIA assessment with all responses",
+                    "output": "Official AIA score and impact level (1-4)"
+                },
+                {
+                    "step": 5,
+                    "tool": "export_assessment_report",
+                    "purpose": "Generate professional Word document for compliance",
+                    "output": "Complete AIA report (.docx file)"
+                }
+            ],
+            "recommended_use": "Federal government automated decision-making systems",
+            "note": "💡 If your system is also subject to financial regulation (e.g., used by a bank), you may need OSFI E-23 framework too. Just ask!"
+        }
+
+    def _build_osfi_workflow_section(self) -> Dict[str, Any]:
+        """Build OSFI E-23-focused workflow information."""
+        return {
+            "title": "🏦 OSFI E-23 Model Risk Management",
+            "description": "OSFI Guideline E-23 for federally regulated financial institutions",
+            "framework": "osfi_e23",
+            "sequence": [
+                {
+                    "step": 1,
+                    "tool": "validate_project_description",
+                    "purpose": "Ensure model description has sufficient detail for risk assessment",
+                    "output": "Validation report confirming OSFI E-23 readiness"
+                },
+                {
+                    "step": 2,
+                    "tool": "assess_model_risk",
+                    "purpose": "Comprehensive model risk assessment using quantitative and qualitative factors",
+                    "output": "Risk rating (Low/Medium/High/Critical) with detailed factor analysis"
+                },
+                {
+                    "step": 3,
+                    "tool": "evaluate_lifecycle_compliance",
+                    "purpose": "Assess compliance requirements for current model lifecycle stage",
+                    "output": "Stage-specific compliance requirements and deliverables"
+                },
+                {
+                    "step": 4,
+                    "tool": "generate_risk_rating",
+                    "purpose": "Generate detailed risk rating documentation",
+                    "output": "Comprehensive risk rating report with methodology"
+                },
+                {
+                    "step": 5,
+                    "tool": "create_compliance_framework",
+                    "purpose": "Build complete governance and compliance framework",
+                    "output": "Full E-23 compliance structure with policies and controls"
+                },
+                {
+                    "step": 6,
+                    "tool": "export_e23_report",
+                    "purpose": "Generate executive-ready risk-adaptive report",
+                    "output": "Professional Word document (4-6 pages) with risk-adaptive content"
+                }
+            ],
+            "recommended_use": "Models used by federally regulated financial institutions (banks, credit unions, insurance companies)",
+            "minimum_viable": "Steps 1, 2, and 6 provide basic compliance; all 6 steps provide comprehensive coverage",
+            "note": "💡 If your model makes automated decisions affecting citizens, you may need AIA framework too. Just ask!"
+        }
+
+    def _build_both_workflows_section(self) -> Dict[str, Any]:
+        """Build combined workflow information (both AIA and OSFI E-23)."""
+        return {
+            "aia_workflow": {
+                "title": "🇨🇦 AIA Framework Complete Workflow",
+                "description": "Canada's Algorithmic Impact Assessment for automated decision-making systems",
+                "sequence": [
+                    {
+                        "step": 1,
+                        "tool": "validate_project_description",
+                        "purpose": "Ensure project description has sufficient detail for assessment",
+                        "output": "Validation report with coverage analysis"
+                    },
+                    {
+                        "step": 2,
+                        "tool": "functional_preview OR analyze_project_description",
+                        "purpose": "Get preliminary risk assessment or auto-answer questions",
+                        "output": "Initial risk level and question analysis"
+                    },
+                    {
+                        "step": 3,
+                        "tool": "get_questions",
+                        "purpose": "Review all 104 official AIA questions if needed",
+                        "output": "Complete question set with categories"
+                    },
+                    {
+                        "step": 4,
+                        "tool": "assess_project",
+                        "purpose": "Complete full AIA assessment with all responses",
+                        "output": "Official AIA score and impact level (1-4)"
+                    },
+                    {
+                        "step": 5,
+                        "tool": "export_assessment_report",
+                        "purpose": "Generate professional Word document for compliance",
+                        "output": "Complete AIA report (.docx file)"
+                    }
+                ],
+                "recommended_use": "Federal government automated decision-making systems"
+            },
+            "osfi_e23_workflow": {
+                "title": "🏦 OSFI E-23 Framework Complete Workflow",
+                "description": "OSFI Guideline E-23 Model Risk Management for federally regulated financial institutions",
+                "sequence": [
+                    {
+                        "step": 1,
+                        "tool": "validate_project_description",
+                        "purpose": "Ensure model description has sufficient detail for risk assessment",
+                        "output": "Validation report confirming OSFI E-23 readiness"
+                    },
+                    {
+                        "step": 2,
+                        "tool": "assess_model_risk",
+                        "purpose": "Comprehensive model risk assessment using quantitative and qualitative factors",
+                        "output": "Risk rating (Low/Medium/High/Critical) with detailed factor analysis"
+                    },
+                    {
+                        "step": 3,
+                        "tool": "evaluate_lifecycle_compliance",
+                        "purpose": "Assess compliance requirements for current model lifecycle stage",
+                        "output": "Stage-specific compliance requirements and deliverables"
+                    },
+                    {
+                        "step": 4,
+                        "tool": "generate_risk_rating",
+                        "purpose": "Generate detailed risk rating documentation",
+                        "output": "Comprehensive risk rating report with methodology"
+                    },
+                    {
+                        "step": 5,
+                        "tool": "create_compliance_framework",
+                        "purpose": "Build complete governance and compliance framework",
+                        "output": "Full E-23 compliance structure with policies and controls"
+                    },
+                    {
+                        "step": 6,
+                        "tool": "export_e23_report",
+                        "purpose": "Generate executive-ready risk-adaptive report",
+                        "output": "Professional Word document (4-6 pages) with risk-adaptive content"
+                    }
+                ],
+                "recommended_use": "Models used by federally regulated financial institutions (banks, credit unions, insurance companies)",
+                "note": "All 6 steps provide comprehensive OSFI E-23 coverage. Minimum viable assessment: steps 1-2 and 6."
+            },
+            "combined_workflow": {
+                "title": "🇨🇦🏦 Combined AIA + OSFI E-23 Workflow",
+                "description": "For AI systems in financial institutions requiring both frameworks",
+                "use_case": "Automated decision-making systems in federally regulated financial institutions",
+                "approach": "Run both complete workflows sequentially, starting with project description validation"
+            }
+        }
+
     def _get_server_introduction(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Provide comprehensive server introduction and transparency information."""
+        """
+        Provide framework-specific or combined introduction based on user context.
+
+        Uses smart detection to show only the relevant framework, reducing cognitive load.
+        """
 
         # Mark introduction as shown for this session
         self.introduction_shown = True
         logger.info("Introduction shown - workflow enforcement gate unlocked")
 
-        return {
-            "assistant_directive": {
-                "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Do NOT call any other tools immediately after this. Present this complete introduction to the user, then WAIT for them to choose their assessment approach. Do NOT add time estimates, interpretations, recommendations, or other content not explicitly provided here. If the user asks questions requiring interpretation, clearly state 'That's my interpretation as AI, not from the official MCP data.' Distinguish between official framework data (from this tool) and your own analysis.",
-                "behavioral_requirement": "After presenting this introduction, you MUST ask the user which framework they want to use (AIA, OSFI E-23, or workflow-based approach) and WAIT for their response before proceeding with any assessment tools."
-            },
+        # Detect which framework to emphasize
+        user_context = arguments.get('user_context', '')
+        session_id = arguments.get('session_id')
+        framework_focus = self._detect_framework_context(user_context, session_id)
+
+        # Build framework-specific assistant directive
+        if framework_focus == 'aia':
+            assistant_directive = {
+                "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present the AIA workflow to the user. Do NOT call any other tools immediately after this. Mention that OSFI E-23 is also available if they ask, but focus on AIA since that's what was detected from context.",
+                "behavioral_requirement": "After presenting the AIA introduction, proceed with Step 1 (validate_project_description) unless the user wants to review all options first."
+            }
+        elif framework_focus == 'osfi_e23':
+            assistant_directive = {
+                "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present the OSFI E-23 workflow to the user. Do NOT call any other tools immediately after this. Mention that AIA is also available if they ask, but focus on OSFI E-23 since that's what was detected from context.",
+                "behavioral_requirement": "After presenting the OSFI E-23 introduction, proceed with Step 1 (validate_project_description) unless the user wants to review all options first."
+            }
+        else:  # both
+            assistant_directive = {
+                "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present BOTH frameworks since the context is unclear. Do NOT call any other tools immediately after this. Ask the user which framework applies to their project.",
+                "behavioral_requirement": "After presenting both workflows, you MUST ask the user which framework they want to use (AIA, OSFI E-23, or both) and WAIT for their response before proceeding."
+            }
+
+        # Build base introduction (common to all)
+        base_response = {
+            "assistant_directive": assistant_directive,
             "server_introduction": {
                 "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
                 "version": "1.15.0",
@@ -711,96 +1000,19 @@ class MCPServer:
                     "tools": ["assess_model_risk", "evaluate_lifecycle_compliance", "generate_risk_rating", "create_compliance_framework", "export_e23_report"],
                     "official_source": "Office of the Superintendent of Financial Institutions Canada"
                 }
-            },
-            "framework_workflows": {
-                "aia_workflow": {
-                    "title": "🇨🇦 AIA Framework Complete Workflow",
-                    "description": "Canada's Algorithmic Impact Assessment for automated decision-making systems",
-                    "sequence": [
-                        {
-                            "step": 1,
-                            "tool": "validate_project_description",
-                            "purpose": "Ensure project description has sufficient detail for assessment",
-                            "output": "Validation report with coverage analysis"
-                        },
-                        {
-                            "step": 2,
-                            "tool": "functional_preview OR analyze_project_description",
-                            "purpose": "Get preliminary risk assessment or auto-answer questions",
-                            "output": "Initial risk level and question analysis"
-                        },
-                        {
-                            "step": 3,
-                            "tool": "get_questions",
-                            "purpose": "Review all 104 official AIA questions if needed",
-                            "output": "Complete question set with categories"
-                        },
-                        {
-                            "step": 4,
-                            "tool": "assess_project",
-                            "purpose": "Complete full AIA assessment with all responses",
-                            "output": "Official AIA score and impact level (1-4)"
-                        },
-                        {
-                            "step": 5,
-                            "tool": "export_assessment_report",
-                            "purpose": "Generate professional Word document for compliance",
-                            "output": "Complete AIA report (.docx file)"
-                        }
-                    ],
-                    "recommended_use": "Federal government automated decision-making systems"
-                },
-                "osfi_e23_workflow": {
-                    "title": "🏦 OSFI E-23 Framework Complete Workflow",
-                    "description": "OSFI Guideline E-23 Model Risk Management for federally regulated financial institutions",
-                    "sequence": [
-                        {
-                            "step": 1,
-                            "tool": "validate_project_description",
-                            "purpose": "Ensure model description has sufficient detail for risk assessment",
-                            "output": "Validation report confirming OSFI E-23 readiness"
-                        },
-                        {
-                            "step": 2,
-                            "tool": "assess_model_risk",
-                            "purpose": "Comprehensive model risk assessment using quantitative and qualitative factors",
-                            "output": "Risk rating (Low/Medium/High/Critical) with detailed factor analysis"
-                        },
-                        {
-                            "step": 3,
-                            "tool": "evaluate_lifecycle_compliance",
-                            "purpose": "Assess compliance requirements for current model lifecycle stage",
-                            "output": "Stage-specific compliance requirements and deliverables"
-                        },
-                        {
-                            "step": 4,
-                            "tool": "generate_risk_rating",
-                            "purpose": "Generate detailed risk rating documentation",
-                            "output": "Comprehensive risk rating report with methodology"
-                        },
-                        {
-                            "step": 5,
-                            "tool": "create_compliance_framework",
-                            "purpose": "Build complete governance and compliance framework",
-                            "output": "Full E-23 compliance structure with policies and controls"
-                        },
-                        {
-                            "step": 6,
-                            "tool": "export_e23_report",
-                            "purpose": "Generate executive-ready risk-adaptive report",
-                            "output": "Professional Word document (4-6 pages) with risk-adaptive content"
-                        }
-                    ],
-                    "recommended_use": "Models used by federally regulated financial institutions (banks, credit unions, insurance companies)",
-                    "note": "All 6 steps provide comprehensive OSFI E-23 coverage. Minimum viable assessment: steps 1-2 and 6."
-                },
-                "combined_workflow": {
-                    "title": "🇨🇦🏦 Combined AIA + OSFI E-23 Workflow",
-                    "description": "For AI systems in financial institutions requiring both frameworks",
-                    "use_case": "Automated decision-making systems in federally regulated financial institutions",
-                    "approach": "Run both complete workflows sequentially, starting with project description validation"
-                }
-            },
+            }
+        }
+
+        # Add framework-specific workflow based on detection
+        if framework_focus == 'aia':
+            base_response["framework_workflow"] = self._build_aia_workflow_section()
+        elif framework_focus == 'osfi_e23':
+            base_response["framework_workflow"] = self._build_osfi_workflow_section()
+        else:  # both
+            base_response["framework_workflows"] = self._build_both_workflows_section()
+
+        # Add common sections
+        base_response.update({
             "workflow_guidance": {
                 "recommended_approach": [
                     "1. 🔄 Use 'create_workflow' to start guided assessment",
@@ -854,7 +1066,9 @@ class MCPServer:
                 },
                 "after_user_choice": "Once user selects a framework, follow the appropriate workflow sequence shown above"
             }
-        }
+        })
+
+        return base_response
 
     def _check_introduction_requirement(self) -> Optional[Dict[str, Any]]:
         """
