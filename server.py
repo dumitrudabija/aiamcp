@@ -2166,7 +2166,72 @@ class MCPServer:
             'min_score': min_score,
             'max_score': max_score
         }
-    
+
+    # Report generation helper methods
+
+    def _generate_executive_summary(self, score: int, impact_level: str, project_description: str) -> str:
+        """Generate executive summary based on assessment results."""
+        description_lower = project_description.lower()
+
+        # Determine risk level
+        if score >= 56:
+            risk_level = "high risk"
+            summary_start = "This system presents significant algorithmic impact risks"
+        elif score >= 31:
+            risk_level = "moderate risk"
+            summary_start = "This system presents moderate algorithmic impact risks"
+        else:
+            risk_level = "lower risk"
+            summary_start = "This system presents relatively low algorithmic impact risks"
+
+        # Add system characteristics
+        characteristics = []
+        if any(term in description_lower for term in ['ai', 'machine learning', 'neural']):
+            characteristics.append("AI/ML-powered")
+        if any(term in description_lower for term in ['financial', 'loan', 'credit']):
+            characteristics.append("financial decision-making")
+        if any(term in description_lower for term in ['automated', 'automatic']):
+            characteristics.append("automated processing")
+        if any(term in description_lower for term in ['personal', 'sensitive', 'private']):
+            characteristics.append("personal data usage")
+
+        char_text = ", ".join(characteristics) if characteristics else "automated decision-making"
+
+        # Generate compliance guidance
+        if score >= 56:
+            compliance = "Comprehensive governance framework, qualified oversight, and extensive stakeholder consultation are required."
+        elif score >= 31:
+            compliance = "Enhanced oversight procedures, regular monitoring, and stakeholder engagement processes are recommended."
+        else:
+            compliance = "Standard operational procedures with basic monitoring and documentation are sufficient."
+
+        return f"{summary_start} due to its {char_text} capabilities. {compliance} The assessment indicates {impact_level} classification under Canada's Algorithmic Impact Assessment framework."
+
+    def _get_assessment_disclaimer(self, assessment_results: Dict[str, Any]) -> str:
+        """Get appropriate disclaimer based on assessment type."""
+        if 'disclaimer' in assessment_results:
+            return assessment_results['disclaimer']
+        elif 'functional_risk_score' in assessment_results:
+            return "⚠️ Early Indicator - Not Official Assessment. Based on functional characteristics only. Final assessment requires complete stakeholder input and official AIA process completion."
+        else:
+            return "This assessment is based on available project information and automated analysis. Final AIA compliance requires complete stakeholder input and official government review process."
+
+    def _strip_markdown_formatting(self, text: str) -> str:
+        """Strip markdown formatting from text for Word documents."""
+        import re
+        if not isinstance(text, str):
+            return str(text)
+
+        # Remove markdown formatting
+        text = re.sub(r'\*\*\*(.*?)\*\*\*', r'\1', text)  # Bold italic
+        text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)      # Bold
+        text = re.sub(r'\*(.*?)\*', r'\1', text)          # Italic
+        text = re.sub(r'`(.*?)`', r'\1', text)            # Code
+        text = re.sub(r'#{1,6}\s+', '', text)             # Headers
+        text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)  # Links
+
+        return text.strip()
+
     def _export_assessment_report(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Export AIA assessment results to a Microsoft Word document."""
         project_name = arguments.get("project_name", "")
