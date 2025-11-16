@@ -27,6 +27,7 @@ from aia_processor import AIAProcessor
 from osfi_e23_processor import OSFIE23Processor
 from description_validator import ProjectDescriptionValidator
 from workflow_engine import WorkflowEngine
+from utils.framework_detection import FrameworkDetector
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
@@ -45,6 +46,7 @@ class MCPServer:
         self.osfi_e23_processor = OSFIE23Processor()
         self.description_validator = ProjectDescriptionValidator()
         self.workflow_engine = WorkflowEngine()
+        self.framework_detector = FrameworkDetector(self.workflow_engine)
         self.server_info = {
             "name": "aia-assessment-server",
             "version": "1.15.0"
@@ -676,6 +678,8 @@ class MCPServer:
         """
         Detect which framework to emphasize based on user context and session state.
 
+        This method delegates to the FrameworkDetector class for the actual detection logic.
+
         Args:
             user_context: User's statement or project context
             session_id: Optional session ID to check for existing workflow type
@@ -683,67 +687,7 @@ class MCPServer:
         Returns:
             'aia' | 'osfi_e23' | 'both'
         """
-        # First, check if there's an existing session with a defined assessment type
-        if session_id and session_id in self.workflow_engine.sessions:
-            session = self.workflow_engine.sessions[session_id]
-            assessment_type = session.get('assessment_type', '')
-
-            if 'aia' in assessment_type.lower():
-                logger.info(f"Framework detection: 'aia' (from session {session_id})")
-                return 'aia'
-            elif 'osfi' in assessment_type.lower():
-                logger.info(f"Framework detection: 'osfi_e23' (from session {session_id})")
-                return 'osfi_e23'
-
-        # If no session or no clear type, use keyword detection
-        if user_context:
-            context_lower = user_context.lower()
-
-            # OSFI E-23 indicators (financial institutions)
-            osfi_keywords = [
-                'osfi', 'e-23', 'e23', 'guideline e-23',
-                'bank', 'financial institution', 'credit union', 'insurance',
-                'model risk', 'basel', 'regulatory capital',
-                'credit risk model', 'credit scoring', 'lending model',
-                'financial model', 'risk rating', 'model governance'
-            ]
-
-            # AIA indicators (government/public sector)
-            aia_keywords = [
-                'aia', 'algorithmic impact', 'impact assessment',
-                'government', 'federal', 'public service', 'public sector',
-                'automated decision', 'treasury board', 'canada.ca',
-                'government service', 'benefits', 'eligibility',
-                'administrative decision'
-            ]
-
-            # Combined indicators (need both frameworks)
-            combined_keywords = [
-                'both frameworks', 'aia and osfi', 'osfi and aia',
-                'government and bank', 'combined assessment',
-                'both assessments'
-            ]
-
-            # Check for combined first (most specific)
-            if any(kw in context_lower for kw in combined_keywords):
-                logger.info("Framework detection: 'both' (explicit combined request)")
-                return 'both'
-
-            # Count keyword matches for each framework
-            osfi_matches = sum(1 for kw in osfi_keywords if kw in context_lower)
-            aia_matches = sum(1 for kw in aia_keywords if kw in context_lower)
-
-            # If one framework has significantly more matches, choose it
-            if osfi_matches > aia_matches and osfi_matches >= 1:
-                logger.info(f"Framework detection: 'osfi_e23' ({osfi_matches} keyword matches)")
-                return 'osfi_e23'
-            elif aia_matches > osfi_matches and aia_matches >= 1:
-                logger.info(f"Framework detection: 'aia' ({aia_matches} keyword matches)")
-                return 'aia'
-
-        # Default: show both if context is unclear
-        logger.info("Framework detection: 'both' (default - unclear context)")
-        return 'both'
+        return self.framework_detector.detect(user_context, session_id)
 
     def _build_aia_workflow_section(self) -> Dict[str, Any]:
         """Build AIA-focused workflow information."""
