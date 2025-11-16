@@ -586,24 +586,67 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Project Structure
 
+### v2.0.0 Modular Architecture
+
 ```
 aiamcp/
-├── server.py                           # Main MCP server
-├── aia_processor.py                    # Core AIA processing logic
-├── osfi_e23_processor.py              # OSFI E-23 processing logic
-├── data/survey-enfr.json              # Official AIA questionnaire
-├── config.json                        # Configuration settings
-├── requirements.txt                   # Python dependencies
-├── README.md                          # This documentation
-├── OSFI_E23_COMPLIANCE_GUIDANCE.md   # OSFI E-23 compliance requirements
-├── AIA_HALLUCINATION_PREVENTION.md   # AIA anti-hallucination safeguards
-├── CLAUDE_DESKTOP_USAGE_GUIDE.md     # Detailed usage instructions
-├── SCORING_FIX_DOCUMENTATION.md      # Technical fix documentation
-├── claude_desktop_config.json        # Claude Desktop configuration
-├── tests/                             # Test scenarios and validation
-├── AIA_Assessments/                   # Generated assessment reports
-└── sample_reports/                    # Example assessment outputs
+├── server.py                           # Main MCP server (1,305 lines - orchestration layer)
+│
+├── Core Framework Processors
+│   ├── aia_processor.py                # Core AIA framework logic (104 questions)
+│   ├── osfi_e23_processor.py           # OSFI E-23 framework logic
+│   ├── workflow_engine.py              # Workflow management & state
+│   └── description_validator.py        # Project description validation
+│
+├── AIA Modules (v2.0.0)
+│   ├── aia_analysis.py                 # AIA intelligence & question handling (1,027 lines)
+│   └── aia_report_generator.py         # AIA Word document generation (277 lines)
+│
+├── OSFI E-23 Modules
+│   ├── osfi_e23_structure.py           # OSFI Principles & lifecycle
+│   └── osfi_e23_report_generators.py   # Stage-specific report generation
+│
+├── Shared Modules (v2.0.0)
+│   ├── utils/
+│   │   ├── data_extractors.py          # Unified data extraction (1,047 lines)
+│   │   └── framework_detection.py      # Smart context detection (108 lines)
+│   ├── config/
+│   │   └── tool_registry.py            # Tool metadata & MCP registration (365 lines)
+│   └── introduction_builder.py         # Framework-specific guidance (364 lines)
+│
+├── Data & Configuration
+│   ├── data/survey-enfr.json           # Official bilingual AIA questionnaire
+│   └── config.json                     # Framework configuration & thresholds
+│
+├── Documentation
+│   ├── README.md                       # This documentation
+│   ├── CHANGELOG.md                    # Version history
+│   ├── CLAUDE.md                       # Developer guide for Claude Code
+│   ├── ARCHITECTURE_ANALYSIS.md        # Architecture analysis & decisions
+│   └── docs/
+│       ├── guides/                     # Integration & usage guides
+│       ├── technical/                  # Technical documentation & fixes
+│       └── compliance/                 # AIA & OSFI E-23 compliance docs
+│
+├── Testing & Validation
+│   ├── validate_functionality.py       # Comprehensive validation suite
+│   ├── validate_mcp.py                 # MCP server installation validator
+│   └── tests/                          # Test scenarios & functional tests
+│
+├── Generated Outputs
+│   └── AIA_Assessments/                # Generated assessment reports (.docx)
+│
+└── Configuration
+    ├── requirements.txt                # Python dependencies
+    └── claude_desktop_config.json      # Claude Desktop MCP configuration
 ```
+
+**Architecture Highlights (v2.0.0):**
+- **Modular Design**: 73% code reduction in server.py through specialized modules
+- **Clear Separation**: AIA, OSFI, and shared logic in dedicated modules
+- **Maintainable**: Each module has single responsibility
+- **Testable**: Isolated components enable comprehensive testing
+- **Extensible**: Easy to add new regulatory frameworks
 
 ## Testing
 

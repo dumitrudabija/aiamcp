@@ -192,16 +192,41 @@ pip install -r requirements.txt
 3. **Maintain professional validation warnings** in all tool responses
 4. **Use rule-based risk detection** - avoid AI interpretation of risk levels
 
-### File Modification Guidelines
-- **aia_processor.py**: Contains official AIA question extraction and scoring - modify with extreme caution
-- **osfi_e23_processor.py**: Contains OSFI E-23 risk methodology - changes must align with regulatory requirements
-- **config.json**: Scoring thresholds match official frameworks - validate any changes
-- **data/survey-enfr.json**: Official government data - should not be modified
+### File Modification Guidelines (v2.0.0 Updated)
 
-### Testing Requirements
-- **Always run validate_mcp.py** after server modifications
+**Framework Processors (Official Logic - Modify with Extreme Caution)**
+- **aia_processor.py**: Official AIA question extraction and scoring - regulatory compliance required
+- **osfi_e23_processor.py**: OSFI E-23 risk methodology - changes must align with regulatory requirements
+- **osfi_e23_structure.py**: Official OSFI Principles (1.1-3.6) and lifecycle definitions - verify against OSFI E-23 guideline
+
+**AIA Modules (v2.0.0)**
+- **aia_analysis.py**: AIA intelligence, question handling, and scoring logic - test thoroughly with validate_functionality.py
+- **aia_report_generator.py**: AIA document generation - changes affect compliance report format
+
+**OSFI E-23 Modules**
+- **osfi_e23_report_generators.py**: Stage-specific report generation - changes affect regulatory document output
+
+**Shared Modules (v2.0.0)**
+- **utils/data_extractors.py**: Data extraction patterns for both frameworks - changes affect both AIA and OSFI tools
+- **utils/framework_detection.py**: Context detection logic - changes affect workflow routing
+- **config/tool_registry.py**: Tool metadata and MCP registration - changes affect Claude Desktop integration
+- **introduction_builder.py**: Workflow guidance - changes affect user experience and framework selection
+
+**Core Orchestration**
+- **server.py**: Main orchestration layer (delegations only) - modifications should be minimal, most logic in modules
+- **workflow_engine.py**: Workflow management and state - changes affect automated assessment progression
+- **description_validator.py**: Validation logic - changes affect quality gates
+
+**Data & Configuration (Official Sources - Do Not Modify)**
+- **data/survey-enfr.json**: Official government AIA questionnaire - should NEVER be modified
+- **config.json**: Scoring thresholds matching official frameworks - validate any changes against official sources
+
+### Testing Requirements (v2.0.0 Updated)
+- **Always run validate_functionality.py** after any module modifications - comprehensive 8/8 validation suite
+- **Run validate_mcp.py** to verify MCP server installation and configuration
 - **Test scoring accuracy** with test_design_phase_filtering.py for AIA changes
 - **Verify MCP protocol compliance** with test_mcp_server.py
+- **Module-specific tests**: Changes to individual modules should maintain all validation tests passing
 
 ## MCP Integration
 
