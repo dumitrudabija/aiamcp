@@ -8,16 +8,38 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 
 ## Core Architecture
 
-### Main Components
-- **server.py**: Main MCP server handling JSON-RPC over stdio
+### Main Components (v2.0.0 Modular Structure)
+
+**Core Server**
+- **server.py**: Main MCP server handling JSON-RPC over stdio (1,305 lines - 73% reduced from v1.x)
 - **workflow_engine.py**: Workflow management, state persistence, and smart routing
+
+**Framework Processors**
 - **aia_processor.py**: Core AIA assessment logic and official framework compliance
 - **osfi_e23_processor.py**: OSFI E-23 model risk management assessment logic
 - **description_validator.py**: Project description validation for framework readiness
+
+**AIA Modules** (v2.0.0)
+- **aia_analysis.py**: Centralized AIA intelligence, question handling, and scoring (1,027 lines)
+- **aia_report_generator.py**: Professional Word document generation for AIA compliance (277 lines)
+
+**OSFI E-23 Modules**
+- **osfi_e23_structure.py**: Official OSFI Principles and lifecycle definitions
+- **osfi_e23_report_generators.py**: Stage-specific report generation
+
+**Shared Modules** (v2.0.0)
+- **utils/data_extractors.py**: Unified data extraction for AIA and OSFI assessments (1,047 lines)
+- **introduction_builder.py**: Framework-specific workflow guidance and introductions (364 lines)
+- **utils/framework_detection.py**: Smart context detection for AIA/OSFI/Combined (108 lines)
+- **config/tool_registry.py**: Tool metadata and MCP protocol registration (365 lines)
+
+**Data Files**
 - **data/survey-enfr.json**: Official bilingual AIA questionnaire data
 - **config.json**: Framework configuration and scoring thresholds
 
 ### Key Design Patterns
+- **Modular Architecture (v2.0.0)**: Clean separation of concerns with 6 specialized modules, reducing server.py complexity by 73%
+- **Delegation Pattern (v2.0.0)**: Server.py orchestrates through dependency injection to specialized modules
 - **Official Framework Compliance**: Strict adherence to Canada's official AIA (104 questions) and OSFI E-23 frameworks
 - **Introduction Workflow Enforcement**: Mandatory get_server_introduction call before any assessment tools, ensuring users understand frameworks and data sources
 - **Explicit Workflow Sequences (v1.15.0)**: Complete 6-step OSFI E-23 and 5-step AIA workflows embedded in get_server_introduction response with step-by-step guidance

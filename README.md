@@ -436,7 +436,24 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ## Key Fixes and Improvements
 
-### v1.15.0 - Enhanced Workflow Guidance with Explicit Sequences (Latest)
+### v2.0.0 - Major Architectural Refactoring (Latest)
+- **Major Transformation**: Complete modular refactoring of server.py from 4,867 to 1,305 lines (73.2% reduction)
+- **New Architecture**: 6 specialized modules totaling 3,188 lines extracted with clear separation of concerns
+- **Zero Functionality Loss**: 8/8 validation tests passing throughout entire refactoring process
+- **Modules Created**:
+  - `utils/data_extractors.py` (1,047 lines) - AIA and OSFI data extraction
+  - `aia_analysis.py` (1,027 lines) - Centralized AIA intelligence and question handling
+  - `aia_report_generator.py` (277 lines) - Professional AIA document generation
+  - `introduction_builder.py` (364 lines) - Framework-specific workflow guidance
+  - `utils/framework_detection.py` (108 lines) - Smart context detection
+  - `config/tool_registry.py` (365 lines) - Tool metadata management
+- **Benefits**: Improved maintainability, testability, scalability, code navigation, and onboarding
+- **Delegation Pattern**: Clean separation with dependency injection throughout
+- **Safety Measures**: Incremental commits, backup tag (v1.16.0-pre-refactoring), continuous validation
+- **Migration**: 100% backward compatible - no API, configuration, or data changes
+- **Impact**: Professional modular architecture enabling faster development and easier maintenance
+
+### v1.15.0 - Enhanced Workflow Guidance with Explicit Sequences
 - **Major Enhancement**: Complete 6-step OSFI E-23 workflow and 5-step AIA workflow now embedded in `get_server_introduction` response
 - **Workflow Visibility**: Users see complete assessment sequences upfront when saying "run through OSFI/AIA framework"
 - **Step-Numbered Tools**: All OSFI E-23 tools labeled with position (STEP X OF 6) and full workflow context

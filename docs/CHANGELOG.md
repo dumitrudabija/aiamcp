@@ -2,6 +2,181 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.0.0] - 2025-11-16
+
+### 🏗️ Major Refactoring - Modular Architecture
+
+#### Overview
+Complete architectural refactoring of server.py from monolithic structure to modular, maintainable design. This represents the largest code quality improvement in the project's history while maintaining 100% functionality.
+
+#### Problem Resolved
+- **CRITICAL ISSUE**: server.py was a 4,867-line monolithic file with excessive complexity
+- **Maintainability Risk**: Single file contained AIA logic, OSFI logic, reporting, data extraction, and MCP protocol
+- **Testing Difficulty**: Tightly coupled code made unit testing and debugging challenging
+- **Code Navigation**: Finding specific functionality required searching through thousands of lines
+- **Onboarding Barrier**: New developers faced steep learning curve understanding interconnections
+
+#### Solution Implemented - Modular Architecture
+Complete separation of concerns with 6 new specialized modules:
+
+1. **utils/data_extractors.py** (1,047 lines)
+   - `AIADataExtractor` - Extracts scores, impact levels, and recommendations from AIA assessments
+   - `OSFIE23DataExtractor` - Extracts risk levels, governance requirements, and lifecycle data from OSFI assessments
+   - 30 specialized extraction methods
+
+2. **aia_analysis.py** (1,027 lines)
+   - `AIAAnalyzer` - Centralized AIA intelligence and question handling
+   - Intelligent project analysis with keyword-based question answering
+   - Functional risk preview calculations
+   - Complete AIA question retrieval and scoring
+
+3. **aia_report_generator.py** (277 lines)
+   - `AIAReportGenerator` - Professional Word document generation for AIA compliance
+   - Mirrors OSFI report generator structure for architectural consistency
+   - Executive summary, key findings, and recommendations
+
+4. **introduction_builder.py** (364 lines)
+   - `IntroductionBuilder` - Framework-specific workflow guidance
+   - Smart context detection (AIA/OSFI/Combined)
+   - Complete workflow sequence presentation
+
+5. **utils/framework_detection.py** (108 lines - from previous refactoring)
+   - `FrameworkDetector` - Keyword-based framework detection
+   - Session-aware caching
+
+6. **config/tool_registry.py** (365 lines - from previous refactoring)
+   - Tool metadata management
+   - MCP protocol tool registration
+
+#### Refactoring Metrics
+- **Server.py Reduction**: 4,867 → 1,305 lines (73.2% reduction, 3,562 lines extracted)
+- **New Modules Created**: 6 modules totaling 3,188 lines
+- **Commits**: 8 incremental commits on refactor/phase1-split-server branch
+- **Test Coverage**: 8/8 validation tests passing throughout entire refactoring
+- **Zero Functionality Loss**: Complete backward compatibility maintained
+
+#### Technical Implementation - 7 Extraction Phases
+
+**Phase 1**: Framework Detection (108 lines → framework_detection.py)
+- Keyword-based context analysis
+- Session-aware detection caching
+
+**Phase 2**: Tool Registry (365 lines → tool_registry.py)
+- Tool metadata management
+- MCP protocol compatibility
+
+**Phase 3**: Data Extractors (1,047 lines → data_extractors.py)
+- Score and impact level extraction
+- Risk rating and governance extraction
+- Unified extraction patterns
+
+**Phase 4**: AIA Analysis (744 lines → aia_analysis.py, first pass)
+- Intelligent project analysis
+- Functional risk preview
+- Question answering logic
+
+**Phase 5**: Introduction Builder (325 lines → introduction_builder.py)
+- Workflow sequence construction
+- Framework-specific guidance
+- Smart routing recommendations
+
+**Phase 6**: AIA Report Generation (230 lines → aia_report_generator.py)
+- Professional document export
+- Architectural symmetry with OSFI reports
+
+**Phase 7**: AIA Helper Consolidation (240 lines → aia_analysis.py, second pass)
+- Centralized all AIA utilities
+- Single source of truth for AIA logic
+
+#### Architecture Benefits
+
+**Maintainability**
+- Single Responsibility Principle applied throughout
+- Clear module boundaries with defined interfaces
+- Easier debugging and troubleshooting
+
+**Testability**
+- Isolated components for unit testing
+- Mock injection points for integration tests
+- Validation suite confirms zero regression
+
+**Scalability**
+- New frameworks can be added as independent modules
+- Report generators follow established patterns
+- Extraction patterns reusable across frameworks
+
+**Code Navigation**
+- Logical organization by domain (AIA, OSFI, Workflow)
+- Reduced cognitive load per file
+- IDE navigation and search improved
+
+**Onboarding**
+- New developers can understand one module at a time
+- Clear delegation pattern from server.py
+- Documentation aligned with module structure
+
+#### Delegation Pattern
+All extracted functionality replaced with clean delegations:
+
+```python
+# Initialization
+self.aia_analyzer = AIAAnalyzer(self.aia_processor)
+self.aia_report_generator = AIAReportGenerator(self.aia_data_extractor)
+self.introduction_builder = IntroductionBuilder(self.framework_detector)
+
+# Delegation
+def _intelligent_project_analysis(self, project_description: str):
+    """Delegates to AIAAnalyzer."""
+    return self.aia_analyzer._intelligent_project_analysis(project_description)
+```
+
+#### Test Results - Continuous Validation
+- ✅ 8/8 validation tests passing after every extraction
+- ✅ Module imports validated
+- ✅ Server initialization validated
+- ✅ Framework detection validated
+- ✅ Tool registration validated (16 tools)
+- ✅ AIA processor validated (104 questions)
+- ✅ OSFI processor validated
+- ✅ Workflow engine validated (4 workflows)
+- ✅ Description validator validated
+
+#### Safety Measures
+- Backup tag: v1.16.0-pre-refactoring
+- Backup branch: backup/pre-refactoring-2025-11-15
+- Incremental commits: Each extraction committed separately
+- Python syntax checks: All files compiled successfully
+- Comprehensive validation: Automated test suite run after each step
+
+#### Files Changed
+- Modified: `server.py` (4,867 → 1,305 lines, 73.2% reduction)
+- New: `utils/data_extractors.py` (1,047 lines)
+- New: `aia_analysis.py` (1,027 lines)
+- New: `aia_report_generator.py` (277 lines)
+- New: `introduction_builder.py` (364 lines)
+- New: `utils/framework_detection.py` (108 lines)
+- New: `config/tool_registry.py` (365 lines)
+- Updated: All project documentation for v2.0.0
+
+#### Migration Notes
+- **No API Changes**: All tool interfaces remain identical
+- **No Configuration Changes**: Existing Claude Desktop configs work without modification
+- **No Data Migration**: All data files and formats unchanged
+- **Backward Compatible**: Can safely upgrade from v1.16.0
+
+#### Impact
+- **Code Quality**: 73% reduction in main file complexity
+- **Maintainability**: Professional modular architecture
+- **Developer Experience**: Faster navigation and understanding
+- **Future Development**: Easier to add new frameworks and features
+- **Testing**: Isolated components enable better test coverage
+- **Documentation**: Architecture now matches logical code organization
+
+#### Version Upgrade
+- Previous: v1.15.0 (Workflow guidance enhancements)
+- Current: v2.0.0 (Major architectural refactoring)
+- Breaking Changes: None (semantic major version for significant architectural change)
+
 ## [1.12.0] - 2025-11-04
 
 ### 🎯 OSFI E-23 Lifecycle-Focused Reports with Official Terminology
