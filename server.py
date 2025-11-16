@@ -859,58 +859,44 @@ class MCPServer:
         """Generate planning guidance - delegates to AIAAnalyzer."""
         return self.aia_analyzer._generate_planning_guidance(functional_score, project_description)
 
+    # AIA Question and Score Helper Methods (delegate to AIAAnalyzer)
+
     def _get_question_category(self, question_name: str) -> str:
-        """Get the display category for a question."""
-        # Map internal categories to display categories
-        for category, questions in self.aia_processor.question_categories.items():
-            if question_name in questions:
-                if category == 'technical':
-                    return 'System'  # Most technical questions are system-related
-                elif category == 'impact_risk':
-                    return 'Impact'
-                elif category == 'manual':
-                    return 'Project'
-        return 'System'  # Default
-    
+        """Get question category - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._get_question_category(question_name)
+
     def _get_impact_level_roman(self, impact_level: int) -> str:
-        """Convert impact level number to Roman numeral."""
-        roman_map = {1: 'I', 2: 'II', 3: 'III', 4: 'IV'}
-        return roman_map.get(impact_level, 'I')
-    
+        """Get impact level Roman numeral - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._get_impact_level_roman(impact_level)
+
     def _get_design_phase_questions(self) -> List[Dict[str, Any]]:
-        """Filter questions to only include those visible in Design phase.
-        
-        Based on survey-enfr.json analysis, Design phase users see questions that are either:
-        1. Always visible (no visibleIf condition), OR
-        2. Have visibleIf condition "{projectDetailsPhase} = \"item1\"" (Design phase)
-        
-        This excludes questions that are only visible in Implementation phase.
-        """
-        # Load the survey data to check visibility conditions
-        try:
-            with open('data/survey-enfr.json', 'r', encoding='utf-8') as f:
-                survey_data = json.load(f)
-        except Exception as e:
-            logger.warning(f"Could not load survey data for phase filtering: {e}")
-            # Fallback to all questions if we can't load the survey data
-            return self.aia_processor.scorable_questions
-        
-        # Find pages that are Implementation-only (have visibleIf with item2)
-        implementation_only_pages = set()
-        
-        # Check each page for visibility conditions
-        for page in survey_data.get('pages', []):
-            page_name = page.get('name', '')
-            page_visible_if = page.get('visibleIf', '')
-            
-            # Check if this page is only visible in Implementation phase
-            if '{projectDetailsPhase} = "item2"' in page_visible_if:
-                implementation_only_pages.add(page_name)
-                logger.info(f"Found Implementation-only page: {page_name}")
-        
-        # Extract all question names, excluding those from Implementation-only pages
-        design_phase_question_names = set()
-        
+        """Get design phase questions - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._get_design_phase_questions()
+
+    def _get_questions(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Get questions - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._get_questions(arguments)
+
+    def _get_questions_summary(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Get questions summary - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._get_questions_summary(arguments)
+
+    def _get_questions_by_category(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Get questions by category - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._get_questions_by_category(arguments)
+
+    def _calculate_assessment_score(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate assessment score - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._calculate_assessment_score(arguments)
+
+    def _calculate_score_sensitivity(self, base_score: int, gap_analysis: Dict[str, List[str]]) -> Dict[str, str]:
+        """Calculate score sensitivity - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._calculate_score_sensitivity(base_score, gap_analysis)
+
+    def _estimate_impact_level_range(self, base_score: int, gap_analysis: Dict[str, List[str]]) -> Dict[str, int]:
+        """Estimate impact level range - delegates to AIAAnalyzer."""
+        return self.aia_analyzer._estimate_impact_level_range(base_score, gap_analysis)
+
         def extract_questions_from_page(page):
             page_name = page.get('name', '')
             
@@ -960,194 +946,6 @@ class MCPServer:
         
         return recommendations
     
-    def _get_questions(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle requests for questions by category or type."""
-        category = arguments.get("category")
-        question_type = arguments.get("type")
-        
-        logger.info(f"Retrieving questions - category: {category}, type: {question_type}")
-        
-        # Get Design phase questions only (not all 162 questions)
-        all_questions = self._get_design_phase_questions()
-        
-        # Filter by category if specified
-        if category:
-            # Map category names to our internal categories
-            category_map = {
-                "Project": "manual",
-                "System": "technical", 
-                "Algorithm": "technical",
-                "Decision": "impact_risk",
-                "Impact": "impact_risk",
-                "Data": "technical",
-                "Consultations": "manual",
-                "De-risking": "manual"
-            }
-            
-            internal_category = category_map.get(category, "manual")
-            category_questions = self.aia_processor.question_categories.get(internal_category, [])
-            
-            # Get full question details
-            questions_by_name = {q['name']: q for q in all_questions}
-            filtered_questions = []
-            
-            for question_name in category_questions:
-                if question_name in questions_by_name:
-                    filtered_questions.append(questions_by_name[question_name])
-            
-            all_questions = filtered_questions
-        
-        # Filter by type if specified (risk vs mitigation)
-        if question_type:
-            if question_type == "risk":
-                # Return questions that contribute to risk scoring
-                all_questions = [q for q in all_questions if q.get('max_score', 0) > 0]
-            elif question_type == "mitigation":
-                # Return questions about mitigation measures
-                all_questions = [q for q in all_questions if 'mitigation' in q.get('title', '').lower() or 'measure' in q.get('title', '').lower()]
-        
-        return {
-            "questions": all_questions[:20],  # Limit to first 20 questions
-            "total_available": len(all_questions),
-            "filters_applied": {
-                "category": category,
-                "type": question_type
-            },
-            "framework_info": {
-                "name": "Canada's Algorithmic Impact Assessment (Design Phase)",
-                "total_questions": len(self._get_design_phase_questions()),
-                "max_possible_score": sum(q['max_score'] for q in self._get_design_phase_questions())
-            }
-        }
-    
-    def _get_questions_summary(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle questions summary requests."""
-        logger.info("Retrieving questions summary")
-        
-        # Use Design phase questions for summary calculation
-        design_phase_questions = self._get_design_phase_questions()
-        
-        # Calculate summary based on Design phase questions only
-        total_questions = len(design_phase_questions)
-        max_possible_score = sum(q['max_score'] for q in design_phase_questions)
-        
-        # Count questions by type
-        risk_questions = len([q for q in design_phase_questions if q.get('max_score', 0) > 0])
-        mitigation_questions = total_questions - risk_questions
-        
-        summary = {
-            "total_questions": total_questions,
-            "risk_questions": risk_questions,
-            "mitigation_questions": mitigation_questions,
-            "max_possible_score": max_possible_score,
-            "framework": "Canada's Algorithmic Impact Assessment (Design Phase)"
-        }
-        
-        return {
-            "success": True,
-            "summary": summary
-        }
-    
-    def _get_questions_by_category(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle requests for questions by category."""
-        category = arguments.get("category", "")
-        limit = arguments.get("limit")
-        
-        logger.info(f"Retrieving {category} questions")
-        
-        # Get questions from the specified category
-        category_questions = self.aia_processor.question_categories.get(category, [])
-        
-        if limit:
-            category_questions = category_questions[:limit]
-        
-        # Get full question details (Design phase only)
-        design_phase_questions = self._get_design_phase_questions()
-        questions_by_name = {q['name']: q for q in design_phase_questions}
-        detailed_questions = []
-        
-        for question_name in category_questions:
-            if question_name in questions_by_name:
-                detailed_questions.append(questions_by_name[question_name])
-        
-        return {
-            "success": True,
-            "category": category,
-            "total_in_category": len(self.aia_processor.question_categories.get(category, [])),
-            "returned_count": len(detailed_questions),
-            "questions": detailed_questions
-        }
-    
-    def _calculate_assessment_score(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle score calculation requests."""
-        responses = arguments.get("responses", [])
-        
-        logger.info(f"Calculating score for {len(responses)} responses")
-        
-        # Use the existing AIAProcessor logic
-        total_score = self.aia_processor.calculate_score(responses)
-        level, level_name, level_description = self.aia_processor.determine_impact_level(total_score)
-        
-        # Use Design phase questions for max score calculation
-        design_phase_questions = self._get_design_phase_questions()
-        max_possible_score = sum(q['max_score'] for q in design_phase_questions)
-        
-        return {
-            "success": True,
-            "calculation": {
-                "total_score": total_score,
-                "responses_processed": len(responses),
-                "max_possible_score": max_possible_score,
-                "impact_level": level,
-                "level_name": level_name,
-                "level_description": level_description
-            }
-        }
-
-    def _calculate_score_sensitivity(self, base_score: int, gap_analysis: Dict[str, List[str]]) -> Dict[str, str]:
-        """Calculate how the score might change based on critical gaps."""
-        sensitivity = {}
-        
-        # Estimate impact of critical gaps
-        if gap_analysis['critical']:
-            if any('policy' in gap.lower() or 'authority' in gap.lower() for gap in gap_analysis['critical']):
-                new_score = base_score + 3
-                new_level = self.aia_processor.determine_impact_level(new_score)[0]
-                sensitivity['if_policy_authority_needed'] = f"+3 points → likely Level {self._get_impact_level_roman(new_level)}"
-            
-            if any('bias' in gap.lower() for gap in gap_analysis['critical']):
-                sensitivity['if_no_bias_testing'] = "+2-5 points depending on system complexity"
-            
-            if any('consultation' in gap.lower() for gap in gap_analysis['critical']):
-                sensitivity['if_limited_consultation'] = "+1-3 points depending on stakeholder impact"
-        
-        # Overall range estimate
-        min_additional = 0
-        max_additional = len(gap_analysis['critical']) * 2 + len(gap_analysis['important']) * 1
-        
-        if max_additional > 0:
-            min_score = base_score + min_additional
-            max_score = base_score + max_additional
-            sensitivity['overall_range'] = f"Final score likely {min_score}-{max_score} points after complete assessment"
-        
-        return sensitivity
-    
-    def _estimate_impact_level_range(self, base_score: int, gap_analysis: Dict[str, List[str]]) -> Dict[str, int]:
-        """Estimate the likely range of final impact levels."""
-        # Conservative estimate: assume some critical gaps will add points
-        min_additional = 0
-        max_additional = len(gap_analysis['critical']) * 2 + len(gap_analysis['important']) * 1
-        
-        min_score = base_score + min_additional
-        max_score = min(base_score + max_additional, 100)  # Cap at reasonable maximum
-        
-        return {
-            'min_score': min_score,
-            'max_score': max_score
-        }
-
-    # AIA Data Extraction Methods (delegate to AIADataExtractor)
-
     def _extract_score(self, assessment_results: Dict[str, Any]) -> int:
         """Extract score from assessment results."""
         return self.aia_data_extractor.extract_score(assessment_results)
