@@ -357,7 +357,11 @@ class MCPServer:
 
     def _get_server_introduction(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Get server introduction - delegates to IntroductionBuilder."""
-        return self.introduction_builder._get_server_introduction(arguments)
+        result = self.introduction_builder._get_server_introduction(arguments)
+        # Mark introduction as shown for workflow enforcement
+        self.introduction_shown = True
+        logger.info("Introduction shown - workflow enforcement gate unlocked")
+        return result
 
     def _check_introduction_requirement(self) -> Optional[Dict[str, Any]]:
         """

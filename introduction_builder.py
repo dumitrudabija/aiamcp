@@ -218,17 +218,31 @@ class IntroductionBuilder:
             }
         }
 
+    def _detect_framework_context(self, user_context: str = "", session_id: str = None) -> str:
+        """
+        Detect which framework to emphasize based on user context.
+
+        Delegates to FrameworkDetector for the actual detection logic.
+
+        Args:
+            user_context: User's statement or project context
+            session_id: Optional session ID to check for existing workflow type
+
+        Returns:
+            'aia' | 'osfi_e23' | 'both'
+        """
+        return self.framework_detector.detect(user_context, session_id)
 
     def _get_server_introduction(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Provide framework-specific or combined introduction based on user context.
 
         Uses smart detection to show only the relevant framework, reducing cognitive load.
+
+        Note: The server (MCPServer class) tracks introduction_shown flag for workflow enforcement.
         """
 
-        # Mark introduction as shown for this session
-        self.introduction_shown = True
-        logger.info("Introduction shown - workflow enforcement gate unlocked")
+        logger.info("Building server introduction with workflow guidance")
 
         # Detect which framework to emphasize
         user_context = arguments.get('user_context', '')
