@@ -1,5 +1,7 @@
 # Automatic Session Management Implementation (v1.16.0)
 
+⚠️ **ARCHITECTURE NOTE**: This document describes a v1.x implementation. As of v2.0.0 (November 16, 2025), many components described here have been extracted to dedicated modules. Functionality remains identical but code is now in modular architecture. See `ARCHITECTURE.md` for current structure.
+
 ## Summary
 
 Implemented automatic session management for direct OSFI E-23 tool calls, eliminating the need for users to explicitly manage workflow sessions. The MCP server now automatically creates sessions, stores results, and injects data between tools when they're called in sequence.

@@ -1,5 +1,7 @@
 # Workflow Guidance Enhancement (v1.15.0)
 
+⚠️ **ARCHITECTURE NOTE**: This document describes a v1.x implementation. As of v2.0.0 (November 16, 2025), many components described here have been extracted to dedicated modules. Functionality remains identical but code is now in modular architecture. See `ARCHITECTURE.md` for current structure.
+
 ## Summary
 
 Enhanced the MCP server's `get_server_introduction` tool and OSFI E-23 tool descriptions to provide explicit workflow sequences and stronger behavioral guidance. This ensures users see complete workflow information before assessment tools are called, and that all OSFI tools are executed in the correct sequence.

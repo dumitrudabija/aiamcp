@@ -1,5 +1,7 @@
 # Smart Framework Detection - Implementation Summary
 
+⚠️ **ARCHITECTURE NOTE**: This document describes a v1.x implementation. As of v2.0.0 (November 16, 2025), many components described here have been extracted to dedicated modules. Functionality remains identical but code is now in modular architecture. See `ARCHITECTURE.md` for current structure.
+
 **Implementation Date**: 2025-11-15
 **Version**: 1.16.0
 **Status**: ✅ Complete and Tested

@@ -1,5 +1,7 @@
 # Development Session Summary - November 14, 2025
 
+⚠️ **ARCHITECTURE NOTE**: This document describes v1.15.0 enhancements. As of v2.0.0 (November 16, 2025), workflow introduction logic has been extracted to `introduction_builder.py` module. The functionality described here remains identical but is now in a dedicated module. See `ARCHITECTURE.md` for current architecture.
+
 ## Overview
 Comprehensive enhancement of workflow guidance and documentation for the AIA Assessment MCP Server, focusing on improving user experience when requesting "run through OSFI/AIA framework" operations.
 

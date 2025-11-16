@@ -1,8 +1,17 @@
 # AIA Assessment MCP - Future Enhancement Opportunities
 
-**Last Updated**: September 9, 2025, 3:30 PM (Toronto)
+⚠️ **VERSION NOTE**: This document was written for v1.x architecture. As of v2.0.0 (November 2025), the system has undergone major architectural refactoring with modular design. Many architectural suggestions below have been addressed through the modular architecture. See `ARCHITECTURE.md` for current architecture.
+
+**Last Updated**: September 9, 2025, 3:30 PM (Toronto) - Pre v2.0.0 refactoring
 **Current Status**: Base functionality complete and operational
 **Project**: Canada's Algorithmic Impact Assessment MCP Server
+
+**v2.0.0 Updates (November 2025)**:
+- ✅ Modular architecture implemented (73% code reduction in server.py)
+- ✅ Enhanced workflow management system
+- ✅ Professional report generation for both AIA and OSFI E-23
+- ✅ Comprehensive validation and testing framework
+- See `CHANGELOG.md` for complete v2.0.0 features
 
 ## Current Capabilities Summary
 

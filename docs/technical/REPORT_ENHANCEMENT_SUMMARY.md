@@ -2,6 +2,8 @@
 **Date:** November 12, 2025
 **Version:** v1.12.1 (Report Presentation Enhancement)
 
+⚠️ **ARCHITECTURE NOTE**: As of v2.0.0 (November 16, 2025), report generation logic has been extracted to `osfi_e23_report_generators.py` module. This document describes the enhancement implemented in v1.12.1, which remains functionally identical in v2.0.0 but is now in a dedicated module. See `ARCHITECTURE.md` for current architecture.
+
 ## Executive Summary
 
 Successfully enhanced MCP-generated OSFI E-23 reports with Claude's superior presentation style while maintaining 100% official OSFI E-23 terminology and compliance. Achieved "best of both worlds" - regulatory compliance + executive-friendly presentation.
