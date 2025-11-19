@@ -33,6 +33,7 @@ from utils.data_extractors import AIADataExtractor, OSFIE23DataExtractor
 from aia_analysis import AIAAnalyzer
 from introduction_builder import IntroductionBuilder
 from aia_report_generator import AIAReportGenerator
+from osfi_e23_report_generators import generate_design_stage_report
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
@@ -1240,9 +1241,116 @@ class MCPServer:
             project_description=project_description,
             risk_assessment=risk_assessment
         )
-        
+
         return result
-    
+
+    def _export_e23_report(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Export OSFI E-23 assessment results to a Microsoft Word document."""
+        project_name = arguments.get("project_name", "")
+        project_description = arguments.get("project_description", "")
+        assessment_results = arguments.get("assessment_results", {})
+        custom_filename = arguments.get("custom_filename")
+
+        logger.info(f"Exporting OSFI E-23 report for project: {project_name}")
+
+        # CRITICAL FIX: Validate that assessment_results contains required data
+        # Prevent generating misleading reports with default/incomplete values
+        if not assessment_results or len(assessment_results) == 0:
+            return {
+                "error": "export_failed",
+                "reason": "Cannot export OSFI E-23 report: assessment_results is empty or missing",
+                "required_action": "Execute 'assess_model_risk' tool first to generate assessment data",
+                "workflow_guidance": "If using workflow, the system should auto-inject results. This error indicates no assessment has been completed.",
+                "critical_warning": "⚠️ COMPLIANCE RISK: Exporting without assessment data would create misleading documents with incomplete or default values"
+            }
+
+        # Check for minimum required assessment fields (risk_score or risk_level)
+        has_risk_score = "risk_score" in assessment_results
+        has_risk_level = "risk_level" in assessment_results
+
+        if not has_risk_score and not has_risk_level:
+            return {
+                "error": "export_failed",
+                "reason": "Cannot export OSFI E-23 report: assessment_results missing required risk assessment fields",
+                "missing_fields": {
+                    "risk_score_missing": not has_risk_score,
+                    "risk_level_missing": not has_risk_level
+                },
+                "required_fields": ["risk_score", "risk_level"],
+                "required_action": "Execute 'assess_model_risk' tool to generate complete risk assessment",
+                "received_data": list(assessment_results.keys()) if assessment_results else [],
+                "critical_warning": "⚠️ COMPLIANCE RISK: Incomplete assessment data cannot produce valid regulatory documents"
+            }
+
+        try:
+            # Create OSFI_E23_Assessments directory if it doesn't exist
+            assessments_dir = "./OSFI_E23_Assessments"
+            os.makedirs(assessments_dir, exist_ok=True)
+
+            # Generate filename
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            if custom_filename:
+                filename = f"{custom_filename}.docx"
+            else:
+                # Clean project name for filename
+                clean_project_name = "".join(c for c in project_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                clean_project_name = clean_project_name.replace(' ', '_')
+                filename = f"OSFI_E23_Report_{clean_project_name}_{current_date}.docx"
+
+            file_path = os.path.join(assessments_dir, filename)
+
+            # Create Word document
+            doc = Document()
+
+            # Generate the OSFI E-23 Design Stage report
+            doc = generate_design_stage_report(
+                project_name=project_name,
+                project_description=project_description,
+                assessment_results=assessment_results,
+                doc=doc
+            )
+
+            # Save document
+            doc.save(file_path)
+
+            # Get file size
+            file_size = os.path.getsize(file_path)
+            file_size_kb = round(file_size / 1024, 1)
+
+            # Extract risk level for response
+            risk_level = assessment_results.get("risk_level", "Unknown")
+
+            return {
+                "assistant_directive": {
+                    "critical_instruction": "The COMPLETE OSFI E-23 compliance report has been generated and saved by the MCP server. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review."
+                },
+                "success": True,
+                "file_path": file_path,
+                "file_size": f"{file_size_kb}KB",
+                "risk_level": risk_level,
+                "message": f"✅ OSFI E-23 Model Risk Management compliance report saved successfully to {filename}"
+            }
+
+        except PermissionError:
+            return {
+                "success": False,
+                "error": "Permission denied - unable to create file. Check write permissions for the directory.",
+                "file_path": None
+            }
+        except OSError as e:
+            return {
+                "success": False,
+                "error": f"File system error: {str(e)}",
+                "file_path": None
+            }
+        except Exception as e:
+            logger.error(f"Error creating OSFI E-23 report: {str(e)}")
+            return {
+                "success": False,
+                "error": f"Failed to create OSFI E-23 report: {str(e)}",
+                "file_path": None
+            }
+
     def run(self):
         """Run the MCP server."""
         print("DEBUG: Starting AIA Assessment MCP Server...", file=sys.stderr)

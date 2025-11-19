@@ -641,54 +641,41 @@ class OSFIE23Processor:
             "approval_authority": self._determine_approval_authority(risk_level)
         }
     
-    def _calculate_detailed_risk_scores(self, quantitative_factors: Dict[str, bool], 
+    def _calculate_detailed_risk_scores(self, quantitative_factors: Dict[str, bool],
                                       qualitative_factors: Dict[str, bool]) -> Dict[str, Any]:
-        """Calculate detailed risk scores by category."""
-        # Quantitative scoring
-        quant_weights = {
-            'high_volume': 8,
-            'financial_impact': 10,
-            'customer_facing': 7,
-            'revenue_critical': 9,
-            'regulatory_impact': 8
-        }
-        
-        quant_score = sum(quant_weights.get(factor, 5) for factor, present in quantitative_factors.items() if present)
-        
-        # Qualitative scoring
-        qual_weights = {
-            'ai_ml_usage': 8,
-            'high_complexity': 7,
-            'autonomous_decisions': 9,
-            'black_box': 8,
-            'third_party': 6,
-            'data_sensitive': 7,
-            'real_time': 6,
-            'customer_impact': 8
-        }
-        
-        qual_score = sum(qual_weights.get(factor, 5) for factor, present in qualitative_factors.items() if present)
-        
+        """
+        Calculate detailed risk scores by category.
+
+        IMPORTANT: Uses same calculation method as assess_model_risk to ensure consistency.
+        Flat scoring: 10 points per quantitative factor, 8 per qualitative factor.
+        """
+        # Flat scoring (consistent with assess_model_risk)
+        quant_score = sum(1 for indicator in quantitative_factors.values() if indicator) * 10
+        qual_score = sum(1 for indicator in qualitative_factors.values() if indicator) * 8
+
         # Calculate overall score with risk amplification
         base_score = quant_score + qual_score
-        
-        # Risk amplification for dangerous combinations
+
+        # Risk amplification for dangerous combinations (same as assess_model_risk)
         amplification = 1.0
         if quantitative_factors.get('financial_impact') and qualitative_factors.get('ai_ml_usage'):
-            amplification += 0.3
-        if qualitative_factors.get('autonomous_decisions') and qualitative_factors.get('black_box'):
-            amplification += 0.25
-        if quantitative_factors.get('regulatory_impact') and qualitative_factors.get('third_party'):
-            amplification += 0.2
-        
+            amplification += 0.3  # AI/ML in financial decisions
+        if quantitative_factors.get('customer_facing') and qualitative_factors.get('autonomous_decisions'):
+            amplification += 0.2  # Autonomous customer-facing decisions
+        if qualitative_factors.get('black_box') and quantitative_factors.get('regulatory_impact'):
+            amplification += 0.25  # Unexplainable models with regulatory impact
+        if qualitative_factors.get('third_party') and quantitative_factors.get('revenue_critical'):
+            amplification += 0.15  # Third-party dependency in critical systems
+
         overall_score = min(int(base_score * amplification), 100)
-        
+
         return {
             "quantitative_score": quant_score,
             "qualitative_score": qual_score,
             "base_score": base_score,
             "amplification_factor": amplification,
-            "overall_score": overall_score
+            "overall_score": overall_score,
+            "calculation_note": "Uses same methodology as assess_model_risk for consistency"
         }
     
     def _analyze_individual_risk_factors(self, quantitative_factors: Dict[str, bool], 

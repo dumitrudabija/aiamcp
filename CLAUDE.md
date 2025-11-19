@@ -45,7 +45,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **Explicit Workflow Sequences (v1.15.0)**: Complete 6-step OSFI E-23 and 5-step AIA workflows embedded in get_server_introduction response with step-by-step guidance
 - **Step-Numbered Tool Descriptions (v1.15.0)**: All OSFI E-23 tools labeled with their position (STEP X OF 6) and full workflow context
 - **Behavioral Directives (v1.15.0)**: Strong instructions to present introduction first, show all workflow steps, and wait for user choice before proceeding
-- **Streamlined Risk-Adaptive Reports**: OSFI E-23 exports generate concise 4-6 page documents with risk-adaptive content (tone/depth varies by risk level)
+- **Streamlined Risk-Adaptive Reports (v2.0)**: OSFI E-23 exports generate concise ~4 page documents with standardized structure (Executive Summary, Risk Methodology, Compliance Checklist, Annex)
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Enhanced Workflow Visibility**: Complete workflow roadmap with numbered steps, descriptions, and progress tracking
 - **Flexible Dependency Resolution**: Export tools can work with either preview or full assessments
@@ -255,11 +255,13 @@ pip install -r requirements.txt
 - **Transparent Methodology**: All scoring calculations are deterministic and auditable
 - **No AI Risk Interpretation**: Server provides structure, Claude Desktop provides reasoning
 
-### OSFI E-23 Report Structure (v1.8.1+)
-- **Simplified Chapter 1**: Focuses on executive summary and overall risk rating for improved readability
-- **Comprehensive Annex A**: Contains detailed risk calculations, step-by-step methodology, and factor analysis
-- **Enhanced User Experience**: Technical details segregated from executive summary while maintaining full transparency
-- **Mathematical Transparency**: All calculation steps preserved in Annex A with explicit factor breakdowns
+### OSFI E-23 Report Structure (v2.0)
+- **Standardized 4-Section Format**: Executive Summary, Risk Rating Methodology, Design Phase Compliance Checklist, Annex (OSFI Principles)
+- **Executive Summary**: Single paragraph (150-200 words) in plain English explaining risk level, key drivers, and governance requirements
+- **Risk Rating Methodology**: Complete transparency with detailed tables showing all quantitative/qualitative factors, weights, detection status, and amplification calculations
+- **Compliance Checklist**: Actionable checkboxes for all Design stage deliverables organized by OSFI Principles (3.2, 3.3) with specific deliverable requirements
+- **Target Length**: Approximately 4 pages with professional formatting, tables, and clear visual hierarchy
+- **Customizable Weights**: Explicit note that scoring weights are exemplification - can be tuned to institutional specifications
 
 ### Error Handling
 - **Graceful Degradation**: Missing data files trigger default framework creation

@@ -1,31 +1,19 @@
 """
-OSFI E-23 Report Generation - Lifecycle Stage Specific
+OSFI E-23 Report Generation - Streamlined Standard Structure (v2.0)
 
-Generates OSFI E-23 compliance reports organized by current lifecycle stage.
-Focused on Design stage initially (most common use case).
+Generates concise, professional OSFI E-23 compliance reports following
+the standardized 4-section structure with consistent formatting.
 """
 
 from docx import Document
-from docx.shared import Pt, RGBColor
+from docx.shared import Pt, RGBColor, Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from datetime import datetime
 from typing import Dict, Any, List
 import logging
 
-from osfi_e23_structure import (
-    OSFI_PRINCIPLES,
-    OSFI_OUTCOMES,
-    OSFI_LIFECYCLE_COMPONENTS,
-    APPENDIX_1_REQUIRED_FIELDS,
-    APPENDIX_1_OPTIONAL_FIELDS,
-    detect_lifecycle_stage,
-    get_design_stage_checklist,
-    get_stage_name,
-    get_stage_principles,
-    get_principle_text,
-    is_ai_ml_model
-)
-
 logger = logging.getLogger(__name__)
+
 
 def generate_design_stage_report(
     project_name: str,
@@ -34,969 +22,629 @@ def generate_design_stage_report(
     doc: Document
 ) -> Document:
     """
-    Generate comprehensive Design stage compliance report.
+    Generate streamlined OSFI E-23 Design stage compliance report.
 
-    Focuses only on Design stage requirements (OSFI Principles 3.2 and 3.3).
-    Includes OSFI Appendix 1 fields, stage-specific checklist, gap analysis,
-    and readiness assessment for Review stage.
+    Follows standard 4-section structure:
+    1. Executive Summary
+    2. Risk Rating Methodology
+    3. Design Phase Compliance Checklist
+    4. Annex: OSFI E-23 Principles
 
-    Args:
-        project_name: Name of the model/project
-        project_description: Detailed project description
-        assessment_results: Assessment data from assess_model_risk
-        doc: python-docx Document object
-
-    Returns:
-        Document: Populated Word document
+    Target: ~4 pages with clear, professional formatting.
     """
-    # Title
-    title = doc.add_heading('OSFI E-23 Model Risk Management Assessment', 0)
-    title.alignment = 1  # Center
+    # Extract key data
+    risk_level = assessment_results.get("risk_level", "Unknown")
+    risk_score = assessment_results.get("risk_score", 0)
+    risk_analysis = assessment_results.get("risk_analysis", {})
+    assessment_date = datetime.now().strftime("%B %d, %Y")
 
-    subtitle = doc.add_heading(f'{project_name} - Design Stage Compliance Report', 1)
-    subtitle.alignment = 1
+    # Title page
+    title = doc.add_heading('OSFI E-23 Model Risk Assessment', 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    doc.add_paragraph()  # Spacing
+    subtitle = doc.add_heading(project_name, level=1)
+    subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    # Executive Summary
-    _add_design_stage_executive_summary(doc, project_name, assessment_results)
+    # Metadata
+    doc.add_paragraph()
+    _add_metadata(doc, assessment_date, risk_level, risk_score)
 
-    # 1. Model Information Profile (OSFI Appendix 1)
-    _add_model_information_profile(doc, project_name, assessment_results, stage="design")
+    # Data source transparency
+    doc.add_paragraph()
+    _add_data_source_transparency(doc)
 
-    # 2. Current Lifecycle Stage: Model Design
-    _add_design_stage_assessment(doc, project_description, assessment_results)
+    doc.add_page_break()
 
-    # 3. Design Stage Compliance Checklist
-    _add_design_stage_checklist(doc, project_description, assessment_results)
+    # 1. Executive Summary
+    _add_executive_summary_with_disclaimer(doc, project_name, project_description, risk_level, risk_score, risk_analysis)
 
-    # 4. Design Stage Gap Analysis
-    _add_design_stage_gap_analysis(doc, assessment_results)
+    # 2. Risk Rating Methodology
+    _add_risk_methodology(doc, risk_analysis, risk_level, risk_score)
 
-    # 5. Readiness Assessment for Model Review Stage
-    _add_review_stage_readiness(doc, assessment_results)
+    # 3. Design Phase Compliance Checklist
+    _add_compliance_checklist(doc, project_description, risk_level, risk_score)
 
-    # 6. Institution's Risk Rating Summary
-    _add_risk_rating_summary(doc, assessment_results)
+    doc.add_page_break()
 
-    # 7. OSFI E-23 Principles Mapping
-    _add_osfi_principles_mapping_design(doc, assessment_results)
-
-    # 8. Implementation Roadmap
-    _add_implementation_roadmap_design(doc, assessment_results)
-
-    # 9. Critical Recommendations & Next Steps
-    _add_critical_recommendations_next_steps(doc, assessment_results, project_description)
-
-    # 10. Model Description
-    doc.add_heading('10. Model Description', level=1)
-    doc.add_paragraph(project_description)
-
-    # Appendices
-    _add_appendices_design_stage(doc)
-
-    # Professional Validation Warning
-    _add_professional_validation_warning(doc, stage="design")
+    # Annex: OSFI E-23 Principles
+    _add_annex_principles(doc)
 
     return doc
 
 
-def _add_design_stage_executive_summary(
-    doc: Document,
-    project_name: str,
-    assessment_results: Dict[str, Any]
-):
-    """Add enhanced executive summary for Design stage report."""
-    doc.add_heading('Executive Summary', level=1)
-
-    # Opening narrative
-    risk_level = assessment_results.get("risk_level", "Not Assessed")
-    risk_score = assessment_results.get("risk_score", 0)
-
-    opening_text = (
-        f'{project_name} has been assessed against OSFI Guideline E-23 Model Risk Management '
-        f'requirements for federally regulated financial institutions in Canada. The model is currently '
-        f'in the Design stage of the OSFI E-23 lifecycle.'
-    )
-    doc.add_paragraph(opening_text)
-    doc.add_paragraph()  # Spacing
-
-    # Critical Risk Assessment Results Box
-    doc.add_heading('Critical Risk Assessment Results', level=2)
-
+def _add_metadata(doc: Document, assessment_date: str, risk_level: str, risk_score: int):
+    """Add assessment metadata section."""
     p = doc.add_paragraph()
-    p.add_run('Institution Risk Rating: ').bold = True
-    run = p.add_run(f'{risk_level}')
-    run.bold = True
-    if risk_level in ['Critical', 'High']:
-        run.font.color.rgb = RGBColor(220, 20, 60)  # Crimson for high risk
-
-    p = doc.add_paragraph()
-    p.add_run('Risk Score: ').bold = True
-    p.add_run(f'{risk_score}/100 (per institution\'s risk rating methodology - Principle 2.2)')
+    p.add_run('Assessment Date: ').bold = True
+    p.add_run(assessment_date)
 
     p = doc.add_paragraph()
     p.add_run('Current Lifecycle Stage: ').bold = True
     p.add_run('Design')
 
     p = doc.add_paragraph()
-    p.add_run('Assessment Date: ').bold = True
-    p.add_run(datetime.now().strftime("%B %d, %Y"))
+    p.add_run('Risk Rating: ').bold = True
+    run = p.add_run(f'{risk_level} ({risk_score}/100)')
+    # Color code by risk level
+    if risk_level == "Critical":
+        run.font.color.rgb = RGBColor(192, 0, 0)
+    elif risk_level == "High":
+        run.font.color.rgb = RGBColor(255, 102, 0)
+    elif risk_level == "Medium":
+        run.font.color.rgb = RGBColor(255, 192, 0)
+    else:
+        run.font.color.rgb = RGBColor(0, 128, 0)
+    run.bold = True
 
-    doc.add_paragraph()  # Spacing
 
-    # Key Risk Factors Identified
-    doc.add_heading('Key Risk Factors Identified', level=2)
-    risk_analysis = assessment_results.get("risk_analysis", {})
+def _add_data_source_transparency(doc: Document):
+    """Add data source and methodology transparency notice."""
+    p = doc.add_paragraph()
+    run = p.add_run('DATA SOURCE TRANSPARENCY')
+    run.bold = True
+    run.font.size = Pt(11)
+
+    p_format = p.paragraph_format
+    p_format.space_before = Pt(12)
+    p_format.space_after = Pt(6)
+
+    # MCP Server output
+    p = doc.add_paragraph()
+    run = p.add_run('🔧 MCP SERVER OUTPUT (Deterministic): ')
+    run.bold = True
+    p.add_run(
+        'All content in this report is generated by rule-based code using deterministic algorithms. '
+        'Risk scores are calculated using keyword detection and fixed mathematical formulas. '
+        'Checklist items are based on hardcoded OSFI E-23 principles. No probabilistic AI models '
+        'are used in generating this document.'
+    )
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(6)
+    p_format.left_indent = Inches(0.25)
+
+    # AI interpretation warning
+    p = doc.add_paragraph()
+    run = p.add_run('🧠 AI INTERPRETATION (Probabilistic): ')
+    run.bold = True
+    p.add_run(
+        'If you received this report through an AI assistant (e.g., Claude), any additional '
+        'explanations, recommendations, or analysis provided in conversation are AI-generated '
+        'interpretations. Those should be distinguished from the deterministic calculations in this document.'
+    )
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+    p_format.left_indent = Inches(0.25)
+
+
+def _add_executive_summary_with_disclaimer(doc: Document, project_name: str, project_description: str,
+                          risk_level: str, risk_score: int, risk_analysis: Dict[str, Any]):
+    """Add executive summary section with data source transparency."""
+    doc.add_heading('1. EXECUTIVE SUMMARY', level=1)
+
+    # Chapter-specific transparency note
+    p = doc.add_paragraph()
+    run = p.add_run('🔧 DETERMINISTIC OUTPUT: ')
+    run.bold = True
+    run.font.size = Pt(9)
+    run2 = p.add_run(
+        'This summary is generated using rule-based keyword detection and fixed narrative templates.'
+    )
+    run2.font.size = Pt(9)
+    run2.italic = True
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    doc.add_paragraph()
+
+    # Extract key risk drivers
     quant_indicators = risk_analysis.get("quantitative_indicators", {})
     qual_indicators = risk_analysis.get("qualitative_indicators", {})
 
+    # Identify main risk factors (top 3-4)
     risk_factors = []
-
-    # Quantitative factors
     if quant_indicators.get("financial_impact"):
-        risk_factors.append("Financial Impact: Model directly impacts financial decisions and outcomes")
-    if quant_indicators.get("regulatory_impact"):
-        risk_factors.append("Regulatory Impact: Model affects regulatory compliance and reporting requirements")
-    if quant_indicators.get("customer_facing"):
-        risk_factors.append("Customer-Facing: Direct impact on customer decisions and outcomes")
-    if quant_indicators.get("high_volume"):
-        risk_factors.append("High Volume: Large-scale deployment affecting significant transaction volumes")
-    if quant_indicators.get("revenue_critical"):
-        risk_factors.append("Revenue Critical: Model directly impacts revenue generation or business operations")
-
-    # Qualitative factors
+        risk_factors.append("financial decision-making")
     if qual_indicators.get("ai_ml_usage"):
-        risk_factors.append("AI/ML Usage: Complex machine learning architecture requiring specialized oversight")
-    if qual_indicators.get("high_complexity"):
-        risk_factors.append("High Complexity: Sophisticated model structure and methodology")
-    if qual_indicators.get("third_party"):
-        risk_factors.append("Third-Party Dependencies: Reliance on external vendors or data providers")
-    if qual_indicators.get("data_sensitive"):
-        risk_factors.append("Sensitive Data: Processing personal or confidential information")
+        risk_factors.append("AI/ML technology")
+    if quant_indicators.get("customer_facing"):
+        risk_factors.append("customer-facing operations")
     if qual_indicators.get("autonomous_decisions"):
-        risk_factors.append("Autonomous Decisions: Automated decision-making with limited human intervention")
-    if qual_indicators.get("real_time"):
-        risk_factors.append("Real-Time Processing: Immediate decision requirements")
-    if qual_indicators.get("black_box"):
-        risk_factors.append("Limited Explainability: Complex algorithms requiring enhanced transparency measures")
+        risk_factors.append("automated decision-making")
+    if quant_indicators.get("regulatory_impact"):
+        risk_factors.append("regulatory compliance impacts")
 
-    if risk_factors:
-        for factor in risk_factors:
-            doc.add_paragraph(f'• {factor}', style='List Bullet')
-    else:
-        doc.add_paragraph('Risk factors to be determined through detailed assessment.')
+    # Build executive summary
+    summary_parts = []
 
-    doc.add_paragraph()  # Spacing
+    # Opening statement
+    governance_req = {
+        "Critical": "board-level oversight, external validation, and comprehensive monitoring",
+        "High": "senior management oversight, enhanced governance controls, and regular independent review",
+        "Medium": "standard governance procedures with periodic review and appropriate documentation",
+        "Low": "basic governance procedures with annual review cycles"
+    }.get(risk_level, "standard governance procedures")
 
-    # Design Stage Status
-    doc.add_heading('Design Stage Compliance Status', level=2)
-    doc.add_paragraph(
-        'This assessment evaluates compliance against OSFI E-23 Principles 3.2 (Model Rationale and Data) '
-        'and 3.3 (Model Development). The model is currently in the Design stage, focusing on establishing '
-        'clear organizational rationale, data governance, and development methodology per OSFI requirements.'
+    summary_parts.append(
+        f"This model has been assessed as {risk_level} risk with a score of {risk_score}/100 under "
+        f"OSFI E-23 guidelines. This classification requires {governance_req}."
     )
+
+    # Risk drivers
+    if risk_factors:
+        factors_text = ", ".join(risk_factors[:3])
+        if len(risk_factors) > 3:
+            factors_text += ", and other factors"
+        summary_parts.append(f"The rating is driven by {factors_text}.")
+
+    # Model functionality (extract from description)
+    desc_lower = project_description.lower()
+    capabilities = []
+    if any(term in desc_lower for term in ['predict', 'forecast', 'estimate']):
+        capabilities.append("predictive analytics")
+    if any(term in desc_lower for term in ['decision', 'recommend', 'approve']):
+        capabilities.append("decision support")
+    if any(term in desc_lower for term in ['risk', 'credit', 'fraud']):
+        capabilities.append("risk assessment")
+    if any(term in desc_lower for term in ['pricing', 'valuation']):
+        capabilities.append("pricing or valuation")
+
+    if capabilities:
+        cap_text = " and ".join(capabilities[:2])
+        summary_parts.append(
+            f"The model's core functionality includes {cap_text}, which contribute to its risk profile."
+        )
+
+    # Design stage status
+    summary_parts.append(
+        f"Currently at Design stage, requiring completion of all model rationale, data governance, "
+        f"and development documentation before transitioning to the Review stage."
+    )
+
+    summary = " ".join(summary_parts)
+    doc.add_paragraph(summary)
+
+
+def _add_risk_methodology(doc: Document, risk_analysis: Dict[str, Any],
+                         risk_level: str, risk_score: int):
+    """Add risk rating methodology section."""
+    doc.add_heading('2. RISK RATING METHODOLOGY', level=1)
+
+    # Chapter-specific transparency note
+    p = doc.add_paragraph()
+    run = p.add_run('🔧 DETERMINISTIC OUTPUT: ')
+    run.bold = True
+    run.font.size = Pt(9)
+    run2 = p.add_run(
+        'All risk scores use fixed keyword detection and mathematical formulas. No AI interpretation.'
+    )
+    run2.font.size = Pt(9)
+    run2.italic = True
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # Important note
+    p = doc.add_paragraph()
+    run = p.add_run(
+        'IMPORTANT NOTE: '
+    )
+    run.bold = True
+    p.add_run(
+        'The weighting factors and formulas below are provided for exemplification purposes. '
+        'These can be tuned to exact institutional specifications during implementation.'
+    )
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # Formula section
+    doc.add_heading('Risk Calculation Formula', level=2)
+
+    doc.add_paragraph('Step 1: Base Score Calculation', style='List Number')
+    doc.add_paragraph('Base Score = Quantitative Score + Qualitative Score')
+
+    doc.add_paragraph('Step 2: Risk Amplification', style='List Number')
+    doc.add_paragraph('Final Score = Base Score × Amplification Multiplier')
+    doc.add_paragraph('Final Score = [capped at 100]')
+
+    doc.add_paragraph('Step 3: Risk Rating Assignment', style='List Number')
+    rating_table = doc.add_table(rows=5, cols=2)
+    rating_table.style = 'Light Grid Accent 1'
+    rating_table.rows[0].cells[0].text = 'Risk Level'
+    rating_table.rows[0].cells[1].text = 'Score Range'
+    rating_table.rows[1].cells[0].text = 'Low'
+    rating_table.rows[1].cells[1].text = '0-25 points'
+    rating_table.rows[2].cells[0].text = 'Medium'
+    rating_table.rows[2].cells[1].text = '26-50 points'
+    rating_table.rows[3].cells[0].text = 'High'
+    rating_table.rows[3].cells[1].text = '51-75 points'
+    rating_table.rows[4].cells[0].text = 'Critical'
+    rating_table.rows[4].cells[1].text = '76-100 points'
 
     doc.add_paragraph()
-    p = doc.add_paragraph()
-    p.add_run('⚠️ Note: ').bold = True
-    p.add_run(
-        'Formal completion tracking and gap analysis require comprehensive documentation review by qualified '
-        'model risk professionals. This assessment is based on available project information.'
-    )
 
+    # Detailed scoring breakdown
+    doc.add_heading('Detailed Scoring Breakdown', level=2)
 
-def _add_model_information_profile(
-    doc: Document,
-    project_name: str,
-    assessment_results: Dict[str, Any],
-    stage: str
-):
-    """Add OSFI Appendix 1 model tracking fields."""
-    doc.add_heading('1. Model Information Profile (OSFI Appendix 1)', level=1)
-
-    doc.add_paragraph(
-        'OSFI E-23 Appendix 1 specifies required tracking fields for all models in the institution\'s model inventory.'
-    )
-
-    # Required Tracking Fields
-    doc.add_heading('Required Tracking Fields', level=2)
-
-    fields = [
-        ('Model ID', assessment_results.get('model_id', '[To be assigned by institution]')),
-        ('Model Name', project_name),
-        ('Model Description', assessment_results.get('model_description', '[Brief description of key features and use]')),
-        ('Business Line', assessment_results.get('business_line', '[Business line/unit to be assigned]')),
-        ('Model Owner', assessment_results.get('model_owner', '[Individual/unit to be assigned]')),
-        ('Model Developer', assessment_results.get('model_developer', '[Individual/unit/vendor to be assigned]')),
-        ('Model Origin', assessment_results.get('model_origin', '[Internal/Vendor/Third-party]')),
-        ('Current Lifecycle Stage', 'Design'),
-        ('Provisional Model Risk Rating', f'{assessment_results.get("risk_level", "[To be assigned]")} (to be confirmed in Review stage)')
-    ]
-
-    for field_name, field_value in fields:
-        p = doc.add_paragraph()
-        p.add_run(f'{field_name}: ').bold = True
-        p.add_run(field_value)
-
-    # Future Tracking Fields
-    doc.add_heading('Future Tracking Fields (to be completed in later stages)', level=2)
-
-    future_fields = [
-        ('Model Version', 'TBD - assigned at deployment'),
-        ('Date of Deployment', 'TBD - Deployment stage'),
-        ('Model Reviewer', 'TBD - to be assigned for Review stage'),
-        ('Model Approver', 'TBD - to be assigned'),
-        ('Date of Most Recent Review', 'TBD - after Review stage'),
-        ('Next Review Date', 'TBD - based on risk rating'),
-        ('Monitoring Status', 'TBD - Monitoring stage')
-    ]
-
-    for field_name, field_value in future_fields:
-        p = doc.add_paragraph()
-        p.add_run(f'{field_name}: ').bold = True
-        p.add_run(field_value)
-
-
-def _add_design_stage_assessment(
-    doc: Document,
-    project_description: str,
-    assessment_results: Dict[str, Any]
-):
-    """Add current lifecycle stage assessment section."""
-    doc.add_heading('2. Current Lifecycle Stage: Model Design', level=1)
-
-    doc.add_paragraph(
-        'OSFI E-23 defines Model Design as encompassing:'
-    )
-
-    components = [
-        'Model Rationale - establishing clear organizational rationale',
-        'Model Data - ensuring data quality and suitability',
-        'Model Development - following appropriate development processes'
-    ]
-
-    for component in components:
-        doc.add_paragraph(component, style='List Number')
-
-    # Model Rationale Compliance
-    doc.add_heading('2.1 Model Rationale Compliance (Principle 3.2)', level=2)
-
-    doc.add_paragraph().add_run('Requirements:').bold = True
-    requirements = [
-        'Clear organizational rationale for model deployment',
-        'Well-defined purpose, scope, and coverage',
-        'Identified business use case',
-        'Risk assessment of intended usage'
-    ]
-
-    if is_ai_ml_model(project_description):
-        requirements.extend([
-            '[For AI/ML] Explainability requirements',
-            '[For AI/ML] Bias considerations',
-            '[For AI/ML] Privacy risks'
-        ])
-
-    for req in requirements:
-        doc.add_paragraph(req, style='List Bullet')
-
-    doc.add_paragraph().add_run('Current Status: ').bold = True
-    doc.add_paragraph('[Assessment based on available information - formal status tracking requires documentation review]')
-
-    # Model Data Compliance
-    doc.add_heading('2.2 Model Data Compliance (Principle 3.2)', level=2)
-
-    doc.add_paragraph().add_run('Requirements:').bold = True
-    data_reqs = [
-        'Data governance framework integrated with enterprise standards',
-        'Data quality standards (accuracy, relevance, representativeness, compliance, traceability, timeliness)',
-        'Data sources documented with lineage and provenance',
-        'Data quality check procedures defined',
-        'Bias assessment and management approach',
-        'Data update frequency established'
-    ]
-
-    for req in data_reqs:
-        doc.add_paragraph(req, style='List Bullet')
-
-    doc.add_paragraph().add_run('Current Status: ').bold = True
-    doc.add_paragraph('[Assessment based on available information - formal status tracking requires documentation review]')
-
-    # Model Development Compliance
-    doc.add_heading('2.3 Model Development Compliance (Principle 3.3)', level=2)
-
-    doc.add_paragraph().add_run('Requirements:').bold = True
-    dev_reqs = [
-        'Model methodology documented (conceptually sound methodologies, algorithms)',
-        'Model assumptions and limitations documented',
-        'Development processes documented',
-        'Expert judgment role documented',
-        'Performance criteria established',
-        'Development testing documented',
-        'Model output usage standards defined',
-        'Planning for future stages: Monitoring criteria, review standards, performance thresholds defined'
-    ]
-
-    for req in dev_reqs:
-        doc.add_paragraph(req, style='List Bullet')
-
-    doc.add_paragraph().add_run('Current Status: ').bold = True
-    doc.add_paragraph('[Assessment based on available information - formal status tracking requires documentation review]')
-
-
-def _add_design_stage_checklist(
-    doc: Document,
-    project_description: str,
-    assessment_results: Dict[str, Any]
-):
-    """Add comprehensive Design stage compliance checklist."""
-    doc.add_heading('3. Design Stage Compliance Checklist', level=1)
-
-    checklist = get_design_stage_checklist()
-    is_ai_ml = is_ai_ml_model(project_description)
-
-    # Model Rationale
-    doc.add_heading('Model Rationale (Principle 3.2 - Model Design)', level=2)
-    for item in checklist["model_rationale"]:
-        # Skip AI/ML specific items if not AI/ML model
-        if item.get("ai_ml_specific") and not is_ai_ml:
-            continue
-
-        p = doc.add_paragraph('☐ ', style='List Bullet')
-        p.add_run(item["item"]).bold = True
-        p = doc.add_paragraph(f'  Requirement: {item["requirement"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  Deliverable: {item["deliverable"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  OSFI Reference: {item["osfi_reference"]}', style='List Bullet 2')
-
-    # Model Data
-    doc.add_heading('Model Data (Principle 3.2 - Model Data)', level=2)
-    for item in checklist["model_data"]:
-        p = doc.add_paragraph('☐ ', style='List Bullet')
-        p.add_run(item["item"]).bold = True
-        p = doc.add_paragraph(f'  Requirement: {item["requirement"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  Deliverable: {item["deliverable"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  OSFI Reference: {item["osfi_reference"]}', style='List Bullet 2')
-
-    # Model Development
-    doc.add_heading('Model Development (Principle 3.3 - Model Development)', level=2)
-    for item in checklist["model_development"]:
-        p = doc.add_paragraph('☐ ', style='List Bullet')
-        p.add_run(item["item"]).bold = True
-        p = doc.add_paragraph(f'  Requirement: {item["requirement"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  Deliverable: {item["deliverable"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  OSFI Reference: {item["osfi_reference"]}', style='List Bullet 2')
-
-    # Planning for Future Stages
-    doc.add_heading('Planning for Future Stages (Design Stage Deliverables)', level=2)
-    doc.add_paragraph('Note: These are Design stage requirements that define approaches for future implementation')
-
-    for item in checklist["planning_for_future"]:
-        p = doc.add_paragraph('☐ ', style='List Bullet')
-        p.add_run(item["item"]).bold = True
-        p = doc.add_paragraph(f'  Requirement: {item["requirement"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  Deliverable: {item["deliverable"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  OSFI Reference: {item["osfi_reference"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  Future Stage: {item["future_stage"].capitalize()}', style='List Bullet 2')
-
-    # Design Stage Governance
-    doc.add_heading('Design Stage Governance (OSFI Appendix 1)', level=2)
-    for item in checklist["design_governance"]:
-        p = doc.add_paragraph('☐ ', style='List Bullet')
-        p.add_run(item["item"]).bold = True
-        p = doc.add_paragraph(f'  Requirement: {item["requirement"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  OSFI Reference: {item["osfi_reference"]}', style='List Bullet 2')
-
-    # Readiness for Review Stage
-    doc.add_heading('Readiness for Model Review Stage', level=2)
-    for item in checklist["readiness_for_review"]:
-        p = doc.add_paragraph('☐ ', style='List Bullet')
-        p.add_run(item["item"]).bold = True
-        p = doc.add_paragraph(f'  Requirement: {item["requirement"]}', style='List Bullet 2')
-        p = doc.add_paragraph(f'  OSFI Reference: {item["osfi_reference"]}', style='List Bullet 2')
-
-
-def _add_design_stage_gap_analysis(doc: Document, assessment_results: Dict[str, Any]):
-    """Add gap analysis section."""
-    doc.add_heading('4. Design Stage Gap Analysis', level=1)
-
-    doc.add_paragraph(
-        'Comprehensive gap analysis requires detailed documentation review against each Design stage deliverable. '
-        'This section provides framework for systematic gap identification.'
-    )
-
-    doc.add_heading('Critical Gaps', level=2)
-    doc.add_paragraph('[Gaps preventing completion of Design stage - to be identified through documentation review]')
-
-    doc.add_heading('Medium Priority Gaps', level=2)
-    doc.add_paragraph('[Gaps that should be addressed before Review stage - to be identified through documentation review]')
-
-    doc.add_heading('Documentation Gaps', level=2)
-    doc.add_paragraph('[Missing documentation with deliverable names - to be identified through documentation review]')
-
-
-def _add_review_stage_readiness(doc: Document, assessment_results: Dict[str, Any]):
-    """Add readiness assessment for next stage."""
-    doc.add_heading('5. Readiness Assessment for Model Review Stage', level=1)
-
-    doc.add_heading('Prerequisites for Review Stage Entry (Principle 3.4)', level=2)
-
-    doc.add_paragraph().add_run('Design Stage Completion:').bold = True
-    completion_items = [
-        'All Design stage deliverables complete',
-        'Model documentation meets standards for independent review',
-        'Model limitations and restrictions documented',
-        'Performance criteria and monitoring standards defined'
-    ]
-    for item in completion_items:
-        doc.add_paragraph(f'☐ {item}', style='List Bullet')
-
-    doc.add_paragraph().add_run('Review Stage Setup:').bold = True
-    setup_items = [
-        'Model reviewer identified and assigned',
-        'Review scope and criteria defined based on model risk rating (Principle 2.3)',
-        'Review schedule established commensurate with risk rating',
-        'Independence requirements confirmed'
-    ]
-    for item in setup_items:
-        doc.add_paragraph(f'☐ {item}', style='List Bullet')
-
-    doc.add_paragraph().add_run('Current Readiness: ').bold = True
-    doc.add_paragraph('[Formal readiness assessment requires completion verification of all Design stage deliverables]')
-
-
-def _add_risk_rating_summary(doc: Document, assessment_results: Dict[str, Any]):
-    """Add institution's risk rating summary with detailed calculation methodology."""
-    doc.add_heading('6. Institution\'s Risk Rating Summary', level=1)
-
-    risk_level = assessment_results.get("risk_level", "Not Assessed")
-    risk_score = assessment_results.get("risk_score", 0)
-
-    doc.add_heading('Risk Rating Methodology', level=2)
-    doc.add_paragraph(
-        'OSFI E-23 Principle 2.2 requires institutions to establish their own model risk rating approach '
-        'that assesses key dimensions of model risk. The risk rating and scoring shown below are based '
-        'on the institution\'s defined methodology.'
-    )
-
-    doc.add_paragraph().add_run('Assigned Risk Rating: ').bold = True
-    doc.add_paragraph(f'{risk_level}')
-
-    doc.add_paragraph().add_run('Risk Score: ').bold = True
-    doc.add_paragraph(f'{risk_score}/100 (using institution\'s scoring framework)')
-
-    # Add detailed calculation methodology
-    doc.add_heading('Risk Calculation Methodology', level=2)
-    doc.add_paragraph(
-        'The following section provides full transparency into how the risk rating was calculated, '
-        'showing each step from risk factor detection through final score determination.'
-    )
-
-    _add_risk_calculation_steps(doc, assessment_results)
-
-    doc.add_heading('Governance Intensity Implications (Principle 2.3)', level=2)
-    doc.add_paragraph(
-        'Based on the assigned risk rating, the following governance intensity applies. '
-        'These are illustrative examples - actual requirements determined by institution\'s MRM framework.'
-    )
-
-
-def _add_risk_calculation_steps(doc: Document, assessment_results: Dict[str, Any]):
-    """Add detailed step-by-step risk calculation methodology."""
-    risk_analysis = assessment_results.get("risk_analysis", {})
     quant_indicators = risk_analysis.get("quantitative_indicators", {})
     qual_indicators = risk_analysis.get("qualitative_indicators", {})
     quant_score = risk_analysis.get("quantitative_score", 0)
     qual_score = risk_analysis.get("qualitative_score", 0)
-    risk_score = assessment_results.get("risk_score", 0)
 
-    # Step 1: Risk Factor Detection
-    doc.add_heading('Step 1: Risk Factor Detection', level=3)
-    doc.add_paragraph(
-        'The institution\'s risk methodology analyzes the model description to identify '
-        'specific risk indicators across quantitative and qualitative dimensions.'
-    )
+    # Quantitative factors table
+    doc.add_heading('Quantitative Risk Factors', level=3)
 
-    doc.add_paragraph().add_run('Quantitative Risk Indicators Detected:').bold = True
-    quant_detected = [k for k, v in quant_indicators.items() if v]
-    if quant_detected:
-        quant_labels = {
-            'high_volume': 'High Volume - Large-scale deployment affecting significant transaction volumes',
-            'financial_impact': 'Financial Impact - Model directly impacts financial decisions and capital',
-            'customer_facing': 'Customer-Facing - Direct impact on customer decisions and outcomes',
-            'revenue_critical': 'Revenue Critical - Model directly impacts revenue generation',
-            'regulatory_impact': 'Regulatory Impact - Model affects regulatory compliance and reporting'
-        }
-        for indicator in quant_detected:
-            doc.add_paragraph(f'• {quant_labels.get(indicator, indicator)}', style='List Bullet')
-    else:
-        doc.add_paragraph('• No quantitative risk indicators detected', style='List Bullet')
+    quant_factors = [
+        ("Financial Impact", "financial_impact", 10),
+        ("Customer-Facing", "customer_facing", 10),
+        ("Revenue Critical", "revenue_critical", 10),
+        ("Regulatory Impact", "regulatory_impact", 10),
+        ("High Volume", "high_volume", 10)
+    ]
 
-    doc.add_paragraph().add_run('Qualitative Risk Indicators Detected:').bold = True
-    qual_detected = [k for k, v in qual_indicators.items() if v]
-    if qual_detected:
-        qual_labels = {
-            'ai_ml_usage': 'AI/ML Usage - Complex machine learning architecture',
-            'high_complexity': 'High Complexity - Sophisticated model structure and methodology',
-            'autonomous_decisions': 'Autonomous Decisions - Automated decision-making with limited human oversight',
-            'black_box': 'Limited Explainability - Complex algorithms requiring enhanced transparency',
-            'third_party': 'Third-Party Dependencies - Reliance on external vendors or data providers',
-            'data_sensitive': 'Sensitive Data - Processing personal or confidential information',
-            'real_time': 'Real-Time Processing - Immediate decision requirements',
-            'customer_impact': 'Customer Impact - Model decisions directly affect customer outcomes'
-        }
-        for indicator in qual_detected:
-            doc.add_paragraph(f'• {qual_labels.get(indicator, indicator)}', style='List Bullet')
-    else:
-        doc.add_paragraph('• No qualitative risk indicators detected', style='List Bullet')
+    quant_table = doc.add_table(rows=len(quant_factors) + 1, cols=4)
+    quant_table.style = 'Light Grid Accent 1'
 
-    doc.add_paragraph()  # Spacing
+    # Header row
+    quant_table.rows[0].cells[0].text = 'Risk Factor'
+    quant_table.rows[0].cells[1].text = 'Weight'
+    quant_table.rows[0].cells[2].text = 'Detected'
+    quant_table.rows[0].cells[3].text = 'Points Awarded'
 
-    # Step 2: Quantitative Scoring
-    doc.add_heading('Step 2: Quantitative Risk Scoring', level=3)
-    doc.add_paragraph(
-        'Each detected quantitative risk indicator is assigned a weighted score based on '
-        'its potential impact on the institution\'s risk profile.'
-    )
+    # Data rows
+    for idx, (name, key, weight) in enumerate(quant_factors, 1):
+        detected = quant_indicators.get(key, False)
+        quant_table.rows[idx].cells[0].text = name
+        quant_table.rows[idx].cells[1].text = f'{weight} pts'
+        quant_table.rows[idx].cells[2].text = '✓ Yes' if detected else '✗ No'
+        quant_table.rows[idx].cells[3].text = f'{weight if detected else 0} pts'
 
-    quant_weights = {
-        'high_volume': 10,
-        'financial_impact': 10,
-        'customer_facing': 10,
-        'revenue_critical': 10,
-        'regulatory_impact': 10
-    }
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    p.add_run('Quantitative Score = ').bold = True
+    p.add_run(f'{quant_score} points')
 
-    if quant_detected:
-        doc.add_paragraph().add_run('Quantitative Factor Scoring:').bold = True
-        for indicator in quant_detected:
-            weight = quant_weights.get(indicator, 10)
-            doc.add_paragraph(
-                f'• {indicator.replace("_", " ").title()}: {weight} points',
-                style='List Bullet'
-            )
+    doc.add_paragraph()
 
-        p = doc.add_paragraph()
-        p.add_run('Quantitative Subtotal: ').bold = True
-        p.add_run(f'{quant_score} points')
-    else:
-        p = doc.add_paragraph()
-        p.add_run('Quantitative Subtotal: ').bold = True
-        p.add_run('0 points (no quantitative indicators detected)')
+    # Qualitative factors table
+    doc.add_heading('Qualitative Risk Factors', level=3)
 
-    doc.add_paragraph()  # Spacing
+    qual_factors = [
+        ("AI/ML Usage", "ai_ml_usage", 8),
+        ("High Complexity", "high_complexity", 8),
+        ("Autonomous Decisions", "autonomous_decisions", 8),
+        ("Black Box", "black_box", 8),
+        ("Third-Party Dependencies", "third_party", 8),
+        ("Data Sensitive", "data_sensitive", 8),
+        ("Real-Time Processing", "real_time", 8),
+        ("Customer Impact", "customer_impact", 8)
+    ]
 
-    # Step 3: Qualitative Scoring
-    doc.add_heading('Step 3: Qualitative Risk Scoring', level=3)
-    doc.add_paragraph(
-        'Each detected qualitative risk indicator is assigned a weighted score based on '
-        'operational complexity and governance requirements.'
-    )
+    qual_table = doc.add_table(rows=len(qual_factors) + 1, cols=4)
+    qual_table.style = 'Light Grid Accent 1'
 
-    qual_weights = {
-        'ai_ml_usage': 8,
-        'high_complexity': 8,
-        'autonomous_decisions': 8,
-        'black_box': 8,
-        'third_party': 8,
-        'data_sensitive': 8,
-        'real_time': 8,
-        'customer_impact': 8
-    }
+    # Header row
+    qual_table.rows[0].cells[0].text = 'Risk Factor'
+    qual_table.rows[0].cells[1].text = 'Weight'
+    qual_table.rows[0].cells[2].text = 'Detected'
+    qual_table.rows[0].cells[3].text = 'Points Awarded'
 
-    if qual_detected:
-        doc.add_paragraph().add_run('Qualitative Factor Scoring:').bold = True
-        for indicator in qual_detected:
-            weight = qual_weights.get(indicator, 8)
-            doc.add_paragraph(
-                f'• {indicator.replace("_", " ").title()}: {weight} points',
-                style='List Bullet'
-            )
+    # Data rows
+    for idx, (name, key, weight) in enumerate(qual_factors, 1):
+        detected = qual_indicators.get(key, False)
+        qual_table.rows[idx].cells[0].text = name
+        qual_table.rows[idx].cells[1].text = f'{weight} pts'
+        qual_table.rows[idx].cells[2].text = '✓ Yes' if detected else '✗ No'
+        qual_table.rows[idx].cells[3].text = f'{weight if detected else 0} pts'
 
-        p = doc.add_paragraph()
-        p.add_run('Qualitative Subtotal: ').bold = True
-        p.add_run(f'{qual_score} points')
-    else:
-        p = doc.add_paragraph()
-        p.add_run('Qualitative Subtotal: ').bold = True
-        p.add_run('0 points (no qualitative indicators detected)')
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    p.add_run('Qualitative Score = ').bold = True
+    p.add_run(f'{qual_score} points')
 
-    doc.add_paragraph()  # Spacing
+    doc.add_paragraph()
 
-    # Step 4: Base Score Calculation
-    doc.add_heading('Step 4: Base Score Calculation', level=3)
+    # Risk amplification analysis
+    doc.add_heading('Risk Amplification Analysis', level=3)
+
     base_score = quant_score + qual_score
 
     p = doc.add_paragraph()
-    p.add_run('Base Score = Quantitative + Qualitative').bold = True
+    p.add_run('Base Score: ').bold = True
+    p.add_run(f'{base_score} points ({quant_score} quantitative + {qual_score} qualitative)')
 
-    doc.add_paragraph(f'Base Score = {quant_score} + {qual_score} = {base_score} points')
+    # Calculate amplification
+    amplification = 1.0
+    amplification_factors = []
 
-    doc.add_paragraph()  # Spacing
+    if quant_indicators.get('financial_impact') and qual_indicators.get('ai_ml_usage'):
+        amplification += 0.3
+        amplification_factors.append('AI/ML in financial decisions (+30%)')
 
-    # Step 5: Risk Amplification Analysis
-    doc.add_heading('Step 5: Risk Amplification Analysis', level=3)
-    doc.add_paragraph(
-        'The institution\'s methodology applies amplification multipliers when high-risk '
-        'factor combinations are detected, reflecting elevated governance requirements.'
-    )
+    if quant_indicators.get('customer_facing') and qual_indicators.get('autonomous_decisions'):
+        amplification += 0.2
+        amplification_factors.append('Autonomous customer-facing decisions (+20%)')
 
-    amplifications = []
-    multiplier = 1.0
+    if qual_indicators.get('black_box') and quant_indicators.get('regulatory_impact'):
+        amplification += 0.25
+        amplification_factors.append('Unexplainable models with regulatory impact (+25%)')
 
-    # Check for amplification conditions
-    if quant_indicators.get("financial_impact") and qual_indicators.get("ai_ml_usage"):
-        amplifications.append('AI/ML in Financial Decisions: +30% (financial impact + AI/ML usage)')
-        multiplier += 0.3
+    if qual_indicators.get('third_party') and quant_indicators.get('revenue_critical'):
+        amplification += 0.15
+        amplification_factors.append('Third-party dependency in critical systems (+15%)')
 
-    if quant_indicators.get("customer_facing") and qual_indicators.get("autonomous_decisions"):
-        amplifications.append('Autonomous Customer Decisions: +20% (customer-facing + autonomous decisions)')
-        multiplier += 0.2
-
-    if qual_indicators.get("black_box") and quant_indicators.get("regulatory_impact"):
-        amplifications.append('Unexplainable Regulatory Models: +25% (limited explainability + regulatory impact)')
-        multiplier += 0.25
-
-    if qual_indicators.get("third_party") and quant_indicators.get("revenue_critical"):
-        amplifications.append('Critical Third-Party Dependencies: +15% (third-party + revenue critical)')
-        multiplier += 0.15
-
-    if amplifications:
-        doc.add_paragraph().add_run('Risk Amplification Factors Applied:').bold = True
-        for amp in amplifications:
-            doc.add_paragraph(f'• {amp}', style='List Bullet')
-
+    if amplification_factors:
         p = doc.add_paragraph()
-        p.add_run('Total Amplification Multiplier: ').bold = True
-        p.add_run(f'{multiplier:.2f}x')
+        p.add_run('Amplification Factors Detected:').bold = True
+        for factor in amplification_factors:
+            doc.add_paragraph(factor, style='List Bullet')
     else:
-        p = doc.add_paragraph()
-        p.add_run('No risk amplification factors detected. ').bold = True
-        p.add_run('Multiplier = 1.0x (no high-risk combinations present)')
-
-    doc.add_paragraph()  # Spacing
-
-    # Step 6: Final Risk Rating
-    doc.add_heading('Step 6: Final Risk Score and Rating', level=3)
+        doc.add_paragraph('No amplification factors detected.')
 
     p = doc.add_paragraph()
-    p.add_run('Final Score Calculation:').bold = True
+    p.add_run('Total Amplification Multiplier: ').bold = True
+    p.add_run(f'{amplification:.2f}x')
 
-    if multiplier > 1.0:
-        amplified_score = int(base_score * multiplier)
-        doc.add_paragraph(f'Final Score = Base Score × Amplification Multiplier')
-        doc.add_paragraph(f'Final Score = {base_score} × {multiplier:.2f} = {amplified_score} points')
-        doc.add_paragraph(f'Capped at 100: {min(amplified_score, 100)} points')
-    else:
-        doc.add_paragraph(f'Final Score = Base Score (no amplification)')
-        doc.add_paragraph(f'Final Score = {base_score} points')
-
-    doc.add_paragraph()  # Spacing
+    final_score = min(int(base_score * amplification), 100)
 
     p = doc.add_paragraph()
-    p.add_run('Risk Rating Determination:').bold = True
-
-    # Show rating thresholds
-    doc.add_paragraph('Risk rating levels per institution\'s methodology:')
-    doc.add_paragraph('• Low: 0-25 points', style='List Bullet')
-    doc.add_paragraph('• Medium: 26-50 points', style='List Bullet')
-    doc.add_paragraph('• High: 51-75 points', style='List Bullet')
-    doc.add_paragraph('• Critical: 76-100 points', style='List Bullet')
-
-    doc.add_paragraph()  # Spacing
-
-    risk_level = assessment_results.get("risk_level", "Not Assessed")
-    p = doc.add_paragraph()
-    p.add_run(f'Assigned Risk Rating: ').bold = True
-    run = p.add_run(f'{risk_level} ({risk_score} points)')
+    p.add_run('Final Score: ').bold = True
+    p.add_run(f'{base_score} × {amplification:.2f} = {final_score} points → ')
+    run = p.add_run(f'{risk_level.upper()}')
     run.bold = True
-    if risk_level in ['Critical', 'High']:
-        run.font.color.rgb = RGBColor(220, 20, 60)  # Crimson for high risk
+    if risk_level == "Critical":
+        run.font.color.rgb = RGBColor(192, 0, 0)
+    elif risk_level == "High":
+        run.font.color.rgb = RGBColor(255, 102, 0)
+    elif risk_level == "Medium":
+        run.font.color.rgb = RGBColor(255, 192, 0)
+    else:
+        run.font.color.rgb = RGBColor(0, 128, 0)
 
 
-def _add_osfi_principles_mapping_design(doc: Document, assessment_results: Dict[str, Any]):
-    """Add OSFI Principles mapping table."""
-    doc.add_heading('7. OSFI E-23 Principles Mapping - Design Stage', level=1)
+def _add_compliance_checklist(doc: Document, project_description: str,
+                              risk_level: str, risk_score: int):
+    """Add design phase compliance checklist."""
+    doc.add_heading('3. DESIGN PHASE COMPLIANCE CHECKLIST', level=1)
 
-    doc.add_paragraph(
-        'Mapping of OSFI E-23 Principles to Design stage requirements. '
-        'Formal compliance tracking requires detailed documentation review.'
-    )
-
-    # Add table
-    table = doc.add_table(rows=1, cols=4)
-    table.style = 'Light Grid Accent 1'
-
-    # Header row
-    hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'OSFI Principle'
-    hdr_cells[1].text = 'Design Stage Requirement'
-    hdr_cells[2].text = 'Compliance Status'
-    hdr_cells[3].text = 'Evidence/Gaps'
-
-    # Data rows
-    principles_mapping = [
-        ('Principle 1.2', 'MRM framework alignment', '[To be assessed]', '[Documentation review required]'),
-        ('Principle 2.1', 'Model identification and provisional rating', '[To be assessed]', '[Documentation review required]'),
-        ('Principle 2.2', 'Risk rating methodology application', '[To be assessed]', '[Documentation review required]'),
-        ('Principle 3.2 (Rationale)', 'Clear organizational rationale', '[To be assessed]', '[Documentation review required]'),
-        ('Principle 3.2 (Data)', 'Data governance and suitability', '[To be assessed]', '[Documentation review required]'),
-        ('Principle 3.3', 'Development standards and documentation', '[To be assessed]', '[Documentation review required]')
-    ]
-
-    for principle, requirement, status, evidence in principles_mapping:
-        row_cells = table.add_row().cells
-        row_cells[0].text = principle
-        row_cells[1].text = requirement
-        row_cells[2].text = status
-        row_cells[3].text = evidence
-
-    doc.add_paragraph()  # Spacing
-
-    # Compliance Legend
-    doc.add_paragraph().add_run('Compliance Legend:').bold = True
-    legend = [
-        '✅ Compliant: Requirement fully met with documented evidence',
-        '⚠️ Partial: Requirement partially met, gaps identified',
-        '❌ Non-Compliant: Requirement not met',
-        'N/A: Not applicable at this stage'
-    ]
-    for item in legend:
-        doc.add_paragraph(item, style='List Bullet')
-
-
-def _add_implementation_roadmap_design(doc: Document, assessment_results: Dict[str, Any]):
-    """Add implementation roadmap."""
-    doc.add_heading('8. Implementation Roadmap - Design Stage Completion', level=1)
-
-    doc.add_paragraph(
-        'Recommended phased approach to completing Design stage requirements. '
-        'Specific actions and timelines determined through detailed gap analysis.'
-    )
-
-    doc.add_heading('Immediate Actions (Next 30 Days)', level=2)
-    doc.add_paragraph('[Actions to address critical gaps - to be defined through gap analysis]')
-
-    doc.add_heading('Short-Term Actions (30-90 Days)', level=2)
-    doc.add_paragraph('[Actions to complete Design stage - to be defined through gap analysis]')
-
-    doc.add_heading('Design Stage Completion Target', level=2)
-    doc.add_paragraph().add_run('Target Date: ').bold = True
-    doc.add_paragraph('[To be determined based on gap analysis]')
-
-    doc.add_paragraph().add_run('Success Criteria: ').bold = True
-    doc.add_paragraph('All Design stage deliverables complete and documented per OSFI Principles 3.2 and 3.3')
-
-
-def _add_critical_recommendations_next_steps(
-    doc: Document,
-    assessment_results: Dict[str, Any],
-    project_description: str
-):
-    """Add critical recommendations and immediate next steps section."""
-    doc.add_heading('9. Critical Recommendations & Next Steps', level=1)
-
-    risk_level = assessment_results.get("risk_level", "Not Assessed")
-    risk_analysis = assessment_results.get("risk_analysis", {})
-    quant_indicators = risk_analysis.get("quantitative_indicators", {})
-    qual_indicators = risk_analysis.get("qualitative_indicators", {})
-    recommendations = assessment_results.get("recommendations", [])
-
-    # Immediate Actions Required
-    doc.add_heading('Immediate Actions Required', level=2)
-
-    immediate_actions = []
-
-    # Critical risk level actions
-    if risk_level in ['Critical', 'High']:
-        immediate_actions.append(
-            '🔴 CRITICAL: Obtain Board of Directors (or equivalent senior authority) approval before '
-            'proceeding to Review stage (required for Critical/High risk models per Principle 2.3)'
-        )
-
-    # Design stage completion actions
-    immediate_actions.append(
-        '📋 Complete Design stage documentation: Finalize all required deliverables per Principles 3.2 and 3.3'
-    )
-
-    # Data governance actions
-    if qual_indicators.get("data_sensitive") or qual_indicators.get("ai_ml_usage"):
-        immediate_actions.append(
-            '📊 Establish comprehensive data governance framework: Document data quality standards, '
-            'lineage, validation procedures, and ongoing monitoring per Principle 3.2'
-        )
-
-    # Model Risk Committee
-    if risk_level in ['Critical', 'High']:
-        immediate_actions.append(
-            '👥 Establish Model Risk Committee: Form dedicated committee with senior management '
-            'representation and clear governance mandate per Principle 1.2'
-        )
-
-    # External validation
-    if risk_level == 'Critical':
-        immediate_actions.append(
-            '🔍 Engage external validator: Select and contract independent third-party validation firm '
-            'for mandatory external validation (required for Critical risk models per Principle 3.4)'
-        )
-
-    # AI/ML specific actions
-    if qual_indicators.get("ai_ml_usage"):
-        immediate_actions.append(
-            '🤖 Conduct comprehensive bias and fairness testing: Implement assessment framework '
-            'across all relevant dimensions per Principle 3.2'
-        )
-        immediate_actions.append(
-            '📖 Develop explainability framework: Document model interpretability approach, '
-            'including SHAP values, feature importance, and decision transparency per Principle 3.2'
-        )
-
-    # Third-party actions
-    if qual_indicators.get("third_party"):
-        immediate_actions.append(
-            '🤝 Document third-party dependencies: Establish vendor risk management controls '
-            'and contractual safeguards per Principle 3.2'
-        )
-
-    for action in immediate_actions:
-        doc.add_paragraph(action, style='List Bullet')
-
-    doc.add_paragraph()  # Spacing
-
-    # Ongoing Governance Requirements
-    doc.add_heading('Ongoing Governance Requirements', level=2)
-
-    ongoing_requirements = [
-        '📊 Implement real-time monitoring infrastructure with automated alert thresholds',
-        '📝 Establish contingency and rollback procedures for model failures',
-        '📅 Define and document periodic review schedule based on risk rating per Principle 2.3',
-        '✅ Maintain comprehensive audit trail of all model changes and decisions',
-        '📢 Establish clear escalation protocols for risk issues'
-    ]
-
-    # Add risk-specific ongoing requirements
-    if risk_level == 'Critical':
-        ongoing_requirements.append(
-            '📈 Monthly Model Risk Committee reporting (mandatory for Critical risk models)'
-        )
-        ongoing_requirements.append(
-            '📊 Quarterly Board of Directors updates (mandatory for Critical risk models)'
-        )
-        ongoing_requirements.append(
-            '🔍 Annual independent third-party validation (mandatory for Critical risk models)'
-        )
-    elif risk_level == 'High':
-        ongoing_requirements.append(
-            '📈 Quarterly Model Risk Committee reporting (mandatory for High risk models)'
-        )
-        ongoing_requirements.append(
-            '📊 Semi-annual Board updates (recommended for High risk models)'
-        )
-
-    for requirement in ongoing_requirements:
-        doc.add_paragraph(requirement, style='List Bullet')
-
-    doc.add_paragraph()  # Spacing
-
-    # Success Criteria for Design Stage Completion
-    doc.add_heading('Success Criteria for Design Stage Completion', level=2)
-
-    success_criteria = [
-        '✅ All OSFI Appendix 1 tracking fields populated',
-        '✅ Model rationale clearly documented per Principle 3.2',
-        '✅ Data governance framework established per Principle 3.2',
-        '✅ Development methodology documented per Principle 3.3',
-        '✅ Performance criteria and success metrics defined',
-        '✅ Independent Review stage scope and criteria agreed',
-        '✅ Appropriate governance authority approval obtained',
-        '✅ All Design stage compliance checklist items addressed'
-    ]
-
-    for criterion in success_criteria:
-        doc.add_paragraph(criterion, style='List Bullet')
-
-    doc.add_paragraph()  # Spacing
-
-    # Next Major Milestone
-    doc.add_heading('Next Major Milestone', level=2)
-
+    # Chapter-specific transparency note
     p = doc.add_paragraph()
-    p.add_run('Milestone: ').bold = True
-    p.add_run('Transition to Model Review Stage (Principle 3.4)')
-
-    doc.add_paragraph(
-        'Upon completion of all Design stage requirements, the model will proceed to the Review stage '
-        'for independent validation per OSFI E-23 Principle 3.4. The Review stage requires independent '
-        'assessment by qualified personnel separate from model development, with scope and rigor '
-        'commensurate with the model\'s risk rating.'
+    run = p.add_run('🔧 DETERMINISTIC OUTPUT: ')
+    run.bold = True
+    run.font.size = Pt(9)
+    run2 = p.add_run(
+        'This checklist is hardcoded from OSFI E-23 principles. Items are not AI-generated.'
     )
+    run2.font.size = Pt(9)
+    run2.italic = True
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
 
-    doc.add_paragraph()  # Spacing
-
-    # Regulatory Compliance Reminder
+    # Important note
     p = doc.add_paragraph()
-    p.add_run('⚠️ REGULATORY COMPLIANCE REMINDER: ').bold = True
-    run = p.add_run(
-        'All activities must comply with OSFI Guideline E-23 requirements. This assessment provides '
-        'guidance but does not replace professional validation by qualified model risk management personnel. '
-        'Obtain appropriate governance approvals before implementing recommendations.'
+    run = p.add_run('IMPORTANT NOTE: ')
+    run.bold = True
+    p.add_run(
+        'This checklist represents an interpretation of OSFI E-23 principles and is provided '
+        'for exemplification purposes. Each financial institution must design its own '
+        'implementation based on their specific governance framework, risk appetite, and '
+        'operational context. '
     )
-    run.font.color.rgb = RGBColor(139, 69, 19)  # Saddle brown for warnings
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(6)
 
+    p2 = doc.add_paragraph()
+    run2 = p2.add_run('Risk-Based Requirements: ')
+    run2.bold = True
+    p2.add_run(
+        f'Per OSFI Principle 2.3, the level of rigor, documentation depth, and governance '
+        f'oversight required varies based on the model\'s risk classification. This model\'s '
+        f'{risk_level} risk rating ({risk_score}/100) determines the appropriate governance '
+        f'intensity. Higher risk models require more comprehensive documentation, enhanced '
+        f'review processes, and elevated approval authorities before transitioning between '
+        f'lifecycle stages.'
+    )
+    p2_format = p2.paragraph_format
+    p2_format.space_after = Pt(12)
 
-def _add_appendices_design_stage(doc: Document):
-    """Add appendices section."""
-    doc.add_heading('Appendices', level=1)
-
-    doc.add_heading('Appendix A: OSFI E-23 Design Stage Requirements Summary', level=2)
-    doc.add_paragraph('Quick reference of all Principle 3.2 and 3.3 requirements')
-    doc.add_paragraph('[Detailed requirements list from checklist section]')
-
-    doc.add_heading('Appendix B: Required Documentation Checklist', level=2)
-    doc.add_paragraph('List of all documents that should exist by end of Design stage:')
-
-    docs_list = [
-        'Model Rationale Document',
-        'Model Purpose and Scope Statement',
-        'Business Use Case Documentation',
-        'Data Governance Documentation',
-        'Data Quality Standards Document',
-        'Model Methodology Documentation',
-        'Model Assumptions Document',
-        'Performance Criteria Document',
-        '[Additional deliverables per checklist]'
-    ]
-
-    for doc_name in docs_list:
-        doc.add_paragraph(doc_name, style='List Bullet')
-
-    doc.add_heading('Appendix C: OSFI E-23 Guideline References', level=2)
-    doc.add_paragraph().add_run('Guideline: ').bold = True
-    doc.add_paragraph('OSFI E-23 – Model Risk Management (2027)')
-
-    doc.add_paragraph().add_run('Effective Date: ').bold = True
-    doc.add_paragraph('May 1, 2027')
-
-    doc.add_paragraph().add_run('URL: ').bold = True
-    doc.add_paragraph('https://www.osfi-bsif.gc.ca/en/guidance/guidance-library/guideline-e-23-model-risk-management-2027')
-
-
-def _add_professional_validation_warning(doc: Document, stage: str):
-    """Add professional validation warning."""
-    doc.add_heading('⚠️ PROFESSIONAL VALIDATION REQUIRED', level=1)
-
-    doc.add_paragraph(
-        f'This OSFI E-23 model risk assessment is based on available project information and '
-        f'automated analysis of {stage.capitalize()} stage compliance.'
+    p3 = doc.add_paragraph()
+    p3.add_run('Purpose: ').bold = True
+    p3.add_run(
+        'The items below outline Design stage requirements based on OSFI Principles 3.2 and 3.3. '
+        'Institutions should customize this checklist to align with their model risk management framework.'
     )
 
-    doc.add_heading('Important Notes:', level=2)
-    notes = [
-        'The risk rating shown is based on the institution\'s risk rating methodology as required by OSFI Principle 2.2',
-        'Final compliance with OSFI Guideline E-23 requires comprehensive stakeholder input, independent validation, and appropriate governance oversight',
-        'This assessment should be reviewed and validated by qualified model risk management professionals before making final risk management decisions',
-        f'All {stage.capitalize()} stage deliverables must be reviewed by appropriate subject matter experts',
-        'Transition to next lifecycle stage requires formal approval per institution\'s governance framework'
+    doc.add_paragraph()
+
+    # Check if AI/ML model
+    is_ai_ml = any(term in project_description.lower()
+                   for term in ['ai', 'artificial intelligence', 'machine learning',
+                               'neural', 'deep learning'])
+
+    # 3.1 Model Rationale
+    doc.add_heading('3.1 Model Rationale (OSFI Principle 3.2)', level=2)
+
+    _add_checklist_item(doc, 'Clear organizational rationale documented',
+                       'Model Rationale Document explaining business need and purpose')
+    _add_checklist_item(doc, 'Well-defined model purpose and scope',
+                       'Model Purpose and Scope Statement defining boundaries and coverage')
+    _add_checklist_item(doc, 'Business use case identified and documented',
+                       'Business Use Case Documentation with decision-making context')
+    _add_checklist_item(doc, 'Risk of intended usage assessed',
+                       'Usage Risk Assessment evaluating business context risks')
+
+    if is_ai_ml:
+        _add_checklist_item(doc, 'Explainability requirements defined (AI/ML models)',
+                           'Explainability Requirements Document defining transparency levels')
+        _add_checklist_item(doc, 'Bias and fairness considerations documented (AI/ML models)',
+                           'Bias and Fairness Assessment for potential biased outcomes')
+        _add_checklist_item(doc, 'Privacy risk assessment completed (AI/ML models)',
+                           'Privacy Impact Assessment')
+
+    # 3.2 Model Data
+    doc.add_heading('3.2 Model Data (OSFI Principle 3.2)', level=2)
+
+    _add_checklist_item(doc, 'Data governance framework established',
+                       'Data Governance Documentation integrated with enterprise standards')
+    _add_checklist_item(doc, 'Data quality standards defined',
+                       'Data Quality Standards Document (accuracy, relevance, representativeness)')
+    _add_checklist_item(doc, 'Data sources documented with lineage and provenance',
+                       'Data Lineage and Provenance Documentation')
+    _add_checklist_item(doc, 'Data compliance requirements addressed',
+                       'Data Compliance Documentation (privacy, ethics, regulatory)')
+    _add_checklist_item(doc, 'Data quality checks defined',
+                       'Data Quality Check Procedures (outliers, missing values, consistency)')
+    _add_checklist_item(doc, 'Bias assessment and management approach documented',
+                       'Data Bias Management Plan')
+    _add_checklist_item(doc, 'Data update frequency established',
+                       'Data Refresh Schedule')
+
+    # 3.3 Model Development
+    doc.add_heading('3.3 Model Development (OSFI Principle 3.3)', level=2)
+
+    _add_checklist_item(doc, 'Model methodology documented',
+                       'Model Methodology Documentation (algorithms, transformations)')
+    _add_checklist_item(doc, 'Model assumptions documented',
+                       'Model Assumptions Document with limitations')
+    _add_checklist_item(doc, 'Development processes documented',
+                       'Development Process Documentation (setup, procedures)')
+    _add_checklist_item(doc, 'Expert judgment role documented',
+                       'Expert Judgment Documentation')
+    _add_checklist_item(doc, 'Performance criteria established',
+                       'Performance Criteria Document with evaluation metrics')
+    _add_checklist_item(doc, 'Development testing documented',
+                       'Development Testing Report')
+    _add_checklist_item(doc, 'Model output usage standards defined',
+                       'Output Usage Standards')
+
+    # 3.4 Design Stage Governance
+    doc.add_heading('3.4 Design Stage Governance (OSFI Appendix 1)', level=2)
+
+    _add_checklist_item(doc, 'Model owner assigned',
+                       'Designate accountable individual/unit')
+    _add_checklist_item(doc, 'Model developer identified',
+                       'Document who is developing the model')
+    _add_checklist_item(doc, 'Model ID assigned',
+                       'Unique identifier for model inventory')
+    _add_checklist_item(doc, 'Provisional model risk rating assigned',
+                       f'Assign initial risk rating ({risk_level} - {risk_score}/100)')
+
+    # 3.5 Readiness for Review Stage
+    doc.add_heading('3.5 Readiness for Review Stage', level=2)
+
+    _add_checklist_item(doc, 'All Design stage deliverables complete',
+                       'Complete all documentation per Principles 3.2 and 3.3')
+    _add_checklist_item(doc, 'Model documentation meets standards for independent review',
+                       'Documentation adequate for independent validation per Principle 3.4')
+    _add_checklist_item(doc, 'Model reviewer identified and assigned',
+                       'Independent reviewer assigned for validation stage')
+    _add_checklist_item(doc, 'Review scope and criteria defined based on model risk rating',
+                       f'Define review scope commensurate with {risk_level} risk rating per Principle 2.3')
+
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    run = p.add_run('COMPLETION REQUIREMENT: ')
+    run.bold = True
+    run.font.color.rgb = RGBColor(192, 0, 0)
+    p.add_run(
+        'All items above must be addressed to transition from Design to Review stage '
+        'per OSFI E-23 guidelines.'
+    )
+
+
+def _add_checklist_item(doc: Document, item: str, deliverable: str):
+    """Add a checklist item with deliverable."""
+    p = doc.add_paragraph()
+    p.add_run('☐ ').font.size = Pt(12)
+    run = p.add_run(item)
+    run.bold = True
+
+    p2 = doc.add_paragraph(f'   Deliverable: {deliverable}')
+    p2.paragraph_format.left_indent = Inches(0.5)
+    p2.paragraph_format.space_after = Pt(6)
+
+
+def _add_annex_principles(doc: Document):
+    """Add annex with OSFI E-23 principles."""
+    doc.add_heading('ANNEX: OSFI E-23 PRINCIPLES (DESIGN STAGE)', level=1)
+
+    # Chapter-specific transparency note
+    p = doc.add_paragraph()
+    run = p.add_run('🔧 DETERMINISTIC OUTPUT: ')
+    run.bold = True
+    run.font.size = Pt(9)
+    run2 = p.add_run(
+        'Official OSFI E-23 principles hardcoded from Guideline E-23 (2027). No AI interpretation.'
+    )
+    run2.font.size = Pt(9)
+    run2.italic = True
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    principles = [
+        (
+            "Principle 2.1: Model Inventory",
+            "Institutions must maintain a comprehensive inventory of all models, including "
+            "provisional risk ratings for models in development. This ensures visibility and "
+            "tracking from inception."
+        ),
+        (
+            "Principle 2.2: Risk Rating Methodology",
+            "Institutions must establish their own risk rating approach assessing key dimensions "
+            "of model risk. The rating determines governance intensity and review frequency requirements."
+        ),
+        (
+            "Principle 2.3: Governance Intensity",
+            "The level of governance, documentation, and oversight must be commensurate with the "
+            "model's risk rating. Critical models require board-level approval, external validation, "
+            "and enhanced monitoring."
+        ),
+        (
+            "Principle 3.2: Model Design - Rationale and Data",
+            "Model design must establish clear organizational rationale, ensure data quality and "
+            "governance, and address AI/ML-specific considerations including explainability, bias, "
+            "and privacy."
+        ),
+        (
+            "Principle 3.3: Model Development",
+            "Model development must follow documented methodologies with clear assumptions, "
+            "appropriate testing, defined performance criteria, and comprehensive documentation "
+            "for independent review."
+        ),
+        (
+            "Principle 3.4: Independent Model Review",
+            "All models require independent validation by qualified personnel separate from "
+            "development, with scope and rigor commensurate with risk rating. Critical models "
+            "require external validation."
+        ),
+        (
+            "OSFI Appendix 1: Model Inventory Requirements",
+            "Specifies mandatory tracking fields including model ID, name, owner, developer, "
+            "risk rating, lifecycle stage, and review dates to ensure comprehensive model governance."
+        )
     ]
 
-    for note in notes:
-        doc.add_paragraph(note, style='List Bullet')
+    for title, description in principles:
+        p = doc.add_paragraph()
+        run = p.add_run(title)
+        run.bold = True
+        doc.add_paragraph(description)
+        doc.add_paragraph()
