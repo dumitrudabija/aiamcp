@@ -342,6 +342,311 @@ The value of this tool is not that it provides "the answer" but that it shows "a
 
 ---
 
+## ANNEX: Process Flow Beyond Risk Rating
+
+This annex extends the analysis to cover ALL process elements in our implementation, not just the risk rating methodology.
+
+### A.1 Overview: Process Elements
+
+Our OSFI E-23 implementation includes several process components:
+
+1. **Risk Rating Methodology** (covered in main document)
+2. **Model Lifecycle Stages** (which stages exist)
+3. **Risk-Based Governance Intensity** (varying requirements by risk level)
+4. **Lifecycle Compliance Tracking** (what we check at each stage)
+5. **Compliance Checklists** (deliverables per stage)
+6. **Process Workflow** (6-step assessment sequence)
+
+For each, we distinguish: What does OSFI **REQUIRE** vs. What did we **CHOOSE** to implement?
+
+---
+
+### A.2 Model Lifecycle Stages
+
+**OSFI E-23 Requirement (Section D.2, Page 12):**
+
+✅ **MANDATED** - OSFI prescribes 5 lifecycle components:
+
+> "Model lifecycle components are model design (including model rationale, data, and development), model review, model deployment, model monitoring, and model decommission."
+
+**Status**: These 5 stages are REQUIRED by OSFI, not our interpretation.
+
+**Our Implementation**:
+
+We use OSFI's 5 stages exactly as prescribed:
+1. **Design** (rationale + data + development)
+2. **Review** (independent validation)
+3. **Deployment** (production implementation)
+4. **Monitoring** (ongoing performance tracking)
+5. **Decommission** (retirement process)
+
+**What We Added**:
+- **Design stage sub-phases**: We treat "rationale", "data", and "development" as sub-components
+- **Stage-specific compliance checklists**: We created deliverable lists for each stage
+- **Automated stage detection**: We track which stage a model is in based on user input
+
+**What's Flexible**:
+- OSFI notes: "These components are not necessarily sequential and may vary according to the type of the model"
+- Institutions can adapt lifecycle flow to their organizational structure
+
+---
+
+### A.3 Risk-Based Governance Intensity
+
+**OSFI E-23 Requirement (Section C.3, Page 11):**
+
+✅ **MANDATED** - OSFI requires governance intensity to scale with risk:
+
+> **Principle 2.3**: "The scope, scale, and intensity of MRM should be commensurate with the risk introduced by the model."
+
+> "The inherent model risk rating should drive the:
+> - frequency, intensity, and scope of model review
+> - documentation requirements
+> - level of authority required to approve the model
+> - frequency, intensity, and scope of model monitoring
+> - interval at which the risk rating is re-assessed"
+
+**Status**: Risk-based differentiation is REQUIRED, not optional.
+
+**Our Implementation**:
+
+| Governance Element | OSFI Requirement | Our Implementation | Status |
+|-------------------|------------------|-------------------|---------|
+| **Concept of risk-based governance** | ✅ REQUIRED | Implemented | MANDATE |
+| **Must vary by risk level** | ✅ REQUIRED | 4 tiers (Low/Med/High/Critical) | MANDATE |
+| **Number of risk levels** | ❌ Not specified | 4 levels | OUR CHOICE |
+| **Specific approval authorities** | ❌ Not specified | Manager → CRO → Board progression | OUR CHOICE |
+| **Specific monitoring frequencies** | ❌ Not specified | Quarterly → Daily progression | OUR CHOICE |
+| **Specific documentation lists** | ❌ Not specified | Base + High/Critical + Critical-only tiers | OUR CHOICE |
+
+#### Our Specific Governance Tiers
+
+**Approval Authorities** (Our Mapping):
+- **Low**: Model Owner or Designated Manager
+- **Medium**: Senior Management or Risk Committee
+- **High**: Executive Committee or CRO
+- **Critical**: Board of Directors or CEO
+
+**Monitoring Frequency** (Our Mapping):
+- **Low**: Quarterly monitoring with annual deep-dive
+- **Medium**: Monthly monitoring with quarterly reviews
+- **High**: Weekly monitoring with monthly reviews
+- **Critical**: Daily monitoring with weekly reviews
+
+**Documentation Requirements** (Our Tiering):
+- **Base (All)**: Rationale, data docs, methodology, performance metrics
+- **High/Critical Add**: Explainability, bias testing, audit trail, risk mitigation, rollback procedures
+- **Critical Only Add**: Board docs, external validation, regulatory attestations, monitoring dashboards
+
+**Status**: The PRINCIPLE of risk-based scaling is mandated. The SPECIFICS are our implementation choices.
+
+---
+
+### A.4 Lifecycle Compliance Tracking
+
+**OSFI E-23 Requirement:**
+
+OSFI requires lifecycle governance but does NOT prescribe:
+- ❌ Specific compliance check mechanisms
+- ❌ How to track compliance status
+- ❌ What constitutes "completion" of a stage
+- ❌ Automated vs. manual tracking
+
+**Our Implementation**:
+
+We created a **lifecycle compliance evaluation tool** (`evaluate_lifecycle_compliance`) that:
+
+1. **Checks compliance for current lifecycle stage**
+   - Design stage: Checks for rationale, data governance, development standards
+   - Review stage: Checks for independent validation, risk rating confirmation
+   - Deployment stage: Checks for testing, approval, monitoring framework
+   - Monitoring stage: Checks for performance tracking, breach detection, reporting
+   - Decommission stage: Checks for stakeholder notification, documentation retention
+
+2. **Maps requirements to OSFI Principles**
+   - Each check references specific OSFI Principle (3.2, 3.3, 3.4, 3.5, 3.6)
+
+3. **Provides compliance status**
+   - Returns which requirements are met vs. missing
+   - Suggests next actions for compliance
+
+**Status**: ENTIRELY our design choice. OSFI requires lifecycle governance but doesn't specify the tracking mechanism.
+
+---
+
+### A.5 Compliance Checklists
+
+**OSFI E-23 Requirement:**
+
+OSFI specifies **what** should be done at each lifecycle stage (see Principles 3.2-3.6, pages 14-18) but does NOT provide:
+- ❌ Specific checklist formats
+- ❌ Deliverable templates
+- ❌ Checklist item granularity
+- ❌ How to organize/present requirements
+
+**Our Implementation**:
+
+We created **stage-specific checklists** with actionable items:
+
+**Example: Design Stage Checklist (Our Structure)**
+- **Section 1: Model Rationale** (Principle 3.2)
+  - [ ] Document business purpose and scope
+  - [ ] Identify specific use cases
+  - [ ] Assess model risk and intended usage
+
+- **Section 2: Data Governance** (Principle 3.2)
+  - [ ] Ensure data accuracy and fitness-for-use
+  - [ ] Document data sources and lineage
+  - [ ] Implement data quality checks
+
+- **Section 3: Model Development** (Principle 3.3)
+  - [ ] Document methodology and assumptions
+  - [ ] Define performance criteria
+  - [ ] Establish monitoring standards
+
+**Our Checklist Features**:
+- ✅ Checkbox format for actionable tracking
+- ✅ Risk-based filtering (some items only for High/Critical)
+- ✅ OSFI Principle references for each item
+- ✅ Specific deliverable descriptions
+
+**Status**: The SUBSTANCE comes from OSFI requirements. The CHECKLIST FORMAT is our implementation choice.
+
+---
+
+### A.6 Process Workflow (6-Step Sequence)
+
+**OSFI E-23 Requirement:**
+
+OSFI does NOT prescribe:
+- ❌ A specific workflow sequence
+- ❌ How many "steps" in an assessment
+- ❌ The order of operations
+- ❌ Automation of the process
+
+**Our Implementation**:
+
+We created a **6-step workflow** for conducting OSFI E-23 assessments:
+
+1. **validate_project_description** - Ensure adequate information
+2. **assess_model_risk** - Calculate risk score and level
+3. **evaluate_lifecycle_compliance** - Check stage-specific requirements
+4. **generate_risk_rating** - Produce risk rating with amplification
+5. **create_compliance_framework** - Generate governance requirements
+6. **export_e23_report** - Create Word document deliverable
+
+**Workflow Features**:
+- **Sequential logic**: Each step builds on previous
+- **State persistence**: Can pause and resume
+- **Dependency validation**: Can't skip required steps
+- **Auto-detection**: Suggests next step based on current state
+
+**Status**: ENTIRELY our design. OSFI requires the substantive work (risk rating, lifecycle governance, etc.) but doesn't mandate this specific workflow structure.
+
+---
+
+### A.7 Summary Comparison Table
+
+| Process Element | OSFI E-23 Mandate | Our Implementation | Flexibility Level |
+|----------------|-------------------|-------------------|------------------|
+| **Must have risk rating** | ✅ REQUIRED | Implemented | NONE - Must have |
+| **Must use quant + qual factors** | ✅ REQUIRED | Implemented | NONE - Must have |
+| **Must have 5 lifecycle stages** | ✅ REQUIRED | Design/Review/Deploy/Monitor/Decommission | LOW - OSFI specifies stages |
+| **Must scale governance by risk** | ✅ REQUIRED | 4-tier system | LOW - Concept required |
+| **Number of risk levels** | ❌ Not specified | 4 levels | HIGH - Fully customizable |
+| **Specific approval authorities** | ❌ Not specified | Manager → Board | HIGH - Fully customizable |
+| **Specific monitoring frequencies** | ❌ Not specified | Quarterly → Daily | HIGH - Fully customizable |
+| **Compliance tracking mechanism** | ❌ Not specified | Lifecycle compliance tool | HIGH - Entirely our design |
+| **Checklist format** | ❌ Not specified | Checkbox deliverables | HIGH - Entirely our design |
+| **6-step workflow sequence** | ❌ Not specified | Our process design | HIGH - Entirely our design |
+| **Automated assessment** | ❌ Not mentioned | Our technical approach | HIGH - Entirely our design |
+
+---
+
+### A.8 Key Insights
+
+#### What OSFI MANDATES (Process Level):
+1. **Risk rating methodology** with quantitative and qualitative factors
+2. **5 lifecycle stages** (design, review, deployment, monitoring, decommission)
+3. **Risk-based governance intensity** (requirements must scale with risk level)
+4. **Lifecycle coverage** (governance must address all stages)
+
+#### What WE CHOSE (Implementation Level):
+1. **How many risk levels** to use (we chose 4)
+2. **Specific governance requirements** at each risk level
+3. **Compliance tracking mechanisms** (our lifecycle evaluation tool)
+4. **Checklist formats** and deliverable templates
+5. **Workflow sequence** (6-step process)
+6. **Automation approach** (MCP server with keyword detection)
+7. **Report structure** (4-section Word document)
+
+#### Critical Distinction:
+
+**OSFI E-23 is principles-based on SUBSTANCE but silent on PROCESS**:
+- ✅ Tells you WHAT to do (rate risk, govern lifecycle, scale by risk)
+- ❌ Doesn't tell you HOW to do it (tools, workflows, templates, automation)
+
+**Our implementation fills the "HOW" gap** while respecting the "WHAT" mandates.
+
+---
+
+### A.9 Implications for Institutions
+
+#### If Using This Tool's Process Flow:
+
+**You ARE complying with**:
+- OSFI's requirement for risk rating
+- OSFI's requirement for lifecycle governance
+- OSFI's requirement for risk-based intensity scaling
+
+**You ARE accepting**:
+- Our choice of 4 risk levels
+- Our specific governance tier mappings
+- Our compliance checklist structure
+- Our 6-step workflow sequence
+- Our automated assessment approach
+
+#### If Customizing:
+
+**You MUST keep**:
+- Some form of risk rating with quant + qual factors
+- Coverage of all 5 lifecycle stages
+- Differentiated governance by risk level
+
+**You CAN change**:
+- Number and names of risk levels
+- Specific approval authorities and monitoring frequencies
+- Compliance tracking approach
+- Checklist format and deliverables
+- Workflow sequence and automation
+- Assessment tools and methodologies
+
+---
+
+### A.10 Conclusion
+
+**The Answer to Your Question**:
+
+> "Is it an OSFI requirement to have different governance/documentation by risk level, or is that an interpretation/choice?"
+
+**Answer**:
+
+**REQUIRED by OSFI**: The **concept** of risk-based differentiation
+- OSFI explicitly mandates that governance intensity must be "commensurate with" and "driven by" the risk rating
+- This is Principle 2.3 (page 11) and is non-negotiable
+
+**OUR INTERPRETATION/CHOICE**: The **specific implementation** of that differentiation
+- How many risk levels (we chose 4)
+- What the approval authorities are (Manager → Board)
+- What the monitoring frequencies are (Quarterly → Daily)
+- What documentation is required (our 3-tier structure)
+- How compliance is tracked (our checklist system)
+- What the workflow looks like (our 6-step process)
+
+**Bottom Line**: OSFI says "you must differentiate," but we decide "here's how we'll differentiate."
+
+---
+
 **Document Version**: 1.0
 **Last Updated**: 2025-11-20
 **Related Documents**:
