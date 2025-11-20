@@ -53,6 +53,9 @@ def generate_design_stage_report(
     doc.add_paragraph()
     _add_data_source_transparency(doc)
 
+    # Professional validation disclaimer (beginning)
+    _add_professional_validation_disclaimer(doc, position="beginning")
+
     doc.add_page_break()
 
     # 1. Executive Summary
@@ -68,6 +71,10 @@ def generate_design_stage_report(
 
     # Annex: OSFI E-23 Principles
     _add_annex_principles(doc)
+
+    # Professional validation disclaimer (end)
+    doc.add_page_break()
+    _add_professional_validation_disclaimer(doc, position="end")
 
     return doc
 
@@ -134,6 +141,50 @@ def _add_data_source_transparency(doc: Document):
     p_format = p.paragraph_format
     p_format.space_after = Pt(12)
     p_format.left_indent = Inches(0.25)
+
+
+def _add_professional_validation_disclaimer(doc: Document, position: str = "beginning"):
+    """Add professional validation requirement disclaimer."""
+    doc.add_paragraph()
+
+    p = doc.add_paragraph()
+    run = p.add_run('⚠️ PROFESSIONAL VALIDATION REQUIRED')
+    run.bold = True
+    run.font.size = Pt(12)
+    run.font.color.rgb = RGBColor(192, 0, 0)  # Red color
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    p_format = p.paragraph_format
+    p_format.space_before = Pt(12)
+    p_format.space_after = Pt(6)
+
+    # Add border-like effect with background shading
+    p = doc.add_paragraph()
+    p_format = p.paragraph_format
+    p_format.left_indent = Inches(0.5)
+    p_format.right_indent = Inches(0.5)
+    p_format.space_after = Pt(12)
+
+    disclaimer_text = (
+        'This assessment tool provides an automated preliminary analysis based on keyword detection '
+        'and standardized risk scoring methodology. However, all findings, risk ratings, compliance '
+        'determinations, and governance recommendations in this report MUST be validated by qualified '
+        'professionals before being used for regulatory compliance, governance decisions, or operational '
+        'implementation.\n\n'
+        'Required professional validation includes, but is not limited to:\n'
+        '• Independent review by qualified model risk management professionals\n'
+        '• Verification of risk rating accuracy by senior management or risk committees\n'
+        '• Legal and compliance review of all regulatory interpretations\n'
+        '• Assessment by subject matter experts familiar with the specific model and business context\n'
+        '• Validation that governance recommendations align with institutional policies\n\n'
+        'This automated assessment does not constitute professional advice and should not be relied upon '
+        'as the sole basis for any compliance, governance, or risk management decisions. Users assume full '
+        'responsibility for ensuring appropriate professional review and validation.'
+    )
+
+    run = p.add_run(disclaimer_text)
+    run.font.size = Pt(9)
+    run.italic = True
 
 
 def _add_executive_summary_with_disclaimer(doc: Document, project_name: str, project_description: str,
