@@ -105,14 +105,16 @@ Source: OSFI E-23, Section C.2 "Model risk rating", Pages 10-11
 
 | Element | OSFI Requirement | Our Implementation | Status |
 |---------|------------------|-------------------|---------|
-| **Scoring scale** | Not specified | **100-point scale** | INTERPRETIVE CHOICE |
+| **Scoring scale** | Not specified | **0-100 point scale** | INTERPRETIVE CHOICE |
 | **Quantitative weight** | Not specified | **10 points per factor** | INTERPRETIVE CHOICE |
 | **Qualitative weight** | Not specified | **8 points per factor** | INTERPRETIVE CHOICE |
-| **Base score range** | Not specified | **0-130 possible** | DERIVED FROM WEIGHTS |
+| **Score cap** | Not specified | **Capped at 100** | OUR DESIGN CHOICE |
 
 **Calculation**:
 - Base score = (# quantitative factors detected × 10) + (# qualitative factors detected × 8)
 - Maximum base score = (5 × 10) + (8 × 8) = 50 + 64 = 114 points
+- After amplification: Base score × multiplier (can theoretically exceed 100)
+- **Final score = min(calculated score, 100)** - we cap at 100 for the 0-100 scale
 
 ### 2.5 Risk Amplification Logic (Our Innovation)
 
