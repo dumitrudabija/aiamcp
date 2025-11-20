@@ -69,7 +69,71 @@ if third_party + revenue_critical: +15%
 
 ---
 
-## 4. Risk Detection Keywords
+## 4. Risk Factor Categories (Structure)
+
+**Location:** `osfi_e23_processor.py:265-283`
+
+### Current Implementation
+- **5 Quantitative Factors**: `high_volume`, `financial_impact`, `customer_facing`, `revenue_critical`, `regulatory_impact`
+- **8 Qualitative Factors**: `ai_ml_usage`, `high_complexity`, `autonomous_decisions`, `black_box`, `third_party`, `data_sensitive`, `real_time`, `customer_impact`
+- **Total**: 13 risk factor categories
+
+### Regulatory Basis
+
+**From OSFI E-23 Guideline (Section C.2, Page 10):**
+
+> "The risk rating approach should be supported by clear, measurable criteria for each risk dimension and incorporate both quantitative and qualitative factors:
+>
+> - **Quantitative factors** include the importance, size and growth of the portfolio that the model covers (as applicable), or potential operational, security or financial impacts.
+> - **Qualitative factors** include business use or purpose, model complexity or level of autonomy, reliability of data inputs, customer impacts, or regulatory risk.
+>
+> Institutions may organize risk factors according to **other risk dimensions relevant to the institution's context and practice**."
+
+**Key Finding:** The guideline provides **examples only**, not prescriptive requirements. The specific 13 factor categories are an implementation interpretation.
+
+### Tunable
+
+- **Number of factors** (currently 5 quantitative + 8 qualitative = 13 total)
+- **Factor category names and definitions** (e.g., rename `revenue_critical` to `business_materiality`)
+- **Factor groupings** (currently quantitative/qualitative, could use "vulnerability/materiality" or "uncertainty/impact" as guideline suggests)
+- **Can add institution-specific factors** based on business model:
+  - **Insurance**: `actuarial_assumptions`, `longevity_risk`, `underwriting_complexity`
+  - **Investment**: `market_volatility_exposure`, `systemic_risk`, `cross_border_transactions`
+  - **Banking**: `credit_concentration`, `liquidity_risk`, `interest_rate_sensitivity`
+  - **Fintech**: `api_dependencies`, `high_frequency_trading`, `cryptocurrency_exposure`
+- **Can remove factors** not relevant to institution type
+- **Can split or merge factors** (e.g., split `customer_facing` into `retail_customer` and `institutional_client`)
+
+### Impact
+
+Changes which dimensions are assessed for model risk rating, fundamentally altering risk assessment structure.
+
+### Example Customization
+
+```python
+# Insurance company customization
+quantitative_indicators = {
+    'high_volume': [...],
+    'financial_impact': [...],
+    'regulatory_impact': [...],
+    'longevity_risk': ['mortality', 'life expectancy', 'demographic shifts', 'longevity assumptions'],
+    'catastrophe_exposure': ['natural disaster', 'catastrophic event', 'extreme weather', 'pandemic']
+}
+
+qualitative_indicators = {
+    'ai_ml_usage': [...],
+    'high_complexity': [...],
+    'autonomous_decisions': [...],
+    'actuarial_judgment': ['actuarial assumptions', 'expert judgment', 'subjective parameters'],
+    'reinsurance_dependency': ['reinsurance', 'risk transfer', 'third-party coverage'],
+    'data_sensitive': [...],
+    'policyholder_impact': ['policyholder decision', 'benefit determination', 'claims assessment']
+}
+```
+
+---
+
+## 5. Risk Detection Keywords (Factor Detection)
 
 **Location:** `osfi_e23_processor.py:265-283`
 
@@ -103,7 +167,7 @@ if third_party + revenue_critical: +15%
 
 ---
 
-## 5. Approval Authority Mapping
+## 6. Approval Authority Mapping
 
 **Location:** `osfi_e23_processor.py:753-761`
 
@@ -125,7 +189,7 @@ if third_party + revenue_critical: +15%
 
 ---
 
-## 6. Monitoring Frequency
+## 7. Monitoring Frequency
 
 **Location:** `osfi_e23_processor.py:763-771`
 
@@ -147,7 +211,7 @@ if third_party + revenue_critical: +15%
 
 ---
 
-## 7. Documentation Requirements
+## 8. Documentation Requirements
 
 **Location:** `osfi_e23_processor.py:773-799`
 
@@ -179,7 +243,7 @@ if third_party + revenue_critical: +15%
 
 ---
 
-## 8. Governance Structure Requirements
+## 9. Governance Structure Requirements
 
 **Location:** `osfi_e23_processor.py:859-884`
 
@@ -208,7 +272,7 @@ if third_party + revenue_critical: +15%
 
 ---
 
-## 9. Lifecycle Requirements
+## 10. Lifecycle Requirements
 
 **Location:** `osfi_e23_processor.py:886-916`
 
@@ -238,7 +302,7 @@ if third_party + revenue_critical: +15%
 
 ---
 
-## 10. Report Structure and Content
+## 11. Report Structure and Content
 
 **Location:** `osfi_e23_report_generators.py`
 
