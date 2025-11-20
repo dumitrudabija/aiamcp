@@ -622,9 +622,12 @@ aiamcp/
 │
 ├── Documentation
 │   ├── README.md                                            # This documentation
-│   ├── CHANGELOG.md                                         # Version history
+│   ├── CHANGELOG.md                                         # Version history (in docs/)
 │   ├── CLAUDE.md                                            # Developer guide for Claude Code
+│   ├── ARCHITECTURE.md                                      # v2.0 modular architecture (technical)
+│   ├── LOGICAL_ARCHITECTURE.md                              # Actor flow & responsibilities (NEW)
 │   ├── ARCHITECTURE_ANALYSIS.md                             # Architecture analysis & decisions
+│   ├── JIRA_INTEGRATION_OPTIONS.md                          # Alternative outputs & integrations (NEW)
 │   ├── OSFI_E23_TUNABLE_PARAMETERS.md                       # Customizable OSFI E-23 parameters
 │   ├── OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md # OSFI requirements vs. choices
 │   └── docs/
