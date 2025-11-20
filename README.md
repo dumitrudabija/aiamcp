@@ -581,6 +581,8 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 
 ### Documentation Requirements
 - See `OSFI_E23_COMPLIANCE_GUIDANCE.md` for detailed compliance requirements
+- See `OSFI_E23_TUNABLE_PARAMETERS.md` for customizable implementation parameters
+- See `OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md` for regulatory requirements vs. implementation choices
 - See `AIA_HALLUCINATION_PREVENTION.md` for AIA-specific safeguards
 - Maintain complete audit trails for all assessments
 
@@ -619,10 +621,12 @@ aiamcp/
 │   └── config.json                     # Framework configuration & thresholds
 │
 ├── Documentation
-│   ├── README.md                       # This documentation
-│   ├── CHANGELOG.md                    # Version history
-│   ├── CLAUDE.md                       # Developer guide for Claude Code
-│   ├── ARCHITECTURE_ANALYSIS.md        # Architecture analysis & decisions
+│   ├── README.md                                            # This documentation
+│   ├── CHANGELOG.md                                         # Version history
+│   ├── CLAUDE.md                                            # Developer guide for Claude Code
+│   ├── ARCHITECTURE_ANALYSIS.md                             # Architecture analysis & decisions
+│   ├── OSFI_E23_TUNABLE_PARAMETERS.md                       # Customizable OSFI E-23 parameters
+│   ├── OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md # OSFI requirements vs. choices
 │   └── docs/
 │       ├── guides/                     # Integration & usage guides
 │       ├── technical/                  # Technical documentation & fixes
