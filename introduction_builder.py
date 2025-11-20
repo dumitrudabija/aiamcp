@@ -253,12 +253,12 @@ class IntroductionBuilder:
         if framework_focus == 'aia':
             assistant_directive = {
                 "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present the AIA workflow to the user. Do NOT call any other tools immediately after this. Mention that OSFI E-23 is also available if they ask, but focus on AIA since that's what was detected from context.",
-                "behavioral_requirement": "After presenting the AIA introduction, proceed with Step 1 (validate_project_description) unless the user wants to review all options first."
+                "behavioral_requirement": "After presenting the AIA introduction, you MUST ask the user if they want to proceed with this AIA workflow and WAIT for their explicit confirmation (e.g., 'yes', 'proceed', 'run AIA') before calling Step 1 (validate_project_description)."
             }
         elif framework_focus == 'osfi_e23':
             assistant_directive = {
                 "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present the OSFI E-23 workflow to the user. Do NOT call any other tools immediately after this. Mention that AIA is also available if they ask, but focus on OSFI E-23 since that's what was detected from context.",
-                "behavioral_requirement": "After presenting the OSFI E-23 introduction, proceed with Step 1 (validate_project_description) unless the user wants to review all options first."
+                "behavioral_requirement": "After presenting the OSFI E-23 introduction, you MUST ask the user if they want to proceed with this OSFI E-23 workflow and WAIT for their explicit confirmation (e.g., 'yes', 'proceed', 'run OSFI E-23') before calling Step 1 (validate_project_description)."
             }
         else:  # both
             assistant_directive = {
