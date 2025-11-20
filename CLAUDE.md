@@ -262,6 +262,7 @@ pip install -r requirements.txt
 - **Compliance Checklist**: Actionable checkboxes for all Design stage deliverables organized by OSFI Principles (3.2, 3.3) with specific deliverable requirements
 - **Target Length**: Approximately 4 pages with professional formatting, tables, and clear visual hierarchy
 - **Customizable Weights**: Explicit note that scoring weights are exemplification - can be tuned to institutional specifications
+- **Implementation Documentation**: See `OSFI_E23_TUNABLE_PARAMETERS.md` for all customizable parameters and `OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md` for distinction between OSFI requirements and implementation choices
 
 ### Error Handling
 - **Graceful Degradation**: Missing data files trigger default framework creation
