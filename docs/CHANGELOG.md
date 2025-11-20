@@ -2,6 +2,43 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.0.1] - 2025-11-20
+
+### 🔧 Workflow Confirmation Fix - User Control Enhancement
+
+#### Problem Resolved
+- **Issue**: After calling `get_server_introduction`, Claude would automatically proceed to Step 1 (validate_project_description) without waiting for user confirmation
+- **User Experience**: Users couldn't review the complete workflow before execution began
+- **Behavior**: Tool's `behavioral_requirement` instructed Claude to "proceed with Step 1" automatically
+
+#### Solution Implemented
+Updated `introduction_builder.py` behavioral directives to require explicit user confirmation:
+
+**Before:**
+```python
+"behavioral_requirement": "After presenting the OSFI E-23 introduction, proceed with Step 1..."
+```
+
+**After:**
+```python
+"behavioral_requirement": "After presenting the OSFI E-23 introduction, you MUST ask the user if they want to proceed with this OSFI E-23 workflow and WAIT for their explicit confirmation (e.g., 'yes', 'proceed', 'run OSFI E-23') before calling Step 1..."
+```
+
+#### Technical Details
+- **File Modified**: `introduction_builder.py` (lines 256, 261)
+- **Frameworks Affected**: AIA and OSFI E-23 (both now require confirmation)
+- **Unchanged**: "Both frameworks" case already had correct WAIT behavior
+
+#### Impact
+- ✅ Users now have explicit control over when workflow execution begins
+- ✅ Introduction is presented without automatic tool calls
+- ✅ Users can review complete workflow before proceeding
+- ✅ Confirmation examples provided ("yes", "proceed", "run OSFI E-23")
+- ✅ Consistent behavior across all framework detection modes
+
+#### Files Changed
+- `introduction_builder.py` - Updated behavioral requirements for AIA and OSFI E-23 workflows
+
 ## [2.0.0] - 2025-11-16
 
 ### 🏗️ Major Refactoring - Modular Architecture
