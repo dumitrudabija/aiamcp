@@ -224,6 +224,50 @@ class MCPServer:
                 session["completed_tools"].append(tool_name)
             logger.info(f"Stored {tool_name} result in session {session_id}")
 
+    def _get_or_set_lifecycle_stage(self, session_id: str, provided_stage: str = None, project_description: str = "") -> str:
+        """
+        Get lifecycle stage from session or set it if provided.
+
+        Priority order:
+        1. Explicitly provided stage parameter (and update session)
+        2. Stage stored in session from previous call
+        3. Default to 'design'
+
+        Args:
+            session_id: Session ID
+            provided_stage: Explicitly provided stage (overrides session)
+            project_description: Project description (for logging only)
+
+        Returns:
+            Lowercase stage name ('design', 'review', 'deployment', 'monitoring', 'decommission')
+        """
+        session = self.workflow_engine.get_session(session_id)
+        if not session:
+            logger.warning(f"No session found for {session_id}, defaulting to 'design' stage")
+            return 'design'
+
+        # Normalize provided stage if given
+        if provided_stage:
+            stage_normalized = provided_stage.lower().strip()
+            valid_stages = ['design', 'review', 'deployment', 'monitoring', 'decommission']
+            if stage_normalized in valid_stages:
+                # Store in session for consistency across all steps
+                session["lifecycle_stage"] = stage_normalized
+                logger.info(f"Lifecycle stage set to '{stage_normalized}' for session {session_id}")
+                return stage_normalized
+            else:
+                logger.warning(f"Invalid stage '{provided_stage}', using session or default")
+
+        # Check if stage already stored in session
+        if "lifecycle_stage" in session:
+            logger.info(f"Using lifecycle stage '{session['lifecycle_stage']}' from session")
+            return session["lifecycle_stage"]
+
+        # Default to 'design'
+        session["lifecycle_stage"] = 'design'
+        logger.info(f"No lifecycle stage specified, defaulting to 'design' for session {session_id}")
+        return 'design'
+
     def _get_assessment_results_for_export_from_session(self, session_id: str, framework_type: str) -> Optional[Dict[str, Any]]:
         """Extract assessment results from auto-session for export tools."""
         session = self.workflow_engine.get_session(session_id)
@@ -1182,17 +1226,26 @@ class MCPServer:
 
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
-        current_stage = arguments.get("currentStage")
+        provided_stage = arguments.get("currentStage")
 
         logger.info(f"OSFI E-23 lifecycle compliance evaluation for: {project_name}")
-        
-        # Use the OSFI E-23 processor
+
+        # Get session ID for stage management
+        session_id = self._get_or_create_auto_session(project_name, "osfi_e23")
+
+        # Get or set lifecycle stage (priority: provided > session > default)
+        current_stage = self._get_or_set_lifecycle_stage(session_id, provided_stage, project_description)
+
+        # Use the OSFI E-23 processor with determined stage
         result = self.osfi_e23_processor.evaluate_lifecycle_compliance(
             project_name=project_name,
             project_description=project_description,
             current_stage=current_stage
         )
-        
+
+        # Store result in session
+        self._store_tool_result_in_session(session_id, "evaluate_lifecycle_compliance", result)
+
         return result
     
     def _create_compliance_framework(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
@@ -1204,16 +1257,16 @@ class MCPServer:
 
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
-        current_stage = arguments.get("currentStage")
+        provided_stage = arguments.get("currentStage")
         risk_level = arguments.get("riskLevel")
 
         logger.info(f"OSFI E-23 compliance framework creation for: {project_name}")
 
-        # Detect lifecycle stage if not provided
-        if not current_stage:
-            from osfi_e23_structure import detect_lifecycle_stage
-            current_stage = detect_lifecycle_stage(project_description)
-            logger.info(f"Auto-detected lifecycle stage: {current_stage}")
+        # Get session ID for stage management
+        session_id = self._get_or_create_auto_session(project_name, "osfi_e23")
+
+        # Get or set lifecycle stage (priority: provided > session > default)
+        current_stage = self._get_or_set_lifecycle_stage(session_id, provided_stage, project_description)
 
         # If risk_level is provided, create a mock risk assessment
         risk_assessment = None
@@ -1235,6 +1288,9 @@ class MCPServer:
             risk_assessment=risk_assessment
         )
 
+        # Store result in session
+        self._store_tool_result_in_session(session_id, "create_compliance_framework", result)
+
         return result
 
     def _export_e23_report(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
@@ -1243,7 +1299,7 @@ class MCPServer:
         project_description = arguments.get("project_description", "")
         assessment_results = arguments.get("assessment_results", {})
         custom_filename = arguments.get("custom_filename")
-        injected_lifecycle_stage = arguments.get("lifecycle_stage")  # From Step 3 session if available
+        provided_stage = arguments.get("lifecycle_stage")  # Explicit stage if provided
 
         logger.info(f"Exporting OSFI E-23 report for project: {project_name}")
 
@@ -1296,15 +1352,12 @@ class MCPServer:
             # Create Word document
             doc = Document()
 
-            # Use lifecycle stage from Step 3 if available (injected from session), otherwise detect it
-            # This ensures Step 3 and Step 5 always use the same stage
-            if injected_lifecycle_stage:
-                current_stage = injected_lifecycle_stage
-                logger.info(f"Using lifecycle stage from Step 3 (session): {current_stage}")
-            else:
-                from osfi_e23_structure import detect_lifecycle_stage
-                current_stage = detect_lifecycle_stage(project_description)
-                logger.info(f"Step 3 not run - detected lifecycle stage: {current_stage}")
+            # Get session ID for stage management
+            session_id = self._get_or_create_auto_session(project_name, "osfi_e23")
+
+            # Get or set lifecycle stage (priority: provided > session > default)
+            # This ensures consistency with Steps 3 and 4
+            current_stage = self._get_or_set_lifecycle_stage(session_id, provided_stage, project_description)
 
             # Get Step 3 lifecycle compliance data with the detected stage (optional - enhances report)
             lifecycle_compliance = None

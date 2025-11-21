@@ -2,6 +2,73 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.2] - 2025-11-21
+
+### 🔧 Critical Bug Fix: Lifecycle Stage Consistency
+
+#### Problem: Lifecycle Stage Inconsistency Between Steps
+**Bug:** Step 3 reported "design" but Step 5 reported different stages for the same project.
+
+**Root Cause:** Step 3 (`evaluate_lifecycle_compliance`) never called lifecycle detection logic - it just defaulted to "design" if no stage was explicitly provided via `currentStage` parameter.
+
+**Impact:** Steps 3, 4, and 5 could report different lifecycle stages for the same assessment, creating inconsistent reports and compliance documents.
+
+#### Solution: Explicit Lifecycle Stage Selection with Session Persistence
+
+**New Approach:**
+- ✅ User explicitly specifies lifecycle stage (or accepts default "Design")
+- ✅ Stage stored in session and used consistently across Steps 3, 4, 5
+- ✅ Priority order: explicit parameter > session value > default ("design")
+
+**Implementation Details:**
+
+1. **New Session-Based Stage Management** (`server.py`):
+   - Created `_get_or_set_lifecycle_stage()` helper function
+   - Validates stage, stores in `session["lifecycle_stage"]`
+   - Used by all three steps (3, 4, 5) for consistent stage handling
+
+2. **Updated Step 3** (`_evaluate_lifecycle_compliance`):
+   - Now uses `_get_or_set_lifecycle_stage()` instead of just defaulting
+   - Stores stage in session for use by Steps 4 and 5
+
+3. **Updated Step 4** (`_create_compliance_framework`):
+   - Now uses `_get_or_set_lifecycle_stage()` for consistency
+   - Retrieves from session if not explicitly provided
+
+4. **Updated Step 5** (`_export_e23_report`):
+   - Replaced auto-injection logic with `_get_or_set_lifecycle_stage()`
+   - Ensures report uses same stage as Steps 3 and 4
+
+5. **Introduction Updates** (`introduction_builder.py`):
+   - Added `lifecycle_stage_selection` section to OSFI workflow
+   - Shows 5 stage options with descriptions
+   - Explains default behavior and consistent usage across steps
+   - Applied to both single OSFI workflow and combined workflows
+
+**User Experience:**
+```
+🔄 IMPORTANT: Specify your model's current lifecycle stage
+Default: Design (assumed if not specified)
+
+Options:
+- Design: Initial model development and planning phase
+- Review: Independent validation and testing phase
+- Deployment: Implementation and go-live preparation
+- Monitoring: Production operation and ongoing performance tracking
+- Decommission: Model retirement or replacement
+
+User prompt: "Please specify your model's lifecycle stage (or we'll assume Design).
+Example: 'My model is in the Monitoring stage' or just 'proceed' for Design."
+
+Note: The stage you specify will be used consistently across all assessment steps (Steps 3, 4, and 5).
+```
+
+**Files Changed:**
+- `server.py`: Added `_get_or_set_lifecycle_stage()`, updated Steps 3, 4, 5
+- `introduction_builder.py`: Added lifecycle stage selection guidance to OSFI workflows
+
+**Result:** All three steps now use the same lifecycle stage, ensuring consistency across assessment and reporting.
+
 ## [2.2.1] - 2025-11-21
 
 ### 🔧 Tool Description & Architecture Documentation Fixes

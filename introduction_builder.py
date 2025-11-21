@@ -82,6 +82,19 @@ class IntroductionBuilder:
             "title": "🏦 OSFI E-23 Model Risk Management",
             "description": "OSFI Guideline E-23 for federally regulated financial institutions",
             "framework": "osfi_e23",
+            "lifecycle_stage_selection": {
+                "instruction": "🔄 IMPORTANT: Specify your model's current lifecycle stage",
+                "default": "Design (assumed if not specified)",
+                "options": [
+                    {"stage": "Design", "description": "Initial model development and planning phase"},
+                    {"stage": "Review", "description": "Independent validation and testing phase"},
+                    {"stage": "Deployment", "description": "Implementation and go-live preparation"},
+                    {"stage": "Monitoring", "description": "Production operation and ongoing performance tracking"},
+                    {"stage": "Decommission", "description": "Model retirement or replacement"}
+                ],
+                "user_prompt": "Please specify your model's lifecycle stage (or we'll assume Design). Example: 'My model is in the Monitoring stage' or just 'proceed' for Design.",
+                "note": "The stage you specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
+            },
             "sequence": [
                 {
                     "step": 1,
@@ -163,6 +176,19 @@ class IntroductionBuilder:
             "osfi_e23_workflow": {
                 "title": "🏦 OSFI E-23 Framework Complete Workflow",
                 "description": "OSFI Guideline E-23 Model Risk Management for federally regulated financial institutions",
+                "lifecycle_stage_selection": {
+                    "instruction": "🔄 IMPORTANT: Specify your model's current lifecycle stage",
+                    "default": "Design (assumed if not specified)",
+                    "options": [
+                        {"stage": "Design", "description": "Initial model development and planning phase"},
+                        {"stage": "Review", "description": "Independent validation and testing phase"},
+                        {"stage": "Deployment", "description": "Implementation and go-live preparation"},
+                        {"stage": "Monitoring", "description": "Production operation and ongoing performance tracking"},
+                        {"stage": "Decommission", "description": "Model retirement or replacement"}
+                    ],
+                    "user_prompt": "Please specify your model's lifecycle stage (or we'll assume Design). Example: 'My model is in the Monitoring stage' or just 'proceed' for Design.",
+                    "note": "The stage you specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
+                },
                 "sequence": [
                     {
                         "step": 1,
