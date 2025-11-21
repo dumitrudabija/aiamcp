@@ -602,8 +602,8 @@ class OSFIE23Processor:
         compliance_indicators = {
             "design": {
                 "model_rationale_covered": any(term in description_lower for term in ['purpose', 'objective', 'rationale', 'business case', 'business need', 'justification']),
-                "model_data_covered": any(term in description_lower for term in ['data quality', 'data governance', 'data standards', 'data source', 'data lineage']),
-                "model_development_covered": any(term in description_lower for term in ['methodology', 'approach', 'algorithm', 'technique', 'development', 'performance', 'accuracy', 'metrics'])
+                "model_data_covered": any(term in description_lower for term in ['data quality', 'data governance', 'data standards', 'data source', 'data lineage', 'data input', 'data ingest', 'demographic', 'transaction history', 'customer data', 'training data']),
+                "model_development_covered": any(term in description_lower for term in ['methodology', 'approach', 'algorithm', 'technique', 'development', 'performance', 'accuracy', 'metrics', 'architecture', 'ensemble', 'neural network', 'xgboost', 'gradient boosting', 'scoring', 'prediction', 'random forest', 'regression'])
             },
             "review": {
                 "independent_validation_covered": any(term in description_lower for term in ['independent', 'validation', 'review', 'assessment', 'third party', 'external review']),

@@ -2,6 +2,46 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.8] - 2025-11-21
+
+### 🔍 Enhancement: Expanded Design Stage Coverage Keywords
+
+#### User Finding: "MCP gave back 0% coverage for lifecycle stage design... not sure that's valid"
+**Investigation:** User reported MPCOM project (marketing propensity model with clear technical details) showing incorrect coverage results.
+
+#### Root Cause Analysis
+Testing revealed keyword lists were too narrow and missed legitimate design element descriptions:
+
+**Original Keywords:**
+- Model Data: Only matched exact phrases like 'data quality', 'data governance', 'data source', 'data lineage'
+- Model Development: Only matched 'methodology', 'approach', 'algorithm', 'technique'
+
+**Problem:** Descriptions with "Data Inputs", "demographic data", "Technical Architecture", "XGBoost", "neural network", "gradient boosting ensemble" were not detected, even though they clearly describe data sources and technical development.
+
+**Test Results:**
+- MPCOM description with original keywords: **33.3% Design coverage** (only matched 'purpose')
+- Same description with expanded keywords: **100.0% Design coverage** (correctly matches all 3 elements)
+
+#### Solution: Expanded Keyword Lists
+
+**Model Data Coverage** (`osfi_e23_processor.py:605`):
+- Added: 'data input', 'data ingest', 'demographic', 'transaction history', 'customer data', 'training data'
+- Now detects: Descriptions with data source details using varied terminology
+
+**Model Development Coverage** (`osfi_e23_processor.py:606`):
+- Added: 'architecture', 'ensemble', 'neural network', 'xgboost', 'gradient boosting', 'scoring', 'prediction', 'random forest', 'regression'
+- Now detects: Technical implementation descriptions using actual ML/AI terminology
+
+#### Impact
+- **Before:** Legitimate design descriptions undercounted (false negatives)
+- **After:** More accurate detection of design elements across varied technical vocabularies
+- **Benefit:** Better coverage assessment for production ML systems with modern technical descriptions
+
+#### Files Modified
+- `osfi_e23_processor.py` (lines 605-606): Expanded Design stage keyword lists
+- `test_mpcom_coverage.py`: New comprehensive test for MPCOM description
+- `test_mpcom_all_stages.py`: New test validating coverage across all 5 lifecycle stages
+
 ## [2.2.7] - 2025-11-21
 
 ### 🔧 Critical Addition: Implementation & Customization Notices
