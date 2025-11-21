@@ -82,6 +82,22 @@ class IntroductionBuilder:
             "title": "🏦 OSFI E-23 Model Risk Management",
             "description": "OSFI Guideline E-23 for federally regulated financial institutions",
             "framework": "osfi_e23",
+            "implementation_notice": {
+                "critical_understanding": "🔧 IMPLEMENTATION STATUS: Proof of Concept with Exemplification Logic",
+                "what_this_means": [
+                    "✅ OSFI E-23 REQUIREMENTS: Framework structure, principles, and lifecycle stages are official OSFI requirements",
+                    "⚙️ IMPLEMENTATION CHOICES: Risk scoring weights, thresholds, and governance mappings are exemplification - NOT official OSFI specifications",
+                    "🔧 TUNABLE PARAMETERS: All risk factors, weights, amplification multipliers, and thresholds can be customized",
+                    "🏦 INSTITUTIONAL CUSTOMIZATION REQUIRED: Financial institutions must tune parameters to match their risk appetite, governance structure, and regulatory expectations"
+                ],
+                "key_distinctions": {
+                    "osfi_mandated": "Lifecycle stages, Principles (1.1-3.6), Outcomes (1-3), general MRM framework structure",
+                    "implementation_choices": "Risk scoring formulas, specific weights (10/8 points), amplification factors (30%/20%/25%/15%), threshold boundaries (0-25/26-50/51-75/76-100)",
+                    "institutional_decisions": "Which risks to prioritize, acceptable risk levels, governance authorities, review frequencies, approval chains"
+                },
+                "customization_guidance": "See OSFI_E23_TUNABLE_PARAMETERS.md for all adjustable parameters and OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md for detailed distinction between OSFI requirements and implementation choices",
+                "professional_requirement": "⚠️ CRITICAL: All parameters, scores, and governance requirements must be validated and approved by your institution's Model Risk Management function and compliance teams before use"
+            },
             "lifecycle_stage_selection": {
                 "instruction": "🔄 CRITICAL: You must explicitly state which lifecycle stage your model is in",
                 "default": "Design (will be used if you do not explicitly specify a different stage)",
@@ -177,6 +193,22 @@ class IntroductionBuilder:
             "osfi_e23_workflow": {
                 "title": "🏦 OSFI E-23 Framework Complete Workflow",
                 "description": "OSFI Guideline E-23 Model Risk Management for federally regulated financial institutions",
+                "implementation_notice": {
+                    "critical_understanding": "🔧 IMPLEMENTATION STATUS: Proof of Concept with Exemplification Logic",
+                    "what_this_means": [
+                        "✅ OSFI E-23 REQUIREMENTS: Framework structure, principles, and lifecycle stages are official OSFI requirements",
+                        "⚙️ IMPLEMENTATION CHOICES: Risk scoring weights, thresholds, and governance mappings are exemplification - NOT official OSFI specifications",
+                        "🔧 TUNABLE PARAMETERS: All risk factors, weights, amplification multipliers, and thresholds can be customized",
+                        "🏦 INSTITUTIONAL CUSTOMIZATION REQUIRED: Financial institutions must tune parameters to match their risk appetite, governance structure, and regulatory expectations"
+                    ],
+                    "key_distinctions": {
+                        "osfi_mandated": "Lifecycle stages, Principles (1.1-3.6), Outcomes (1-3), general MRM framework structure",
+                        "implementation_choices": "Risk scoring formulas, specific weights (10/8 points), amplification factors (30%/20%/25%/15%), threshold boundaries (0-25/26-50/51-75/76-100)",
+                        "institutional_decisions": "Which risks to prioritize, acceptable risk levels, governance authorities, review frequencies, approval chains"
+                    },
+                    "customization_guidance": "See OSFI_E23_TUNABLE_PARAMETERS.md for all adjustable parameters and OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md for detailed distinction between OSFI requirements and implementation choices",
+                    "professional_requirement": "⚠️ CRITICAL: All parameters, scores, and governance requirements must be validated and approved by your institution's Model Risk Management function and compliance teams before use"
+                },
                 "lifecycle_stage_selection": {
                     "instruction": "🔄 CRITICAL: You must explicitly state which lifecycle stage your model is in",
                     "default": "Design (will be used if you do not explicitly specify a different stage)",

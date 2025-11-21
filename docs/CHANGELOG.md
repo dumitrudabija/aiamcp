@@ -2,6 +2,93 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.7] - 2025-11-21
+
+### 🔧 Critical Addition: Implementation & Customization Notices
+
+#### User Feedback: "Those notices were very useful - why were they not presented?"
+**Missing Notices:** OSFI E-23 introduction was missing critical warnings about proof of concept status, tunable parameters, and institutional customization requirements.
+
+#### Problem
+The `get_server_introduction` response lacked essential notices that clarify:
+1. **Proof of Concept Status**: Implementation uses exemplification logic, not production-ready specs
+2. **Tunable Parameters**: Risk weights, thresholds, and governance mappings can/should be customized
+3. **OSFI Requirements vs Implementation Choices**: What's mandated by OSFI vs what we chose for exemplification
+4. **Institutional Customization Required**: Parameters must be validated by institutional MRM teams
+
+**Impact:** Users might mistakenly treat exemplification values as official OSFI requirements.
+
+#### Solution: Added Comprehensive Implementation Notice
+
+**New Section in OSFI E-23 Workflow:**
+```json
+"implementation_notice": {
+    "critical_understanding": "🔧 IMPLEMENTATION STATUS: Proof of Concept with Exemplification Logic",
+
+    "what_this_means": [
+        "✅ OSFI E-23 REQUIREMENTS: Framework structure, principles, and
+            lifecycle stages are official OSFI requirements",
+
+        "⚙️ IMPLEMENTATION CHOICES: Risk scoring weights, thresholds, and
+            governance mappings are exemplification - NOT official OSFI specifications",
+
+        "🔧 TUNABLE PARAMETERS: All risk factors, weights, amplification
+            multipliers, and thresholds can be customized",
+
+        "🏦 INSTITUTIONAL CUSTOMIZATION REQUIRED: Financial institutions must
+            tune parameters to match their risk appetite, governance structure,
+            and regulatory expectations"
+    ],
+
+    "key_distinctions": {
+        "osfi_mandated": "Lifecycle stages, Principles (1.1-3.6), Outcomes (1-3),
+                         general MRM framework structure",
+
+        "implementation_choices": "Risk scoring formulas, specific weights (10/8 points),
+                                  amplification factors (30%/20%/25%/15%), threshold
+                                  boundaries (0-25/26-50/51-75/76-100)",
+
+        "institutional_decisions": "Which risks to prioritize, acceptable risk levels,
+                                   governance authorities, review frequencies, approval chains"
+    },
+
+    "customization_guidance": "See OSFI_E23_TUNABLE_PARAMETERS.md for all adjustable
+                              parameters and OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md
+                              for detailed distinction",
+
+    "professional_requirement": "⚠️ CRITICAL: All parameters, scores, and governance
+                                requirements must be validated and approved by your
+                                institution's Model Risk Management function"
+}
+```
+
+**Key Clarifications Provided:**
+1. **What's Official**: OSFI Principles, lifecycle stages, MRM framework structure
+2. **What's Exemplification**: Specific risk weights (10/8), amplification factors (30%/20%/25%/15%), thresholds (0-25/26-50/51-75/76-100)
+3. **What's Customizable**: ALL parameters can be tuned to institutional requirements
+4. **What's Required**: Professional MRM validation before use
+
+**Example Distinctions:**
+- ✅ OSFI Mandated: "Model lifecycle includes Design, Review, Deployment, Monitoring, Decommission"
+- ⚙️ Implementation Choice: "Quantitative factors = 10 points each, Qualitative = 8 points each"
+- 🔧 Tunable: "Change weights to 12/6 or 15/5 based on institutional priorities"
+- 🏦 Institutional: "Define acceptable risk levels, approval authorities, review frequencies"
+
+**Applied To:**
+- Single OSFI E-23 workflow (when OSFI detected)
+- Combined workflows (when both AIA and OSFI apply)
+
+**Existing Transparency Notices Still Present:**
+- MCP Server vs Claude AI distinction
+- Anti-hallucination safeguards
+- Professional validation requirements
+- Audit requirements
+
+**Files Changed:**
+- `introduction_builder.py`: Added implementation_notice to both `_build_osfi_workflow_section()` and `_build_both_workflows_section()`
+
+**Result:** Users now receive clear warnings about proof of concept status, tunable parameters, and customization requirements upfront.
+
 ## [2.2.6] - 2025-11-21
 
 ### 🔧 Enhancement: Allow Stage Detection with Enforced Default Handling
