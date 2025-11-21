@@ -128,8 +128,8 @@ class IntroductionBuilder:
                 {
                     "step": 3,
                     "tool": "evaluate_lifecycle_compliance",
-                    "purpose": "Assess coverage of OSFI E-23 lifecycle elements (checks for 3 subcomponents per stage)",
-                    "output": "Coverage percentage (0/33/67/100%) and indication of which OSFI elements are detected"
+                    "purpose": "Check which current stage requirements are mentioned in description (keyword matching)",
+                    "output": "Coverage percentage (0/33/67/100%) showing which keywords were found - NOT compliance verification"
                 },
                 {
                     "step": 4,
@@ -239,8 +239,8 @@ class IntroductionBuilder:
                     {
                         "step": 3,
                         "tool": "evaluate_lifecycle_compliance",
-                        "purpose": "Assess coverage of OSFI E-23 lifecycle elements (checks for 3 subcomponents per stage)",
-                        "output": "Coverage percentage (0/33/67/100%) and indication of which OSFI elements are detected"
+                        "purpose": "Check which current stage requirements are mentioned in description (keyword matching)",
+                        "output": "Coverage percentage (0/33/67/100%) showing which keywords were found - NOT compliance verification"
                     },
                     {
                         "step": 4,

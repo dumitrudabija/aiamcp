@@ -30,7 +30,7 @@ def generate_osfi_e23_report(
     Follows standard structure:
     1. Executive Summary
     2. Risk Rating Methodology
-    3. Lifecycle Coverage Assessment (from Step 3)
+    3. Current Stage Requirements Coverage (from Step 3 - keyword matching)
     4. Stage-Specific Compliance Checklist (from Step 4)
     5. Governance Structure (from Step 2 and Step 4)
        5.1 Governance Roles and Responsibilities
@@ -84,9 +84,9 @@ def generate_osfi_e23_report(
     # 2. Risk Rating Methodology
     _add_risk_methodology(doc, risk_analysis, risk_level, risk_score)
 
-    # 3. Lifecycle Coverage Assessment (Step 3)
+    # 3. Current Stage Requirements Coverage (Step 3 - keyword matching)
     if lifecycle_compliance:
-        _add_lifecycle_coverage_section(doc, lifecycle_compliance, current_stage, stage_display)
+        _add_current_stage_requirements_section(doc, lifecycle_compliance, current_stage, stage_display)
 
     # 4. Stage-Specific Compliance Checklist (Step 5)
     if compliance_framework and compliance_framework.get("osfi_elements"):
@@ -772,10 +772,10 @@ def _add_annex_principles(doc: Document, current_stage: str = "design"):
         doc.add_paragraph()
 
 
-def _add_lifecycle_coverage_section(doc: Document, lifecycle_compliance: Dict[str, Any],
-                                    current_stage: str, stage_display: str):
-    """Add Step 3 lifecycle coverage assessment section."""
-    doc.add_heading('3. LIFECYCLE COVERAGE ASSESSMENT', level=1)
+def _add_current_stage_requirements_section(doc: Document, lifecycle_compliance: Dict[str, Any],
+                                           current_stage: str, stage_display: str):
+    """Add Step 3 current stage requirements coverage section (keyword matching)."""
+    doc.add_heading(f'3. CURRENT STAGE REQUIREMENTS COVERAGE ({stage_display.upper()})', level=1)
 
     # Chapter-specific transparency note
     p = doc.add_paragraph()

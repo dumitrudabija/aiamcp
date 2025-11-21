@@ -2,6 +2,65 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.11] - 2025-11-21
+
+### 📝 Clarity: Step 3 Renamed to "Current Stage Requirements Coverage"
+
+#### User Feedback: "Step 3 is misleading - it's just keyword matching, not compliance evaluation"
+**Problem:** Step 3 was called "Lifecycle Compliance Evaluation" which suggested it was verifying compliance when it only does basic keyword matching to check which requirements are mentioned in the project description.
+
+#### Misleading Names (BEFORE)
+- Tool description: "LIFECYCLE COVERAGE ASSESSMENT: Evaluate coverage of OSFI E-23 lifecycle elements"
+- Workflow: "Assess coverage of OSFI E-23 lifecycle elements"
+- Report Chapter: "3. LIFECYCLE COVERAGE ASSESSMENT"
+
+**Impact:** Users might think this step evaluates actual compliance rather than just checking for keywords.
+
+#### Solution: Renamed to Emphasize Keyword Matching
+
+**Tool Description (tool_registry.py:290):**
+```
+BEFORE: "LIFECYCLE COVERAGE ASSESSMENT: Evaluate coverage of OSFI E-23
+         lifecycle elements"
+AFTER:  "CURRENT STAGE REQUIREMENTS: Check which OSFI E-23 requirements for
+         the current lifecycle stage are mentioned in your project description
+         using keyword matching"
+
+Added: "⚠️ NOTE: This is basic keyword matching - NOT compliance verification.
+        Use results to identify gaps in your project description."
+```
+
+**Workflow Description (introduction_builder.py:131-132, 242-243):**
+```
+BEFORE: purpose: "Assess coverage of OSFI E-23 lifecycle elements"
+        output: "Coverage percentage and indication of which OSFI elements
+                are detected"
+AFTER:  purpose: "Check which current stage requirements are mentioned in
+                description (keyword matching)"
+        output: "Coverage percentage showing which keywords were found -
+                NOT compliance verification"
+```
+
+**Report Chapter (osfi_e23_report_generators.py:778):**
+```
+BEFORE: "3. LIFECYCLE COVERAGE ASSESSMENT"
+AFTER:  "3. CURRENT STAGE REQUIREMENTS COVERAGE (DESIGN)"
+        (dynamically shows current stage)
+```
+
+**Function Renamed:**
+- `_add_lifecycle_coverage_section()` → `_add_current_stage_requirements_section()`
+
+#### Impact
+- **Before:** "Compliance evaluation" suggested verification of actual compliance
+- **After:** "Requirements coverage" with explicit "keyword matching" and "NOT compliance verification" clarifies this is descriptive gap analysis only
+- **Benefit:** Users understand this checks description completeness, not regulatory compliance
+
+#### Files Modified
+- `config/tool_registry.py` (line 290): Tool description updated with keyword matching emphasis
+- `introduction_builder.py` (lines 131-132, 242-243): Workflow descriptions updated
+- `osfi_e23_report_generators.py` (lines 33, 87-89, 775-778): Report structure and function renamed
+
 ## [2.2.10] - 2025-11-21
 
 ### ⚠️ Critical Clarity: Proof of Concept Transparency

@@ -287,7 +287,7 @@ class ToolRegistry:
             },
             {
                 "name": "evaluate_lifecycle_compliance",
-                "description": "🏦 OSFI E-23 STEP 3 OF 5 - LIFECYCLE COVERAGE ASSESSMENT: Evaluate coverage of OSFI E-23 lifecycle elements across all 5 stages (Design, Review, Deployment, Monitoring, Decommission). This is STEP 3 in the complete OSFI E-23 workflow.\n\nFor each lifecycle stage, this tool assesses the 3 subcomponents per stage (e.g., Design stage: Model Rationale, Model Data, Model Development per official OSFI Principles 3.2-3.4). Provides coverage percentage: 0%, 33%, 67%, or 100%.",
+                "description": "🏦 OSFI E-23 STEP 3 OF 5 - CURRENT STAGE REQUIREMENTS: Check which OSFI E-23 requirements for the current lifecycle stage are mentioned in your project description using keyword matching. This is STEP 3 in the complete OSFI E-23 workflow.\n\nFor the selected stage, checks for 3 key elements using keyword detection (e.g., Design stage: Model Rationale, Model Data, Model Development). Returns coverage percentage: 0%, 33%, 67%, or 100% based on which keywords are found.\n\n⚠️ NOTE: This is basic keyword matching - NOT compliance verification. Use results to identify gaps in your project description.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
