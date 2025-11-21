@@ -31,9 +31,12 @@ def generate_osfi_e23_report(
     1. Executive Summary
     2. Risk Rating Methodology
     3. Lifecycle Coverage Assessment (from Step 3)
-    4. Stage-Specific Compliance Checklist (from Step 5)
-    5. Governance Structure (from Step 5)
-    6. Monitoring Framework (from Step 5, if applicable)
+    4. Stage-Specific Compliance Checklist (from Step 4)
+    5. Governance Structure (from Step 2 and Step 4)
+       5.1 Governance Roles and Responsibilities
+       5.2 Documentation Requirements
+       5.3 Review and Approval Procedures
+    6. Monitoring Framework (from Step 4, if applicable)
     7. Annex: OSFI E-23 Principles
 
     Target: ~4-6 pages with clear, professional formatting.
@@ -94,7 +97,7 @@ def generate_osfi_e23_report(
 
     # 5. Governance Structure (Step 5)
     if compliance_framework and compliance_framework.get("governance_structure"):
-        _add_governance_structure_section(doc, compliance_framework.get("governance_structure"), risk_level)
+        _add_governance_structure_section(doc, compliance_framework, assessment_results, risk_level)
 
     # 6. Monitoring Framework (Step 5 - if applicable)
     if compliance_framework and compliance_framework.get("monitoring_framework"):
@@ -972,8 +975,9 @@ def _add_stage_compliance_checklist(doc: Document, compliance_framework: Dict[st
     )
 
 
-def _add_governance_structure_section(doc: Document, governance_structure: Dict[str, Any], risk_level: str):
-    """Add Step 5 governance structure section."""
+def _add_governance_structure_section(doc: Document, compliance_framework: Dict[str, Any],
+                                     assessment_results: Dict[str, Any], risk_level: str):
+    """Add Step 5 governance structure section with roles, documentation, and approval procedures."""
     doc.add_heading('5. GOVERNANCE STRUCTURE', level=1)
 
     # Chapter-specific transparency note
@@ -994,15 +998,16 @@ def _add_governance_structure_section(doc: Document, governance_structure: Dict[
     run = p.add_run('IMPORTANT NOTE: ')
     run.bold = True
     p.add_run(
-        'Governance roles and approval authorities shown below are based on OSFI E-23 requirements '
+        'Governance roles, documentation requirements, and approval procedures shown below are based on OSFI E-23 requirements '
         '(where mandated) and common industry practices (where suggested). Each institution must '
         'align governance structure with its own organizational design and risk appetite.'
     )
     p_format = p.paragraph_format
     p_format.space_after = Pt(12)
 
-    # Governance roles table
-    doc.add_heading(f'Governance Roles and Responsibilities ({risk_level} Risk)', level=2)
+    # === 5.1 Governance Roles and Responsibilities ===
+    governance_structure = compliance_framework.get("governance_structure", {})
+    doc.add_heading(f'5.1 Governance Roles and Responsibilities ({risk_level} Risk)', level=2)
 
     # Create table
     rows_needed = len(governance_structure) + 1
@@ -1041,6 +1046,47 @@ def _add_governance_structure_section(doc: Document, governance_structure: Dict[
     doc.add_paragraph('✓ Yes = Explicitly required by OSFI E-23 (e.g., Appendix 1 mandatory fields)', style='List Bullet')
     doc.add_paragraph('~ Implied = Implied by OSFI E-23 principles (e.g., independent reviewer)', style='List Bullet')
     doc.add_paragraph('✗ No = Suggested implementation choice based on risk-based governance', style='List Bullet')
+
+    # === 5.2 Documentation Requirements ===
+    doc.add_heading(f'5.2 Documentation Requirements ({risk_level} Risk)', level=2)
+
+    documentation_requirements = compliance_framework.get("documentation_requirements", [])
+    if documentation_requirements:
+        p = doc.add_paragraph()
+        p.add_run('Required Documentation: ').bold = True
+        p.add_run(
+            'The following documentation must be maintained throughout the model lifecycle per OSFI E-23 requirements.'
+        )
+        doc.add_paragraph()
+
+        for doc_req in documentation_requirements:
+            doc.add_paragraph(doc_req, style='List Bullet')
+    else:
+        doc.add_paragraph('No specific documentation requirements identified for this risk level.')
+
+    doc.add_paragraph()
+
+    # === 5.3 Review and Approval Procedures ===
+    doc.add_heading(f'5.3 Review and Approval Procedures ({risk_level} Risk)', level=2)
+
+    # Get review_approval from Step 2 governance_requirements
+    governance_requirements = assessment_results.get("governance_requirements", {})
+    review_approval_requirements = governance_requirements.get("review_approval", [])
+
+    if review_approval_requirements:
+        p = doc.add_paragraph()
+        p.add_run('Approval Procedures: ').bold = True
+        p.add_run(
+            'The following review and approval procedures must be followed per OSFI E-23 governance requirements.'
+        )
+        doc.add_paragraph()
+
+        for approval_req in review_approval_requirements:
+            doc.add_paragraph(approval_req, style='List Bullet')
+    else:
+        doc.add_paragraph('No specific review and approval procedures identified for this risk level.')
+
+    doc.add_paragraph()
 
 
 def _add_monitoring_framework_section(doc: Document, monitoring_framework: Dict[str, Any]):

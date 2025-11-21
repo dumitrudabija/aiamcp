@@ -2,6 +2,58 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.9] - 2025-11-21
+
+### 📋 Enhancement: Expanded Chapter 5 Governance Structure
+
+#### User Feedback: "Chapter 5 should include governance, documentation requirements, and approval procedures"
+**Current State:** Chapter 5 only showed governance roles table. Documentation requirements and approval procedures were generated but not displayed in the report.
+
+#### Problem
+Chapter 5 "Governance Structure" was incomplete:
+- ✅ Showed: Governance roles and responsibilities table
+- ❌ Missing: Documentation requirements (from Step 4)
+- ❌ Missing: Review and approval procedures (from Step 2)
+
+**Impact:** Report lacked comprehensive governance information needed for OSFI E-23 compliance planning.
+
+#### Solution: Three-Part Governance Chapter
+
+**New Chapter 5 Structure:**
+```
+5. GOVERNANCE STRUCTURE
+   5.1 Governance Roles and Responsibilities (risk_level Risk)
+       - Table with Role | Responsibility | OSFI Required | Source
+       - Legend explaining OSFI mandated vs suggested roles
+
+   5.2 Documentation Requirements (risk_level Risk)
+       - Bulleted list from Step 4's documentation_requirements
+       - E.g., "Model rationale and business purpose", "Data sources and quality documentation"
+       - Progressive requirements: Low → Medium → High → Critical
+
+   5.3 Review and Approval Procedures (risk_level Risk)
+       - Bulleted list from Step 2's governance_requirements["review_approval"]
+       - E.g., "Conduct independent model review", "Obtain appropriate approval"
+       - Risk-appropriate approval authorities
+```
+
+#### Clarifications Addressed
+
+**Question:** Are documentation requirements already in compliance checklist?
+- **Answer:** NO - Compliance checklist has action items ("Model inventory registration"), while documentation requirements list types of documents ("Model rationale and business purpose"). They're complementary.
+
+**Question:** Should chapter title change?
+- **Answer:** NO - Keep as "GOVERNANCE STRUCTURE" per user preference.
+
+#### Impact
+- **Before:** Chapter 5 had only roles (1 subsection)
+- **After:** Chapter 5 has roles + documentation + approval procedures (3 subsections)
+- **Benefit:** Comprehensive governance guidance for OSFI E-23 compliance implementation
+
+#### Files Modified
+- `osfi_e23_report_generators.py` (lines 30-40, 975-1086): Expanded governance section with 5.1, 5.2, 5.3 subsections
+- Function signature updated to receive `compliance_framework` and `assessment_results` for complete data access
+
 ## [2.2.8] - 2025-11-21
 
 ### 🔍 Enhancement: Expanded Design Stage Coverage Keywords
