@@ -2,6 +2,95 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.6] - 2025-11-21
+
+### 🔧 Enhancement: Allow Stage Detection with Enforced Default Handling
+
+#### User Feedback: "I liked the detection, but proceed should use Design"
+**User's Preference:** Option B - Allow Claude to detect/suggest lifecycle stage from description, but enforce proper default behavior.
+
+**Example:** For ARIA project description mentioning "deployed 18 months ago" and "production":
+- ✅ Claude CAN suggest: "Based on your description, it looks like **Monitoring stage**"
+- ✅ Must clearly state: "However, if you say 'proceed', we will use **Design stage** as default"
+- ✅ User says "Monitoring" or "yes, Monitoring" → Use Monitoring, continue
+- ✅ User says "proceed" → Use Design (NOT Monitoring), continue
+
+#### Solution: Detection Allowed, Default Enforced
+
+**Updated Behavioral Directive:**
+```
+(1) You MAY analyze the project description and suggest a likely stage if
+    clear indicators exist:
+    - 'deployed 18 months ago' → Monitoring
+    - 'planning phase' → Design
+    - 'validation testing' → Review
+    - 'going live' → Deployment
+    - 'being retired' → Decommission
+
+(2) Present all 5 stage options clearly
+
+(3) CRITICAL: Clearly state "However, if you don't specify or say 'proceed',
+    we will use Design stage as the default."
+
+(4) When user responds:
+    - Explicit confirmation (e.g., 'Monitoring', 'yes Monitoring') → use that stage
+    - Says 'proceed'/'yes'/'continue' → IMMEDIATELY use Design (NOT suggested stage)
+    - Do NOT get stuck - 'proceed' always means Design
+```
+
+**Updated User Prompt:**
+```
+QUESTION: Which lifecycle stage would you like to assess?
+
+Options: Design | Review | Deployment | Monitoring | Decommission
+
+Note: Based on your project description, a specific stage may be suggested
+as likely. However, this is just a suggestion to help you.
+
+⚠️ DEFAULT: If you say 'proceed' or don't explicitly specify a stage,
+we will use Design stage (regardless of any suggestion).
+
+To explicitly assess a specific stage:
+- 'Monitoring'
+- 'Yes, Monitoring stage'
+- 'Review stage'
+
+To use Design stage (default):
+- 'proceed'
+- 'Design'
+- 'continue'
+```
+
+**Key Behavior:**
+- **Detection allowed**: Claude can suggest any of the 5 stages based on description
+- **Suggestion is helpful**: Guides user but doesn't force decision
+- **Default enforced**: "proceed" always = Design, never the suggested stage
+- **No stuck state**: System continues immediately on "proceed"
+
+**Example Flow:**
+```
+Claude: "I notice your project mentions 'deployed 18 months ago', which
+        suggests Monitoring stage.
+
+        Which lifecycle stage would you like to assess?
+        (Design/Review/Deployment/Monitoring/Decommission)
+
+        Note: If you say 'proceed', we'll use Design stage as default."
+
+User: "proceed"
+Claude: [Uses Design stage, continues with workflow]
+
+OR
+
+User: "Monitoring"
+Claude: [Uses Monitoring stage, continues with workflow]
+```
+
+**Files Changed:**
+- `introduction_builder.py`: Updated behavioral_requirement and user_prompt for both OSFI-focused and combined workflows
+
+**Result:** Stage detection provides helpful suggestions while maintaining strict Design default for "proceed".
+
 ## [2.2.5] - 2025-11-21
 
 ### 🔧 Critical Fix: Lifecycle Stage Selection Behavior
