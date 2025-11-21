@@ -1,7 +1,7 @@
 # Architecture Documentation
 
-**Version**: 2.0.0
-**Date**: 2025-11-16
+**Version**: 2.2.0
+**Date**: 2025-11-21
 **Architecture Type**: Modular, Service-Oriented, Delegation Pattern
 
 ---
@@ -349,21 +349,35 @@ aia_report_generator._export_assessment_report()
 Word Document (.docx)
 ```
 
-### OSFI E-23 Assessment Flow
+### OSFI E-23 Assessment Flow (5-Step Workflow)
 
 ```
 User Request
     ↓
 server.py (MCP Handler)
     ↓
-osfi_e23_processor.assess_model_risk()
+STEP 1: description_validator.validate()
+    ↓ (pass/fail + coverage %)
     ↓
-osfi_data_extractor.extract_risk_level()
+STEP 2: osfi_e23_processor.assess_model_risk()
+    ↓ (risk score, level, detailed breakdown)
     ↓
-osfi_e23_report_generators.generate_report()
+STEP 3: osfi_e23_processor.evaluate_lifecycle_compliance()
+    ↓ (coverage %, stage detection, gaps)
+    ↓
+STEP 4: osfi_e23_processor.create_compliance_framework()
+    ↓ (governance, checklist, monitoring)
+    ↓
+STEP 5: osfi_e23_report_generators.generate_osfi_e23_report()
+    ↓ (aggregates data from Steps 2-4)
     ↓
 Word Document (.docx)
 ```
+
+**Data Flow Notes:**
+- Step 2 includes comprehensive risk assessment (formerly split across two steps)
+- Step 5 leverages data from Steps 2, 3, and 4 for complete report
+- Each step builds on previous step's output
 
 ### Workflow Introduction Flow
 
@@ -379,7 +393,7 @@ framework_detector.detect(context)
     ↓
 introduction_builder._build_osfi_workflow_section()
     ↓
-Returns 6-step OSFI workflow to user
+Returns 5-step OSFI workflow to user
 ```
 
 ---
