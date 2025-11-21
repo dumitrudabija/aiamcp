@@ -93,7 +93,7 @@ class IntroductionBuilder:
                     {"stage": "Monitoring", "description": "Production operation and ongoing performance tracking"},
                     {"stage": "Decommission", "description": "Model retirement or replacement"}
                 ],
-                "user_prompt": "QUESTION: Which lifecycle stage is your model currently in? (Design/Review/Deployment/Monitoring/Decommission)\n\nIf you do not explicitly answer this question, we will assume Design stage.\n\nExamples:\n- 'My model is in the Monitoring stage'\n- 'Review stage'\n- 'proceed' or no answer = Design stage (default)",
+                "user_prompt": "QUESTION: Which lifecycle stage is your model currently in?\n\nOptions: Design | Review | Deployment | Monitoring | Decommission\n\n⚠️ DEFAULT: If you say 'proceed' or don't specify a stage, we will use Design stage.\n\nTo specify a different stage, reply with the stage name:\n- 'Monitoring'\n- 'My model is in the Review stage'\n- 'Deployment stage'\n\nTo use Design stage (default), simply say:\n- 'proceed'\n- 'Design'\n- 'continue'",
                 "note": "The stage you explicitly specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
             },
             "sequence": [
@@ -188,7 +188,7 @@ class IntroductionBuilder:
                         {"stage": "Monitoring", "description": "Production operation and ongoing performance tracking"},
                         {"stage": "Decommission", "description": "Model retirement or replacement"}
                     ],
-                    "user_prompt": "QUESTION: Which lifecycle stage is your model currently in? (Design/Review/Deployment/Monitoring/Decommission)\n\nIf you do not explicitly answer this question, we will assume Design stage.\n\nExamples:\n- 'My model is in the Monitoring stage'\n- 'Review stage'\n- 'proceed' or no answer = Design stage (default)",
+                    "user_prompt": "QUESTION: Which lifecycle stage is your model currently in?\n\nOptions: Design | Review | Deployment | Monitoring | Decommission\n\n⚠️ DEFAULT: If you say 'proceed' or don't specify a stage, we will use Design stage.\n\nTo specify a different stage, reply with the stage name:\n- 'Monitoring'\n- 'My model is in the Review stage'\n- 'Deployment stage'\n\nTo use Design stage (default), simply say:\n- 'proceed'\n- 'Design'\n- 'continue'",
                     "note": "The stage you explicitly specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
                 },
                 "sequence": [
@@ -274,12 +274,12 @@ class IntroductionBuilder:
         elif framework_focus == 'osfi_e23':
             assistant_directive = {
                 "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present the OSFI E-23 workflow to the user. Do NOT call any other tools immediately after this. Mention that AIA is also available if they ask, but focus on OSFI E-23 since that's what was detected from context.",
-                "behavioral_requirement": "After presenting the OSFI E-23 introduction, you MUST ask the user TWO questions and WAIT for their responses: (1) Which lifecycle stage is your model in? (Design/Review/Deployment/Monitoring/Decommission - default is Design if not specified), and (2) Do you want to proceed with this OSFI E-23 workflow? Do NOT attempt to detect or interpret the lifecycle stage from the project description - ONLY use what the user explicitly states."
+                "behavioral_requirement": "After presenting the OSFI E-23 introduction, ask: 'Which lifecycle stage is your model in? (Design/Review/Deployment/Monitoring/Decommission)' - Do NOT analyze the project description, do NOT suggest a stage, do NOT say 'it looks like Monitoring' - simply present the 5 options and clearly state 'If you don't specify, we will use Design stage as the default.' When the user responds: (1) If they specify a stage (e.g., 'Monitoring', 'Review stage') - use that stage, (2) If they say 'proceed', 'yes', 'continue', or don't specify a stage - IMMEDIATELY use Design stage and proceed to ask if they want to start the workflow. Do NOT get stuck waiting - 'proceed' without a stage = Design."
             }
         else:  # both
             assistant_directive = {
                 "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present BOTH frameworks since the context is unclear. Do NOT call any other tools immediately after this. Ask the user which framework applies to their project.",
-                "behavioral_requirement": "After presenting both workflows, you MUST ask the user which framework they want to use (AIA, OSFI E-23, or both) and WAIT for their response. If they choose OSFI E-23 or both, also ask which lifecycle stage their model is in (Design/Review/Deployment/Monitoring/Decommission - default is Design if not specified). Do NOT attempt to detect or interpret the lifecycle stage from the project description - ONLY use what the user explicitly states."
+                "behavioral_requirement": "After presenting both workflows, ask which framework they want (AIA, OSFI E-23, or both). If they choose OSFI E-23 or both, ask: 'Which lifecycle stage is your model in? (Design/Review/Deployment/Monitoring/Decommission)' - Do NOT analyze the project description, do NOT suggest a stage - simply present the 5 options and clearly state 'If you don't specify, we will use Design stage as the default.' If user says 'proceed' without specifying stage, IMMEDIATELY use Design and continue. Do NOT get stuck."
             }
 
         # Build base introduction (common to all)

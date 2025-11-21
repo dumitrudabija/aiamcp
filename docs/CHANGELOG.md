@@ -2,6 +2,74 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.5] - 2025-11-21
+
+### 🔧 Critical Fix: Lifecycle Stage Selection Behavior
+
+#### Problem: Claude Still Analyzing Descriptions and Getting Stuck
+**User Report:** For project with "deployed 18 months ago is live":
+1. Claude detected "Monitoring" stage from description (should NOT do this)
+2. Asked for confirmation but didn't mention Design default clearly
+3. When user said "proceed", Claude got stuck (should have used Design)
+
+**Root Cause:** Behavioral directive not explicit enough - Claude still analyzing descriptions and suggesting stages.
+
+#### Solution: Explicit No-Analysis Instructions
+
+**Updated Assistant Directives:**
+
+OSFI E-23 focused:
+```
+"After presenting the OSFI E-23 introduction, ask: 'Which lifecycle stage
+is your model in? (Design/Review/Deployment/Monitoring/Decommission)' -
+Do NOT analyze the project description, do NOT suggest a stage, do NOT say
+'it looks like Monitoring' - simply present the 5 options and clearly state
+'If you don't specify, we will use Design stage as the default.'
+
+When the user responds:
+(1) If they specify a stage (e.g., 'Monitoring', 'Review stage') - use that stage
+(2) If they say 'proceed', 'yes', 'continue', or don't specify a stage -
+    IMMEDIATELY use Design stage and proceed to ask if they want to start
+    the workflow. Do NOT get stuck waiting - 'proceed' without a stage = Design."
+```
+
+**Updated User Prompt:**
+```
+QUESTION: Which lifecycle stage is your model currently in?
+
+Options: Design | Review | Deployment | Monitoring | Decommission
+
+⚠️ DEFAULT: If you say 'proceed' or don't specify a stage, we will use Design stage.
+
+To specify a different stage, reply with the stage name:
+- 'Monitoring'
+- 'My model is in the Review stage'
+- 'Deployment stage'
+
+To use Design stage (default), simply say:
+- 'proceed'
+- 'Design'
+- 'continue'
+```
+
+**Key Changes:**
+1. ❌ "Do NOT analyze the project description"
+2. ❌ "do NOT suggest a stage"
+3. ❌ "do NOT say 'it looks like Monitoring'"
+4. ✅ "simply present the 5 options"
+5. ✅ "IMMEDIATELY use Design stage" when user says "proceed"
+6. ✅ "Do NOT get stuck waiting"
+7. ✅ Clear warning: "⚠️ DEFAULT: If you say 'proceed'...we will use Design stage"
+
+**Expected Behavior:**
+- User says "proceed" → Use Design, continue
+- User says "Monitoring" → Use Monitoring, continue
+- User says nothing → Use Design, continue
+- Claude should NEVER suggest a stage based on description analysis
+
+**Files Changed:**
+- `introduction_builder.py`: Updated behavioral_requirement and user_prompt
+
 ## [2.2.4] - 2025-11-21
 
 ### 🔧 Critical Enhancement: 4-Level Risk Governance Consistency
