@@ -223,7 +223,8 @@ Reviews output       Asks questions             Applies regulations
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
     │ - Requests compliance framework            │
-    │ - Provides risk level and stage            │
+    │ - Passes risk level from Step 2            │
+    │ - Passes stage from Step 3                 │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
@@ -268,8 +269,10 @@ Reviews output       Asks questions             Applies regulations
       ↓
     ┌────────────────────────────────────────────┐
     │ PYTHON LOGIC:                              │
-    │ - Gathers data from all 4 previous steps   │
-    │ - Detects lifecycle stage                  │
+    │ - Uses assessment results from Step 2      │
+    │ - Optionally enhances with Step 3 data     │
+    │ - Optionally enhances with Step 4 data     │
+    │ - Detects stage (fallback if Step 3 skip)  │
     │                                            │
     │ - Generates Word document with:            │
     │   • Executive Summary                      │
