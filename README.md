@@ -77,8 +77,8 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 
 ### Transparency & Information Tools
 
-#### 1. `get_server_introduction` (v1.15.0 Enhanced)
-**TRANSPARENCY & CAPABILITIES**: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework data (MCP) vs AI-generated interpretations (Claude). **NOW INCLUDES**: Complete 6-step OSFI E-23 workflow sequence and 5-step AIA workflow sequence with step-by-step guidance.
+#### 1. `get_server_introduction` (v2.2.10 Enhanced)
+**TRANSPARENCY & CAPABILITIES**: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework structures (AIA questions, OSFI principles) vs proof of concept implementation logic (scoring, calculations) vs AI-generated interpretations (Claude). **NOW INCLUDES**: Complete 5-step OSFI E-23 workflow sequence and 5-step AIA workflow sequence with step-by-step guidance.
 
 **Parameters:**
 - None required
@@ -90,10 +90,10 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 - **NEW**: 4 framework selection options with user choice prompting
 - Tool categories and descriptions
 - Workflow guidance (recommended vs manual approaches)
-- Critical distinction between MCP official data vs Claude AI analysis
+- Critical distinction: Official framework structures vs Proof of concept implementation vs AI analysis
+- Proof of concept transparency and customization requirements
 - Compliance warnings and professional validation requirements
 - Usage examples (proper vs improper usage)
-- Data source attribution and anti-hallucination design
 
 **Behavioral Directives (v1.15.0):**
 - "STOP AND PRESENT THIS INTRODUCTION FIRST" - ensures workflow visibility
@@ -101,8 +101,9 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 - "CALL THIS ALONE" - prevents simultaneous tool calls
 
 **Visual Markers:**
-- 🔧 MCP SERVER (Official): Official government data, validated calculations
+- 🔧 MCP SERVER: Official framework structures (AIA questions, OSFI principles) + Proof of concept implementation logic
 - 🧠 CLAUDE ANALYSIS (AI-Generated): Interpretations, recommendations, gap analysis
+- ⚠️ NOTE: Risk scoring, calculations, and governance mappings are proof of concept - NOT official specifications
 
 ### Workflow Management Tools
 
@@ -381,11 +382,12 @@ Our implementation achieves 98% compliance with Canada's official AIA framework 
 ```javascript
 use_mcp_tool("aia-assessment", "get_server_introduction", {});
 ```
-- **NEW**: Shows complete 6-step OSFI E-23 workflow sequence
+- **NEW**: Shows complete 5-step OSFI E-23 workflow sequence
 - **NEW**: Shows complete 5-step AIA workflow sequence
 - **NEW**: Presents 4 framework selection options (AIA, OSFI E-23, Workflow Mode, Combined)
 - Provides comprehensive server capabilities overview
-- Explains MCP official data vs Claude AI analysis distinction
+- Explains proof of concept status and customization requirements
+- Distinguishes official framework structures from implementation choices
 - Shows workflow guidance and best practices
 - **Must be called before any assessment tools**
 - One-time orientation for new users

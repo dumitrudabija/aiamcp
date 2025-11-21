@@ -119,15 +119,18 @@ pip install -r requirements.txt
 
 ## Transparency and Data Source Distinction
 
-### Critical Understanding
-- **MCP Server provides OFFICIAL regulatory data** - all calculations, scores, and compliance determinations come from verified government sources
-- **Claude provides AI interpretation** - explanations, recommendations, and gap analysis based on official MCP results
-- **Anti-hallucination design** - AI cannot modify official scores, risk levels, or compliance determinations
+### Critical Understanding (v2.2.10)
+- **⚠️ PROOF OF CONCEPT**: This MCP server uses official framework structures but implements exemplification logic requiring institutional customization
+- **What is OFFICIAL**: AIA questions (104 from Canada.ca), OSFI E-23 Principles (1.1-3.6), lifecycle stages, framework structure
+- **What is PROOF OF CONCEPT**: Risk scoring weights, thresholds, formulas, governance mappings, amplification factors, requirements interpretation
+- **Claude provides AI interpretation** - explanations, recommendations, and gap analysis based on MCP framework results
+- **Customization REQUIRED** - Financial institutions must validate and adapt all implementation logic to their institutional framework
 
 ### Visual Markers in Tool Responses
-- **🔧 MCP SERVER (Official)**: Canada.ca AIA framework questions/scoring, OSFI E-23 methodology, validated calculations
+- **🔧 MCP SERVER**: Official framework structures (AIA questions, OSFI principles) + Proof of concept implementation logic (scoring, calculations)
 - **🧠 CLAUDE ANALYSIS (AI-Generated)**: Interpretations, recommendations, gap analysis, planning guidance
-- **⚠️ COMPLIANCE WARNINGS**: Professional validation requirements, regulatory compliance notes
+- **⚠️ COMPLIANCE WARNINGS**: Professional validation requirements, customization needs, regulatory compliance notes
+- **⚙️ TUNABLE PARAMETERS**: Risk weights, thresholds, governance mappings require institutional adaptation
 
 ### Transparency Tool
 - **get_server_introduction**: CRITICAL first-call tool that MUST be called at the START of assessment conversations
