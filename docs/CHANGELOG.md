@@ -21,10 +21,11 @@ Major refactoring of Steps 3-6 in the OSFI E-23 workflow to improve clarity, con
 #### Solution Implemented
 
 **Step 3 (evaluate_lifecycle_compliance):**
-- ✅ Reduced from 4 to 3 coverage indicators per stage (1:1 mapping with OSFI subcomponents)
+- ✅ Reduced from 4 to 3 coverage indicators per stage (1:1 mapping with subcomponents)
 - ✅ Changed terminology from "compliance" to "coverage" for accuracy
 - ✅ Updated tool descriptions and user-facing messages
 - ✅ Coverage percentages: 0%, 33%, 67%, 100% (based on 3 elements)
+- ℹ️ **Note:** Design stage uses official OSFI Principles 3.2-3.4; other stages use our implementation interpretation
 
 **Step 4 (generate_risk_rating):**
 - ✅ Removed `governance_intensity`, `review_frequency`, `approval_authority` (moved to Step 5)
@@ -34,9 +35,10 @@ Major refactoring of Steps 3-6 in the OSFI E-23 workflow to improve clarity, con
 
 **Step 5 (create_compliance_framework):**
 - ✅ Made stage-specific: shows only current stage requirements (not all 5 stages)
-- ✅ Created `osfi_elements` structure organized by 3 OSFI subcomponents per stage
+- ✅ Created `osfi_elements` structure organized by 3 subcomponents per stage
 - ✅ Each element includes: `requirements`, `deliverables`, `checklist_items`
 - ✅ Added `osfi_required`/`osfi_implied`/`source` fields to `governance_structure`
+- ℹ️ **Note:** Design stage uses official OSFI Principles 3.2-3.4; other stages use our implementation interpretation based on OSFI guidance
 - ✅ Added checklist items for all 3 elements in monitoring stage:
   - Performance Tracking: "Regular performance monitoring", "Automated performance dashboards" (High/Critical)
   - Drift Detection: "Data drift monitoring setup", "Statistical drift detection tests" (High/Critical)
@@ -52,10 +54,10 @@ Major refactoring of Steps 3-6 in the OSFI E-23 workflow to improve clarity, con
 - ✅ Made reports stage-specific (Design/Review/Deployment/Monitoring/Decommission)
 - ✅ Added Section 3: **Lifecycle Coverage Assessment** (Step 3 data)
   - Coverage percentage with color coding (Green/Yellow/Orange)
-  - Table showing 3 OSFI elements detected/not detected
+  - Table showing 3 subcomponents detected/not detected per stage
   - Gap analysis with missing elements and recommendations
 - ✅ Added Section 4: **Stage-Specific Compliance Checklist** (Step 5 osfi_elements)
-  - Organized by 3 OSFI subcomponents for current stage
+  - Organized by 3 subcomponents for current stage (Design uses official OSFI Principles; others use implementation interpretation)
   - Requirements, deliverables, and checklist items per element
   - Risk-level specific items with "Required" markers
 - ✅ Added Section 5: **Governance Structure** (Step 5 governance_structure)
@@ -85,12 +87,13 @@ Major refactoring of Steps 3-6 in the OSFI E-23 workflow to improve clarity, con
 #### Impact & Benefits
 
 **Clarity:**
-- ✅ Clear 1:1 mapping between coverage indicators and OSFI subcomponents
+- ✅ Clear 1:1 mapping between coverage indicators and subcomponents per stage
 - ✅ Accurate terminology: "coverage" (keyword detection) vs "compliance" (actual deliverables)
 - ✅ Transparent distinction between OSFI-mandated and implementation choices
+- ✅ Clear documentation that Design uses official OSFI Principles 3.2-3.4; other stages use our interpretation
 
 **Consistency:**
-- ✅ All lifecycle stages now have complete checklist items for all 3 OSFI elements
+- ✅ All lifecycle stages now have complete checklist items for all 3 subcomponents
 - ✅ Uniform structure across all stages in osfi_elements
 - ✅ Risk-level specific requirements clearly marked
 

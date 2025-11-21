@@ -232,10 +232,10 @@ Export AIA assessment results to a Microsoft Word document.
 - `projectDescription`: **CRITICAL**: Factual, detailed description with specific technical architecture, documented data sources/volumes, explicit business use cases
 
 #### 13. `evaluate_lifecycle_compliance`
-🏦 **OSFI E-23 STEP 3 OF 6 - LIFECYCLE COVERAGE ASSESSMENT**: Evaluate lifecycle coverage by detecting presence of 3 official OSFI E-23 subcomponents for the current stage. Returns coverage percentage (0%, 33%, 67%, 100%) based on keyword detection.
+🏦 **OSFI E-23 STEP 3 OF 6 - LIFECYCLE COVERAGE ASSESSMENT**: Evaluate lifecycle coverage by detecting presence of 3 subcomponents per stage. Returns coverage percentage (0%, 33%, 67%, 100%) based on keyword detection.
 
 **NEW (v2.1.0):**
-- ✅ 3 coverage indicators per stage (1:1 mapping with OSFI subcomponents)
+- ✅ 3 coverage indicators per stage (Design has 3 official OSFI Principles 3.2-3.4; other stages use our implementation interpretation)
 - ✅ Terminology changed from "compliance" to "coverage" for accuracy
 - ✅ Coverage percentages: 0/33/67/100% (based on 3 elements detected)
 
@@ -267,11 +267,11 @@ Export AIA assessment results to a Microsoft Word document.
 - Risk amplification calculations
 
 #### 15. `create_compliance_framework`
-🏦 **OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK**: Create stage-specific compliance framework with governance structure, OSFI elements organized by 3 subcomponents, monitoring framework, and documentation requirements.
+🏦 **OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK**: Create stage-specific compliance framework with governance structure, organized by 3 subcomponents per stage, monitoring framework, and documentation requirements.
 
 **NEW (v2.1.0):**
 - ✅ Stage-specific (shows only current stage requirements, not all 5 stages)
-- ✅ osfi_elements structure with 3 OSFI subcomponents per stage
+- ✅ osfi_elements structure with 3 subcomponents per stage (Design uses official OSFI Principles 3.2-3.4; other stages use our implementation interpretation based on OSFI guidance)
 - ✅ Each element includes: requirements, deliverables, checklist_items
 - ✅ Governance structure with osfi_required/osfi_implied/source fields
 - ✅ Complete checklists for monitoring and decommission stages
@@ -285,9 +285,11 @@ Export AIA assessment results to a Microsoft Word document.
 
 **Returns:**
 - Governance structure (roles with OSFI-mandated vs choice clarity)
-- osfi_elements (3 subcomponents with requirements/deliverables/checklists)
+- osfi_elements (3 subcomponents per stage with requirements/deliverables/checklists)
 - Monitoring framework (frequency, metrics, thresholds)
 - Documentation requirements (risk-based)
+
+**Note:** Design stage subcomponents are official OSFI Principles 3.2-3.4; other stages reflect our implementation interpretation of OSFI requirements.
 
 #### 16. `export_e23_report`
 🏦 **OSFI E-23 STEP 6 OF 6 - REPORT GENERATION**: Export stage-specific OSFI E-23 compliance report to Microsoft Word document with comprehensive sections leveraging data from Steps 2, 3, and 5.
