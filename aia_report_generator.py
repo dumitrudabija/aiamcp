@@ -244,12 +244,21 @@ class AIAReportGenerator:
             
             return {
                 "assistant_directive": {
-                    "critical_instruction": "The COMPLETE AIA compliance report has been generated and saved by the MCP server. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review."
+                    "critical_instruction": "The COMPLETE AIA compliance report has been generated and saved by the MCP server. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review.",
+                    "file_access_warning": "⚠️ CRITICAL: Do NOT attempt to read, open, or display the Word document contents. The file is saved on the user's local filesystem and is NOT accessible to you. Do NOT use Read tool or any other tool to access this file. Do NOT recreate or regenerate the document. Simply inform the user that the document has been created and where it is located - the user will open it directly in Microsoft Word.",
+                    "prohibited_actions": [
+                        "❌ Do NOT call Read tool on the .docx file",
+                        "❌ Do NOT attempt to display document contents",
+                        "❌ Do NOT regenerate or recreate the document",
+                        "❌ Do NOT offer to show the user what's in the document",
+                        "✅ ONLY inform user of file location and that it's ready"
+                    ]
                 },
                 "success": True,
                 "file_path": file_path,
                 "file_size": f"{file_size_kb}KB",
-                "message": f"✅ Canada's AIA compliance report saved successfully to {filename}"
+                "message": f"✅ Canada's AIA compliance report saved successfully to {filename}",
+                "user_next_steps": f"Open the document directly from: {file_path}"
             }
             
         except PermissionError:
