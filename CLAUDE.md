@@ -244,7 +244,7 @@ pip install -r requirements.txt
 - **Workflow Management**: create_workflow, execute_workflow_step, get_workflow_status, auto_execute_workflow
 - **Validation Tools**: validate_project_description
 - **AIA Tools**: analyze_project_description, get_questions, assess_project, functional_preview, export_assessment_report
-- **OSFI E-23 Tools**: assess_model_risk, evaluate_lifecycle_compliance, generate_risk_rating, create_compliance_framework, export_e23_report
+- **OSFI E-23 Tools**: assess_model_risk, evaluate_lifecycle_compliance (Step 3: keyword matching for requirements coverage), create_compliance_framework, export_e23_report
 
 ## Key Architectural Decisions
 
@@ -258,11 +258,11 @@ pip install -r requirements.txt
 - **Transparent Methodology**: All scoring calculations are deterministic and auditable
 - **No AI Risk Interpretation**: Server provides structure, Claude Desktop provides reasoning
 
-### OSFI E-23 Report Structure (v2.2.9)
-- **Standardized 7-Chapter Format**: Executive Summary, Risk Rating Methodology, Lifecycle Coverage Assessment, Stage-Specific Compliance Checklist, Governance Structure, Monitoring Framework, Annex (OSFI Principles)
+### OSFI E-23 Report Structure (v2.2.11)
+- **Standardized 7-Chapter Format**: Executive Summary, Risk Rating Methodology, Current Stage Requirements Coverage, Stage-Specific Compliance Checklist, Governance Structure, Monitoring Framework, Annex (OSFI Principles)
 - **Chapter 1: Executive Summary**: Single paragraph (150-200 words) in plain English explaining risk level, key drivers, and governance requirements
 - **Chapter 2: Risk Rating Methodology**: Complete transparency with detailed tables showing all quantitative/qualitative factors, weights, detection status, and amplification calculations
-- **Chapter 3: Lifecycle Coverage Assessment**: Coverage percentage (0/33/67/100%) showing which OSFI E-23 lifecycle elements are detected in project description (from Step 3)
+- **Chapter 3: Current Stage Requirements Coverage**: Coverage percentage (0/33/67/100%) from Step 3 keyword matching showing which requirements are mentioned in project description - NOT compliance verification
 - **Chapter 4: Stage-Specific Compliance Checklist**: Actionable checkboxes for current lifecycle stage deliverables organized by OSFI Principles - title dynamically changes (e.g., "DESIGN STAGE COMPLIANCE CHECKLIST", "MONITORING STAGE COMPLIANCE CHECKLIST")
 - **Chapter 5: Governance Structure** (v2.2.9 expanded):
   - **5.1 Governance Roles and Responsibilities**: Table showing Role | Responsibility | OSFI Required | Source with legend

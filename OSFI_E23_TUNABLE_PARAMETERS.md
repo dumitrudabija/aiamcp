@@ -309,7 +309,7 @@ qualitative_indicators = {
 ### Current 7-Chapter Structure (v2.2.9)
 1. Executive Summary (150-200 words)
 2. Risk Rating Methodology (detailed scoring tables)
-3. Lifecycle Coverage Assessment (coverage percentage by stage)
+3. Current Stage Requirements Coverage (keyword matching, coverage percentage by stage)
 4. Stage-Specific Compliance Checklist (actionable items, title dynamically changes)
 5. Governance Structure (v2.2.9 expanded):
    - 5.1 Governance Roles and Responsibilities

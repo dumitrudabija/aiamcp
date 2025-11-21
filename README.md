@@ -239,7 +239,9 @@ Export AIA assessment results to a Microsoft Word document.
 - `projectDescription`: **CRITICAL**: Factual, detailed description with specific technical architecture, documented data sources/volumes, explicit business use cases
 
 #### 13. `evaluate_lifecycle_compliance`
-🏦 **OSFI E-23 STEP 3 OF 6 - LIFECYCLE COVERAGE ASSESSMENT**: Evaluate lifecycle coverage by detecting presence of 3 subcomponents per stage. Returns coverage percentage (0%, 33%, 67%, 100%) based on keyword detection.
+🏦 **OSFI E-23 STEP 3 OF 5 - CURRENT STAGE REQUIREMENTS**: Check which OSFI E-23 requirements for the current lifecycle stage are mentioned in your project description using keyword matching. Returns coverage percentage (0%, 33%, 67%, 100%) based on which keywords are found.
+
+⚠️ **NOTE**: This is basic keyword matching - NOT compliance verification. Use results to identify gaps in your project description.
 
 **NEW (v2.1.0):**
 - ✅ 3 coverage indicators per stage (Design has 3 official OSFI Principles 3.2-3.4; other stages use our implementation interpretation)
@@ -284,9 +286,9 @@ Export AIA assessment results to a Microsoft Word document.
 #### 15. `export_e23_report`
 🏦 **OSFI E-23 STEP 5 OF 5 - REPORT GENERATION**: Export stage-specific OSFI E-23 compliance report to Microsoft Word document with comprehensive sections leveraging data from Steps 2, 3, and 4.
 
-**NEW (v2.2.9):**
+**NEW (v2.2.11):**
 - ✅ Stage-specific reports (Design/Review/Deployment/Monitoring/Decommission)
-- ✅ Chapter 3: Lifecycle Coverage Assessment (Step 3 data with color-coded percentages)
+- ✅ Chapter 3: Current Stage Requirements Coverage (Step 3 keyword matching with color-coded percentages)
 - ✅ Chapter 4: Stage-Specific Compliance Checklist (Step 4 osfi_elements, title dynamically changes by stage)
 - ✅ Chapter 5: Governance Structure (v2.2.9 expanded with 3 subsections):
   - 5.1 Governance Roles and Responsibilities (with OSFI-mandated vs choice clarity)
@@ -308,7 +310,7 @@ Export AIA assessment results to a Microsoft Word document.
 **Report Structure (7 chapters):**
 1. Executive Summary
 2. Risk Rating Methodology
-3. Lifecycle Coverage Assessment (from Step 3)
+3. Current Stage Requirements Coverage (from Step 3 keyword matching)
 4. Stage-Specific Compliance Checklist (from Step 4, title dynamically changes by stage)
 5. Governance Structure (v2.2.9 expanded):
    - 5.1 Governance Roles and Responsibilities

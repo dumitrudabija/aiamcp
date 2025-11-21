@@ -224,32 +224,35 @@ Reviews output       Asks questions             Applies regulations
     └────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────────────────────────┐
-│ STEP 3 of 5: Lifecycle Coverage Assessment                            │
+│ STEP 3 of 5: Current Stage Requirements Coverage                      │
 └────────────────────────────────────────────────────────────────────────┘
-    Purpose: Evaluate coverage of OSFI lifecycle requirements for current stage
+    Purpose: Check which requirements are mentioned in description (keyword matching)
 
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
-    │ - Requests lifecycle compliance check      │
+    │ - Requests requirements coverage check     │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
-    │ PYTHON LOGIC:                              │
-    │ - Detects current lifecycle stage:         │
+    │ PYTHON LOGIC (Keyword Matching):           │
+    │ - Uses current lifecycle stage:            │
     │   Design/Review/Deployment/                │
     │   Monitoring/Decommission                  │
-    │ - Checks for 3 stage-specific elements     │
+    │ - Checks for 3 stage-specific keywords     │
     │ - Calculates coverage: 0/33/67/100%        │
-    │ - Identifies gaps                          │
+    │ - Identifies gaps in description           │
+    │                                            │
+    │ ⚠️ NOTE: Basic keyword detection -         │
+    │          NOT compliance verification       │
     │                                            │
     │ - Stores result in session state:          │
     │   session["tool_results"]["evaluate_lifecycle_compliance"] │
     │                                            │
     │ Returns:                                   │
-    │   - Current stage detected                 │
-    │   - Coverage percentage                    │
-    │   - Elements present vs missing            │
-    │   - Gap recommendations                    │
+    │   - Current stage used                     │
+    │   - Coverage percentage (keyword matches)  │
+    │   - Which keywords found vs missing        │
+    │   - Description gap recommendations        │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
@@ -332,7 +335,7 @@ Reviews output       Asks questions             Applies regulations
     │    - Generates Word document with:         │
     │   • Executive Summary                      │
     │   • Risk Rating Methodology                │
-    │   • Lifecycle Coverage Assessment          │
+    │   • Current Stage Requirements Coverage    │
     │   • Stage-Specific Compliance Checklist    │
     │   • Governance Structure (v2.2.9):         │
     │     - 5.1 Roles and Responsibilities       │
