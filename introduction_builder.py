@@ -259,7 +259,7 @@ class IntroductionBuilder:
             "assistant_directive": assistant_directive,
             "server_introduction": {
                 "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
-                "version": "2.0.0",
+                "version": "2.2.0",
                 "purpose": "Official framework compliance for Canada's Algorithmic Impact Assessment (AIA) and OSFI Guideline E-23 Model Risk Management",
                 "transparency_notice": {
                     "critical_distinction": "This server provides OFFICIAL regulatory framework data. All calculations, scores, and compliance determinations come from verified government sources - NOT AI generation.",
