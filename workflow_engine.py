@@ -60,7 +60,6 @@ class WorkflowEngine:
                 "validate_project_description",
                 "assess_model_risk",
                 "evaluate_lifecycle_compliance",
-                "generate_risk_rating",
                 "create_compliance_framework",
                 "export_e23_report"
             ],
@@ -82,7 +81,6 @@ class WorkflowEngine:
             "export_assessment_report": [],  # Special handling - can export after functional_preview OR assess_project
             "export_e23_report": ["assess_model_risk"],
             "evaluate_lifecycle_compliance": ["assess_model_risk"],
-            "generate_risk_rating": ["assess_model_risk"],
             "create_compliance_framework": ["assess_model_risk"]
         }
 
@@ -532,7 +530,6 @@ class WorkflowEngine:
             "assess_project": "🎯 Calculate official AIA risk score using actual responses",
             "assess_model_risk": "🏦 Conduct OSFI E-23 model risk assessment",
             "evaluate_lifecycle_compliance": "📊 Evaluate model lifecycle compliance (OSFI E-23)",
-            "generate_risk_rating": "⚖️ Generate detailed risk rating assessment (OSFI E-23)",
             "create_compliance_framework": "📋 Create comprehensive compliance framework (OSFI E-23)",
             "export_assessment_report": "📄 Generate comprehensive AIA assessment report",
             "export_e23_report": "📄 Generate comprehensive OSFI E-23 assessment report"

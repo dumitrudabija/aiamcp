@@ -2,6 +2,76 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.0] - 2025-11-21
+
+### ⚡ OSFI E-23 Workflow Simplification - Step 4 Merged into Step 2
+
+#### Overview
+Eliminated Step 4 (generate_risk_rating) by merging its detailed risk breakdown functionality into Step 2 (assess_model_risk). The workflow is now streamlined from 6 steps to 5 steps, removing redundant risk analysis while preserving all detailed scoring capabilities.
+
+#### Problem Resolved
+- **Duplicate Risk Analysis**: Steps 2 and 4 both analyzed risk using identical logic
+- **Workflow Confusion**: Users unclear when to use Step 2 vs Step 4
+- **No Dependencies**: Step 5 and Step 6 used Step 2 data only, never Step 4
+- **Redundant Execution**: Required running risk assessment twice for no benefit
+
+#### Solution Implemented
+
+**Step 2 Enhanced (assess_model_risk):**
+- ✅ Merged Step 4's detailed scoring breakdown (`risk_scores`)
+- ✅ Merged Step 4's individual factor analysis (`risk_factor_analysis`)
+- ✅ Maintains all existing Step 2 functionality
+- ✅ Single comprehensive risk assessment with full details
+- ✅ New fields: `amplification_factor`, `base_score`, detailed factor breakdown
+
+**Step 4 Removed (generate_risk_rating):**
+- ✅ Function removed from `osfi_e23_processor.py`
+- ✅ Handler removed from `server.py`
+- ✅ Tool definition removed from `tool_registry.py`
+- ✅ Workflow sequence updated in `workflow_engine.py`
+
+**Renumbered Steps:**
+- ✅ Old Step 5 (create_compliance_framework) → New Step 4
+- ✅ Old Step 6 (export_e23_report) → New Step 5
+- ✅ All tool descriptions updated: "STEP X OF 6" → "STEP X OF 5"
+- ✅ Workflow sequences updated in `introduction_builder.py`
+
+#### Technical Details
+
+**Files Modified:**
+- `osfi_e23_processor.py` - Enhanced Step 2, removed Step 4 function (-43 lines)
+- `server.py` - Removed Step 4 handler and references (-23 lines)
+- `config/tool_registry.py` - Removed Step 4 tool, updated step numbers (-18 lines)
+- `workflow_engine.py` - Updated workflow sequences, removed dependencies (-3 lines)
+- `introduction_builder.py` - Updated workflow descriptions and step numbers (-8 lines)
+
+**Tests:**
+- ✅ Step 2 verified to include merged fields (`risk_scores`, `risk_factor_analysis`)
+- ✅ All existing Step 2 functionality preserved
+- ✅ Steps 3, 4 (new), 5 (new) unaffected - no breaking changes
+
+#### Impact & Benefits
+
+**Simplification:**
+- ✅ Workflow reduced from 6 steps to 5 steps
+- ✅ Clearer workflow: validate → assess → evaluate → create → export
+- ✅ No more confusion about when to use Step 2 vs Step 4
+- ✅ Users run risk assessment once, get complete details
+
+**Performance:**
+- ✅ Eliminates duplicate risk analysis execution
+- ✅ Faster workflow completion (one fewer step)
+
+**Functionality:**
+- ✅ Zero functionality loss - all Step 4 data now in Step 2
+- ✅ Steps 5 and 6 continue working unchanged (backward compatible)
+- ✅ Enhanced Step 2 provides more detail than before
+
+**User Experience:**
+- ✅ Simpler workflow easier to understand and follow
+- ✅ Single risk assessment step with comprehensive output
+- ✅ Minimum viable workflow now just 3 steps: 1, 2, 5
+
 ## [2.1.0] - 2025-11-21
 
 ### 🔄 OSFI E-23 Workflow Streamlining - Enhanced Data Integration

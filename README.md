@@ -223,7 +223,13 @@ Export AIA assessment results to a Microsoft Word document.
 ### OSFI E-23 Framework Tools
 
 #### 12. `assess_model_risk`
-🏦 **OSFI E-23 STEP 2 OF 6 - MODEL RISK ASSESSMENT**: Comprehensive model risk assessment using Canada's OSFI Guideline E-23 framework. This is STEP 2 in the complete OSFI E-23 workflow: (1) validate → **(2) assess_model_risk** → (3) evaluate_lifecycle → (4) generate_risk_rating → (5) create_compliance_framework → (6) export_e23_report.
+🏦 **OSFI E-23 STEP 2 OF 5 - MODEL RISK ASSESSMENT**: Comprehensive model risk assessment with detailed scoring breakdown using Canada's OSFI Guideline E-23 framework. This is STEP 2 in the complete OSFI E-23 workflow: (1) validate → **(2) assess_model_risk** → (3) evaluate_lifecycle → (4) create_compliance_framework → (5) export_e23_report.
+
+**NEW (v2.2.0):**
+- ✅ Merged Step 4 (generate_risk_rating) into Step 2 for streamlined workflow
+- ✅ Now includes detailed `risk_scores` breakdown (quantitative, qualitative, base, amplification factor)
+- ✅ Now includes `risk_factor_analysis` with high/medium risk factors and interactions
+- ✅ Single comprehensive risk assessment - no duplicate analysis needed
 
 ⚠️ **COMPLIANCE WARNING**: Requires professional validation.
 
@@ -249,25 +255,8 @@ Export AIA assessment results to a Microsoft Word document.
 - Gap analysis with missing elements
 - OSFI subcomponents for current stage
 
-#### 14. `generate_risk_rating`
-🏦 **OSFI E-23 STEP 4 OF 6 - RISK RATING DOCUMENTATION**: Generate detailed risk rating assessment using OSFI E-23 methodology. Focuses purely on risk assessment and analysis.
-
-**NEW (v2.1.0):**
-- ✅ Streamlined to focus on risk rating only (no governance elements)
-- ✅ Returns: risk_rating, risk_score, risk_analysis, risk_factor_analysis
-- ✅ Clear separation: Step 4 = "What is the risk?" vs Step 5 = "What governance is needed?"
-
-**Parameters:**
-- `projectName`: Name of the model being rated
-- `projectDescription`: Detailed description including technical details, business impact, and usage context
-
-**Returns:**
-- Risk level (Low/Medium/High/Critical) and numerical score
-- Detailed risk factor analysis with quantitative and qualitative scores
-- Risk amplification calculations
-
-#### 15. `create_compliance_framework`
-🏦 **OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK**: Create stage-specific compliance framework with governance structure, organized by 3 subcomponents per stage, monitoring framework, and documentation requirements.
+#### 14. `create_compliance_framework`
+🏦 **OSFI E-23 STEP 4 OF 5 - COMPLIANCE FRAMEWORK**: Create stage-specific compliance framework with governance structure, organized by 3 subcomponents per stage, monitoring framework, and documentation requirements.
 
 **NEW (v2.1.0):**
 - ✅ Stage-specific (shows only current stage requirements, not all 5 stages)
@@ -291,8 +280,8 @@ Export AIA assessment results to a Microsoft Word document.
 
 **Note:** Design stage subcomponents are official OSFI Principles 3.2-3.4; other stages reflect our implementation interpretation of OSFI requirements.
 
-#### 16. `export_e23_report`
-🏦 **OSFI E-23 STEP 6 OF 6 - REPORT GENERATION**: Export stage-specific OSFI E-23 compliance report to Microsoft Word document with comprehensive sections leveraging data from Steps 2, 3, and 5.
+#### 15. `export_e23_report`
+🏦 **OSFI E-23 STEP 5 OF 5 - REPORT GENERATION**: Export stage-specific OSFI E-23 compliance report to Microsoft Word document with comprehensive sections leveraging data from Steps 2, 3, and 4.
 
 **NEW (v2.1.0):**
 - ✅ Stage-specific reports (Design/Review/Deployment/Monitoring/Decommission)

@@ -103,25 +103,19 @@ class IntroductionBuilder:
                 },
                 {
                     "step": 4,
-                    "tool": "generate_risk_rating",
-                    "purpose": "Generate detailed risk rating documentation",
-                    "output": "Comprehensive risk rating report with methodology"
-                },
-                {
-                    "step": 5,
                     "tool": "create_compliance_framework",
                     "purpose": "Build complete governance and compliance framework",
                     "output": "Full E-23 compliance structure with policies and controls"
                 },
                 {
-                    "step": 6,
+                    "step": 5,
                     "tool": "export_e23_report",
-                    "purpose": "Generate executive-ready risk-adaptive report",
-                    "output": "Professional Word document (4-6 pages) with risk-adaptive content"
+                    "purpose": "Generate executive-ready stage-specific report",
+                    "output": "Professional Word document (4-6 pages) with stage-specific content"
                 }
             ],
             "recommended_use": "Models used by federally regulated financial institutions (banks, credit unions, insurance companies)",
-            "minimum_viable": "Steps 1, 2, and 6 provide basic compliance; all 6 steps provide comprehensive coverage",
+            "minimum_viable": "Steps 1, 2, and 5 provide basic compliance; all 5 steps provide comprehensive coverage",
             "note": "💡 If your model makes automated decisions affecting citizens, you may need AIA framework too. Just ask!"
         }
 
@@ -190,25 +184,19 @@ class IntroductionBuilder:
                     },
                     {
                         "step": 4,
-                        "tool": "generate_risk_rating",
-                        "purpose": "Generate detailed risk rating documentation",
-                        "output": "Comprehensive risk rating report with methodology"
-                    },
-                    {
-                        "step": 5,
                         "tool": "create_compliance_framework",
                         "purpose": "Build complete governance and compliance framework",
                         "output": "Full E-23 compliance structure with policies and controls"
                     },
                     {
-                        "step": 6,
+                        "step": 5,
                         "tool": "export_e23_report",
-                        "purpose": "Generate executive-ready risk-adaptive report",
-                        "output": "Professional Word document (4-6 pages) with risk-adaptive content"
+                        "purpose": "Generate executive-ready stage-specific report",
+                        "output": "Professional Word document (4-6 pages) with stage-specific content"
                     }
                 ],
                 "recommended_use": "Models used by federally regulated financial institutions (banks, credit unions, insurance companies)",
-                "note": "All 6 steps provide comprehensive OSFI E-23 coverage. Minimum viable assessment: steps 1-2 and 6."
+                "note": "All 5 steps provide comprehensive OSFI E-23 coverage. Minimum viable assessment: steps 1-2 and 5."
             },
             "combined_workflow": {
                 "title": "🇨🇦🏦 Combined AIA + OSFI E-23 Workflow",
@@ -302,7 +290,7 @@ class IntroductionBuilder:
                 },
                 "osfi_e23_framework": {
                     "description": "🏦 OSFI Guideline E-23 Model Risk Management",
-                    "tools": ["assess_model_risk", "evaluate_lifecycle_compliance", "generate_risk_rating", "create_compliance_framework", "export_e23_report"],
+                    "tools": ["assess_model_risk", "evaluate_lifecycle_compliance", "create_compliance_framework", "export_e23_report"],
                     "official_source": "Office of the Superintendent of Financial Institutions Canada"
                 }
             }

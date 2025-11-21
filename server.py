@@ -238,7 +238,7 @@ class MCPServer:
         arguments = params.get("arguments", {})
 
         # Auto-session management for OSFI E-23 tools
-        osfi_tools = ["assess_model_risk", "evaluate_lifecycle_compliance", "generate_risk_rating",
+        osfi_tools = ["assess_model_risk", "evaluate_lifecycle_compliance",
                       "create_compliance_framework", "export_e23_report"]
 
         session_id = None
@@ -274,8 +274,6 @@ class MCPServer:
                 result = self._assess_model_risk(arguments)
             elif tool_name == "evaluate_lifecycle_compliance":
                 result = self._evaluate_lifecycle_compliance(arguments)
-            elif tool_name == "generate_risk_rating":
-                result = self._generate_risk_rating(arguments)
             elif tool_name == "create_compliance_framework":
                 result = self._create_compliance_framework(arguments)
             elif tool_name == "export_e23_report":
@@ -503,8 +501,6 @@ class MCPServer:
                 tool_result = self._export_e23_report(tool_arguments)
             elif tool_name == "evaluate_lifecycle_compliance":
                 tool_result = self._evaluate_lifecycle_compliance(tool_arguments)
-            elif tool_name == "generate_risk_rating":
-                tool_result = self._generate_risk_rating(tool_arguments)
             elif tool_name == "create_compliance_framework":
                 tool_result = self._create_compliance_framework(tool_arguments)
             else:
@@ -1186,26 +1182,6 @@ class MCPServer:
             project_name=project_name,
             project_description=project_description,
             current_stage=current_stage
-        )
-        
-        return result
-    
-    def _generate_risk_rating(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle OSFI E-23 risk rating generation requests."""
-        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
-        intro_check = self._check_introduction_requirement()
-        if intro_check:
-            return intro_check
-
-        project_name = arguments.get("projectName", "")
-        project_description = arguments.get("projectDescription", "")
-
-        logger.info(f"OSFI E-23 risk rating generation for: {project_name}")
-        
-        # Use the OSFI E-23 processor
-        result = self.osfi_e23_processor.generate_risk_rating(
-            project_name=project_name,
-            project_description=project_description
         )
         
         return result

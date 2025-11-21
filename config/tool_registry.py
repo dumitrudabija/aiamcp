@@ -268,7 +268,7 @@ class ToolRegistry:
             },
             {
                 "name": "assess_model_risk",
-                "description": "🏦 OSFI E-23 STEP 2 OF 6 - MODEL RISK ASSESSMENT: Comprehensive model risk assessment using Canada's OSFI Guideline E-23 framework. This is STEP 2 in the complete OSFI E-23 workflow. COMPLETE OSFI WORKFLOW: (1) validate_project_description → (2) assess_model_risk [YOU ARE HERE] → (3) evaluate_lifecycle_compliance → (4) generate_risk_rating → (5) create_compliance_framework → (6) export_e23_report. When user says 'run through OSFI framework', you should execute ALL 6 steps in sequence. ⚠️ COMPLIANCE WARNING: This tool provides structured assessment framework only. All results must be validated by qualified model risk professionals and approved by appropriate governance authorities. Risk assessments must be based on factual, verifiable project information - not AI interpretation.",
+                "description": "🏦 OSFI E-23 STEP 2 OF 5 - MODEL RISK ASSESSMENT: Comprehensive model risk assessment with detailed risk scoring breakdown using Canada's OSFI Guideline E-23 framework. This is STEP 2 in the complete OSFI E-23 workflow. COMPLETE OSFI WORKFLOW: (1) validate_project_description → (2) assess_model_risk [YOU ARE HERE] → (3) evaluate_lifecycle_compliance → (4) create_compliance_framework → (5) export_e23_report. When user says 'run through OSFI framework', you should execute ALL 5 steps in sequence. ⚠️ COMPLIANCE WARNING: This tool provides structured assessment framework only. All results must be validated by qualified model risk professionals and approved by appropriate governance authorities. Risk assessments must be based on factual, verifiable project information - not AI interpretation.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -287,7 +287,7 @@ class ToolRegistry:
             },
             {
                 "name": "evaluate_lifecycle_compliance",
-                "description": "🏦 OSFI E-23 STEP 3 OF 6 - LIFECYCLE COVERAGE ASSESSMENT: Evaluate coverage of OSFI E-23 lifecycle elements across all 5 stages (Design, Review, Deployment, Monitoring, Decommission). This is STEP 3 in the complete OSFI E-23 workflow.\n\nFor each lifecycle stage, this tool assesses the 3 official OSFI E-23 subcomponents (e.g., Design stage: Model Rationale, Model Data, Model Development per Principles 3.2 & 3.3). Provides coverage percentage: 0%, 33%, 67%, or 100%.",
+                "description": "🏦 OSFI E-23 STEP 3 OF 5 - LIFECYCLE COVERAGE ASSESSMENT: Evaluate coverage of OSFI E-23 lifecycle elements across all 5 stages (Design, Review, Deployment, Monitoring, Decommission). This is STEP 3 in the complete OSFI E-23 workflow.\n\nFor each lifecycle stage, this tool assesses the 3 subcomponents per stage (e.g., Design stage: Model Rationale, Model Data, Model Development per official OSFI Principles 3.2-3.4). Provides coverage percentage: 0%, 33%, 67%, or 100%.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -310,27 +310,8 @@ class ToolRegistry:
                 }
             },
             {
-                "name": "generate_risk_rating",
-                "description": "🏦 OSFI E-23 STEP 4 OF 6 - RISK RATING DOCUMENTATION: Generate detailed risk rating assessment using OSFI E-23 methodology. This is STEP 4 in the complete OSFI E-23 workflow. Provides comprehensive risk analysis with quantitative scoring, qualitative factors, and risk amplification analysis for financial institution compliance.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "projectName": {
-                            "type": "string",
-                            "description": "Name of the model being rated"
-                        },
-                        "projectDescription": {
-                            "type": "string",
-                            "description": "Detailed description of the model including technical details, business impact, and usage context"
-                        }
-                    },
-                    "required": ["projectName", "projectDescription"],
-                    "additionalProperties": False
-                }
-            },
-            {
                 "name": "create_compliance_framework",
-                "description": "🏦 OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK: Create stage-specific compliance framework based on OSFI E-23 requirements. This is STEP 5 in the complete OSFI E-23 workflow. Generates governance structure, requirements, and controls tailored to the model's current lifecycle stage and risk level.",
+                "description": "🏦 OSFI E-23 STEP 4 OF 5 - COMPLIANCE FRAMEWORK: Create stage-specific compliance framework based on OSFI E-23 requirements. This is STEP 4 in the complete OSFI E-23 workflow. Generates governance structure, requirements, and controls tailored to the model's current lifecycle stage and risk level.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -359,7 +340,7 @@ class ToolRegistry:
             },
             {
                 "name": "export_e23_report",
-                "description": "🏦 OSFI E-23 STEP 6 OF 6 - REPORT GENERATION: Generates and saves a COMPLETE lifecycle-focused OSFI E-23 compliance report as a Microsoft Word document. This is the FINAL STEP (Step 6) in the complete OSFI E-23 workflow. The MCP server creates the entire document including executive summary, risk analysis, compliance checklist, and recommendations. ⚠️ COMPLIANCE WARNING: Generated reports are templates requiring professional validation. All content must be reviewed by qualified model risk professionals, validated against actual project characteristics, and approved by appropriate governance authorities before use for regulatory compliance.",
+                "description": "🏦 OSFI E-23 STEP 5 OF 5 - REPORT GENERATION: Generates and saves a COMPLETE stage-specific OSFI E-23 compliance report as a Microsoft Word document. This is the FINAL STEP (Step 5) in the complete OSFI E-23 workflow. The MCP server creates the entire document including executive summary, risk analysis, lifecycle coverage, compliance checklist, and governance structure. ⚠️ COMPLIANCE WARNING: Generated reports are templates requiring professional validation. All content must be reviewed by qualified model risk professionals, validated against actual project characteristics, and approved by appropriate governance authorities before use for regulatory compliance.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {

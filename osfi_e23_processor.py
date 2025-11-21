@@ -216,32 +216,43 @@ class OSFIE23Processor:
     
     def assess_model_risk(self, project_name: str, project_description: str) -> Dict[str, Any]:
         """
-        Assess model risk based on OSFI E-23 framework.
-        
+        Comprehensive model risk assessment based on OSFI E-23 framework.
+
+        Includes detailed risk scoring breakdown and individual factor analysis
+        (merged from former Step 4 - generate_risk_rating).
+
         Args:
             project_name: Name of the model/project
             project_description: Detailed description of the model
-            
+
         Returns:
-            Model risk assessment results
+            Complete model risk assessment with detailed breakdown
         """
         logger.info(f"Assessing model risk for: {project_name}")
-        
+
         # Analyze project description for risk indicators
         risk_analysis = self._analyze_risk_factors(project_description)
-        
+
         # Calculate risk score
         risk_score = self._calculate_risk_score(risk_analysis)
-        
+
         # Determine risk rating level
         risk_level, risk_description = self._determine_risk_level(risk_score)
-        
+
+        # Calculate detailed risk scores (merged from Step 4)
+        quantitative_factors = risk_analysis["quantitative_indicators"]
+        qualitative_factors = risk_analysis["qualitative_indicators"]
+        risk_scores = self._calculate_detailed_risk_scores(quantitative_factors, qualitative_factors)
+
+        # Generate risk factor analysis (merged from Step 4)
+        risk_factor_analysis = self._analyze_individual_risk_factors(quantitative_factors, qualitative_factors)
+
         # Generate governance requirements
         governance_requirements = self._generate_governance_requirements(risk_level, risk_analysis)
-        
+
         # Generate compliance recommendations
         recommendations = self._generate_compliance_recommendations(risk_level, risk_analysis)
-        
+
         return {
             "project_name": project_name,
             "project_description": project_description,
@@ -251,6 +262,8 @@ class OSFIE23Processor:
             "risk_level": risk_level,
             "risk_description": risk_description,
             "risk_analysis": risk_analysis,
+            "risk_scores": risk_scores,  # NEW: Detailed scoring breakdown (from Step 4)
+            "risk_factor_analysis": risk_factor_analysis,  # NEW: Individual factor analysis (from Step 4)
             "governance_requirements": governance_requirements,
             "recommendations": recommendations,
             "compliance_status": "Assessment Complete - Implementation Required",
@@ -619,50 +632,6 @@ class OSFIE23Processor:
         next_steps.extend(stage_next_steps.get(current_stage, []))
         
         return next_steps
-    
-    def generate_risk_rating(self, project_name: str, project_description: str, 
-                           quantitative_factors: Optional[Dict[str, Any]] = None,
-                           qualitative_factors: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Generate detailed risk rating assessment.
-        
-        Args:
-            project_name: Name of the model/project
-            project_description: Detailed description
-            quantitative_factors: Optional quantitative risk factors
-            qualitative_factors: Optional qualitative risk factors
-            
-        Returns:
-            Detailed risk rating assessment
-        """
-        logger.info(f"Generating risk rating for: {project_name}")
-        
-        # Use provided factors or analyze from description
-        if not quantitative_factors or not qualitative_factors:
-            risk_analysis = self._analyze_risk_factors(project_description)
-            quantitative_factors = risk_analysis["quantitative_indicators"]
-            qualitative_factors = risk_analysis["qualitative_indicators"]
-        
-        # Calculate detailed risk scores
-        risk_scores = self._calculate_detailed_risk_scores(quantitative_factors, qualitative_factors)
-        
-        # Determine overall risk rating
-        overall_score = risk_scores["overall_score"]
-        risk_level, risk_description = self._determine_risk_level(overall_score)
-        
-        # Generate risk factor analysis
-        risk_factor_analysis = self._analyze_individual_risk_factors(quantitative_factors, qualitative_factors)
-        
-        return {
-            "project_name": project_name,
-            "project_description": project_description,
-            "assessment_date": datetime.now().isoformat(),
-            "risk_rating": risk_level,
-            "risk_description": risk_description,
-            "overall_score": overall_score,
-            "risk_scores": risk_scores,
-            "risk_factor_analysis": risk_factor_analysis
-        }
     
     def _calculate_detailed_risk_scores(self, quantitative_factors: Dict[str, bool],
                                       qualitative_factors: Dict[str, bool]) -> Dict[str, Any]:
