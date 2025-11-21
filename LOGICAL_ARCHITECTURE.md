@@ -1,8 +1,10 @@
 # Logical Architecture - Actor & Responsibility Flow
 
-**Version**: 2.2.0
+**Version**: 2.3.0
 **Date**: 2025-11-21
 **Purpose**: High-level architecture showing actors, responsibilities, and data flow from user input to final output
+
+**Key Update (v2.3.0)**: Clarified session persistence architecture - Python maintains ALL workflow state through auto-sessions; Claude does NOT pass data between steps
 
 ---
 
@@ -54,6 +56,42 @@ Reviews output       Asks questions             Applies regulations
 - ✅ Document generation (Word files)
 - ❌ Does NOT understand natural language
 - ❌ Does NOT make strategic recommendations
+
+---
+
+## Session Persistence & Data Flow Architecture
+
+### Automatic State Management
+
+**Critical Architectural Feature:** Python maintains ALL workflow state automatically. Claude does NOT pass data between steps.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SESSION PERSISTENCE                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  When Claude calls ANY OSFI E-23 tool:                     │
+│                                                             │
+│  1. Python auto-creates/retrieves session                  │
+│  2. Python stores tool result in session["tool_results"]   │
+│  3. Later tools auto-retrieve from session state           │
+│                                                             │
+│  Example:                                                   │
+│  - Step 2: assess_model_risk                               │
+│    Python stores: session["tool_results"]["assess_model_risk"] │
+│                                                             │
+│  - Step 4: create_compliance_framework                      │
+│    Python retrieves: session["tool_results"]["assess_model_risk"] │
+│                                                             │
+│  - Step 5: export_e23_report                               │
+│    Python auto-injects: session["tool_results"]["assess_model_risk"] │
+│                                                             │
+│  Claude never passes data - just calls tools in sequence   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key Insight:** The workflow engine in Python handles ALL data persistence. Claude's role is purely conversational orchestration - understanding user intent and selecting which tools to call. Data flows through Python's session state, not through Claude.
 
 ---
 
@@ -162,6 +200,11 @@ Reviews output       Asks questions             Applies regulations
     │    - Risk interaction identification       │
     │    - Final risk level determination        │
     │                                            │
+    │ 5. SESSION STORAGE                         │
+    │    - Stores complete result in session     │
+    │    - Key: session["tool_results"]["assess_model_risk"] │
+    │    - Available to all subsequent steps     │
+    │                                            │
     │ Returns:                                   │
     │   - Risk Score: 0-100                      │
     │   - Risk Level: Low/Med/High/Critical      │
@@ -199,6 +242,9 @@ Reviews output       Asks questions             Applies regulations
     │ - Calculates coverage: 0/33/67/100%        │
     │ - Identifies gaps                          │
     │                                            │
+    │ - Stores result in session state:          │
+    │   session["tool_results"]["evaluate_lifecycle_compliance"] │
+    │                                            │
     │ Returns:                                   │
     │   - Current stage detected                 │
     │   - Coverage percentage                    │
@@ -223,12 +269,14 @@ Reviews output       Asks questions             Applies regulations
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
     │ - Requests compliance framework            │
-    │ - Passes risk level from Step 2            │
-    │ - Passes stage from Step 3                 │
+    │ - (No data passing needed)                 │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
     │ PYTHON LOGIC:                              │
+    │ - Retrieves risk level from Step 2 session │
+    │ - Retrieves stage from Step 3 session      │
+    │                                            │
     │ - Creates risk-based governance:           │
     │   • Approval authorities                   │
     │   • Monitoring frequency                   │
@@ -239,6 +287,9 @@ Reviews output       Asks questions             Applies regulations
     │   • Requirements per element               │
     │   • Deliverables list                      │
     │   • Risk-level specific items              │
+    │                                            │
+    │ - Stores result in session state:          │
+    │   session["tool_results"]["create_compliance_framework"] │
     │                                            │
     │ Returns:                                   │
     │   - Governance structure                   │
@@ -264,17 +315,21 @@ Reviews output       Asks questions             Applies regulations
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
     │ - Requests report generation               │
-    │ - Confirms all previous steps complete     │
+    │ - (No data passing needed)                 │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
     │ PYTHON LOGIC:                              │
-    │ - Uses assessment results from Step 2      │
-    │ - Optionally enhances with Step 3 data     │
-    │ - Optionally enhances with Step 4 data     │
-    │ - Detects stage (fallback if Step 3 skip)  │
     │                                            │
-    │ - Generates Word document with:            │
+    │ 1. AUTO-INJECTION FROM SESSION             │
+    │    - Checks if assessment_results passed   │
+    │    - If missing: auto-injects from         │
+    │      session["tool_results"]["assess_model_risk"] │
+    │    - Retrieves Step 3 data if available    │
+    │    - Retrieves Step 4 data if available    │
+    │                                            │
+    │ 2. DOCUMENT GENERATION                     │
+    │    - Generates Word document with:         │
     │   • Executive Summary                      │
     │   • Risk Rating Methodology                │
     │   • Lifecycle Coverage Assessment          │
@@ -333,7 +388,35 @@ The Model Context Protocol (MCP) acts as a simple communication bridge:
 | Result presentation | Claude (LLM) | Natural language formatting |
 | Strategic recommendations | Claude (LLM) | Contextual reasoning |
 
-### 3. **Python Logic is Standalone**
+### 3. **Session Persistence & Data Flow**
+
+**Critical Insight:** Python maintains ALL workflow state. Claude does NOT pass data between steps.
+
+**How it works:**
+1. **Auto-session creation**: When Claude calls any OSFI tool, Python automatically creates or retrieves a session
+2. **Automatic storage**: Every tool result is stored in `session["tool_results"][tool_name]`
+3. **Auto-injection**: Export tools automatically retrieve previous results from session state
+4. **No data passing**: Claude just calls tools in sequence - Python handles all data persistence
+
+**Example data flow:**
+```
+Claude: "Run assess_model_risk"
+  → Python: Stores result in session["tool_results"]["assess_model_risk"]
+
+Claude: "Run create_compliance_framework"
+  → Python: Retrieves risk data from session["tool_results"]["assess_model_risk"]
+  → Python: Creates framework using retrieved data
+  → Python: Stores result in session["tool_results"]["create_compliance_framework"]
+
+Claude: "Run export_e23_report"
+  → Python: Auto-injects session["tool_results"]["assess_model_risk"]
+  → Python: Optionally uses session["tool_results"]["create_compliance_framework"]
+  → Python: Generates Word document
+```
+
+**Session lifetime:** 2 hours from last access
+
+### 4. **Python Logic is Standalone**
 
 The regulatory logic doesn't depend on Claude:
 - Can be called directly from Python scripts
@@ -373,11 +456,14 @@ The 5-step assessment workflow is output-agnostic:
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │  USER:           Provides input, makes decisions             │
-│  CLAUDE (LLM):   Conversation UI, orchestration, formatting  │
-│  PYTHON:         100% of actual work (calculations, rules)   │
-│  MCP:            Just the communication pipe                 │
+│  CLAUDE (LLM):   Conversation UI, tool selection, formatting │
+│  PYTHON:         100% of work (calculations, rules, state)   │
+│  MCP:            Communication pipe only                     │
+│                                                              │
+│  DATA FLOW:      All through Python session state            │
+│  PERSISTENCE:    Python auto-sessions (2-hour lifetime)      │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**The regulatory intelligence is 100% Python.** Claude is a conversational wrapper.
+**The regulatory intelligence is 100% Python.** Claude is a conversational wrapper that orchestrates tool calls - it does NOT pass data between steps. Python maintains all workflow state through automatic session management.
