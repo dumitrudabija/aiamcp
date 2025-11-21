@@ -346,7 +346,8 @@ class OSFIE23Processor:
         return "Critical", "Maximum governance requirements"
     
     def _generate_governance_requirements(self, risk_level: str, risk_analysis: Dict[str, Any]) -> Dict[str, List[str]]:
-        """Generate governance requirements based on risk level."""
+        """Generate governance requirements based on risk level (Low/Medium/High/Critical)."""
+        # Base requirements (Low risk - Minimal governance)
         base_requirements = {
             "organizational": [
                 "Assign qualified model owner with appropriate expertise",
@@ -354,7 +355,7 @@ class OSFIE23Processor:
                 "Ensure adequate resources for model risk management"
             ],
             "documentation": [
-                "Maintain comprehensive model documentation",
+                "Maintain basic model documentation",
                 "Document model rationale and business purpose",
                 "Record model limitations and assumptions"
             ],
@@ -369,31 +370,81 @@ class OSFIE23Processor:
                 "Monitor for model drift and degradation"
             ]
         }
-        
-        # Enhanced requirements based on risk level
+
+        # Medium risk: Standard governance requirements
+        if risk_level in ["Medium", "High", "Critical"]:
+            base_requirements["organizational"].extend([
+                "Establish formal model risk management structure",
+                "Define escalation procedures for model issues"
+            ])
+
+            base_requirements["documentation"].extend([
+                "Maintain comprehensive model documentation",
+                "Document validation testing results and outcomes"
+            ])
+
+            base_requirements["review_approval"].extend([
+                "Implement formal change management process",
+                "Conduct periodic independent reviews",
+                "Establish model revalidation triggers"
+            ])
+
+            base_requirements["monitoring"].extend([
+                "Establish regular performance reporting",
+                "Implement deviation thresholds and escalation procedures",
+                "Document monitoring results and actions taken"
+            ])
+
+        # High risk: Enhanced governance requirements
         if risk_level in ["High", "Critical"]:
             base_requirements["organizational"].extend([
                 "Establish Model Risk Committee oversight",
                 "Assign senior management accountability",
-                "Engage multi-disciplinary review team including legal/ethics"
+                "Engage multi-disciplinary review team"
             ])
-            
+
             base_requirements["documentation"].extend([
                 "Provide detailed explainability documentation",
                 "Document bias testing and mitigation measures",
-                "Maintain comprehensive audit trail"
+                "Maintain comprehensive audit trail with version control"
             ])
-            
+
             base_requirements["review_approval"].extend([
-                "Require board-level or senior committee approval",
-                "Conduct quarterly comprehensive reviews",
-                "Engage external validation for critical models"
+                "Require senior committee approval",
+                "Conduct comprehensive periodic reviews",
+                "Implement rigorous independent validation"
             ])
-            
+
             base_requirements["monitoring"].extend([
-                "Implement real-time monitoring and alerting",
-                "Conduct monthly performance assessments",
-                "Maintain contingency and rollback procedures"
+                "Implement continuous monitoring with automated alerts",
+                "Conduct frequent performance assessments",
+                "Maintain documented contingency and rollback procedures"
+            ])
+
+        # Critical risk: Maximum governance requirements
+        if risk_level == "Critical":
+            base_requirements["organizational"].extend([
+                "Require board-level oversight and reporting",
+                "Establish dedicated model risk function with direct reporting lines",
+                "Include legal, compliance, and ethics experts in governance"
+            ])
+
+            base_requirements["documentation"].extend([
+                "Provide executive-level documentation and reporting",
+                "Maintain real-time audit trail with immutable records",
+                "Document scenario analysis and stress testing results"
+            ])
+
+            base_requirements["review_approval"].extend([
+                "Require board-level or equivalent approval",
+                "Engage external independent validation",
+                "Conduct pre-deployment certification process"
+            ])
+
+            base_requirements["monitoring"].extend([
+                "Implement real-time monitoring with immediate escalation",
+                "Establish 24/7 model surveillance capability",
+                "Maintain live contingency procedures with rapid response capability"
             ])
         
         # AI/ML specific requirements
@@ -429,33 +480,33 @@ class OSFIE23Processor:
             "Ensure model inventory includes all models with non-negligible risk"
         ])
         
-        # Risk level specific recommendations
+        # Risk level specific recommendations (TYPE of governance, not frequencies)
         if risk_level == "Critical":
             recommendations.extend([
-                "🚨 CRITICAL: Obtain board-level approval before deployment",
-                "Implement maximum governance controls and oversight",
+                "🚨 CRITICAL RISK: Obtain board-level approval before deployment",
+                "Implement maximum governance controls and oversight structure",
                 "Conduct external validation and independent review",
-                "Establish dedicated Model Risk Committee",
-                "Implement continuous monitoring with real-time alerts"
+                "Establish dedicated Model Risk Committee with executive reporting",
+                "Implement continuous real-time monitoring with immediate escalation capabilities"
             ])
         elif risk_level == "High":
             recommendations.extend([
-                "⚠️ HIGH RISK: Require senior management approval",
+                "⚠️ HIGH RISK: Require senior management approval and oversight",
                 "Implement enhanced governance and oversight controls",
-                "Conduct quarterly comprehensive model reviews",
-                "Establish robust monitoring and contingency procedures"
+                "Conduct comprehensive independent model reviews",
+                "Establish robust monitoring with escalation procedures and contingency planning"
             ])
         elif risk_level == "Medium":
             recommendations.extend([
-                "📋 MODERATE RISK: Implement standard governance procedures",
-                "Conduct semi-annual model reviews",
-                "Establish regular monitoring and reporting"
+                "📋 MODERATE RISK: Implement standard governance procedures and formal review processes",
+                "Conduct regular periodic model reviews with documented outcomes",
+                "Establish structured monitoring, reporting, and issue escalation procedures"
             ])
         else:  # Low
             recommendations.extend([
-                "✅ LOWER RISK: Apply proportionate governance controls",
-                "Conduct annual model reviews",
-                "Implement basic monitoring procedures"
+                "✅ LOWER RISK: Apply proportionate governance controls appropriate to risk level",
+                "Conduct periodic model reviews with basic documentation",
+                "Implement standard monitoring procedures with defined thresholds"
             ])
         
         # Specific recommendations based on risk factors
@@ -747,14 +798,24 @@ class OSFIE23Processor:
         return monitoring_mapping.get(risk_level, "Monthly monitoring")
     
     def _get_documentation_requirements(self, risk_level: str) -> List[str]:
-        """Get documentation requirements for risk level."""
+        """Get documentation requirements for risk level (Low/Medium/High/Critical)."""
+        # Base documentation (Low risk)
         base_docs = [
             "Model rationale and business purpose",
             "Data sources and quality documentation",
             "Model methodology and assumptions",
             "Performance metrics and validation results"
         ]
-        
+
+        # Medium risk: Standard documentation
+        if risk_level in ["Medium", "High", "Critical"]:
+            base_docs.extend([
+                "Model validation methodology and results",
+                "Change management documentation",
+                "Model limitations and assumptions documentation"
+            ])
+
+        # High risk: Enhanced documentation
         if risk_level in ["High", "Critical"]:
             base_docs.extend([
                 "Detailed explainability documentation",
@@ -763,7 +824,8 @@ class OSFIE23Processor:
                 "Risk assessment and mitigation strategies",
                 "Contingency and rollback procedures"
             ])
-        
+
+        # Critical risk: Maximum documentation
         if risk_level == "Critical":
             base_docs.extend([
                 "Board presentation and approval documentation",
@@ -771,7 +833,7 @@ class OSFIE23Processor:
                 "Regulatory compliance attestations",
                 "Continuous monitoring dashboards and alerts"
             ])
-        
+
         return base_docs
     
     def create_compliance_framework(self, project_name: str, project_description: str,
@@ -866,7 +928,18 @@ class OSFIE23Processor:
             }
         }
 
-        # Risk-based enhancements (implementation choice based on Principle 2.3)
+        # Medium risk: Standard governance enhancements
+        if risk_level in ["Medium", "High", "Critical"]:
+            base_structure.update({
+                "risk_manager": {
+                    "role": "Risk management oversight for model deployment",
+                    "osfi_required": False,
+                    "osfi_implied": True,
+                    "source": "OSFI Principle 2.3 implies risk-based governance"
+                }
+            })
+
+        # High risk: Enhanced governance structure
         if risk_level in ["High", "Critical"]:
             base_structure.update({
                 "model_risk_committee": {
@@ -889,6 +962,7 @@ class OSFIE23Processor:
                 }
             })
 
+        # Critical risk: Maximum governance structure
         if risk_level == "Critical":
             base_structure.update({
                 "board_oversight": {
@@ -963,12 +1037,24 @@ class OSFIE23Processor:
                 1: [requirements[1]] if len(requirements) > 1 else [],  # Model Data
                 2: requirements[2:5] if len(requirements) > 2 else []   # Model Development
             }
-            # Add risk-based enhancements
+            # Medium risk enhancements
+            if risk_level in ["Medium", "High", "Critical"]:
+                mapping[2].extend([
+                    "Basic bias and fairness assessment",
+                    "Model explainability documentation"
+                ])
+            # High risk enhancements
             if risk_level in ["High", "Critical"]:
                 mapping[2].extend([
                     "Comprehensive bias and fairness assessment",
                     "Detailed explainability analysis",
                     "Regulatory compliance review"
+                ])
+            # Critical risk enhancements
+            if risk_level == "Critical":
+                mapping[2].extend([
+                    "External expert review of methodology",
+                    "Advanced stress testing and scenario analysis"
                 ])
         elif stage == "review":
             mapping = {
@@ -976,12 +1062,17 @@ class OSFIE23Processor:
                 1: requirements[1:3] if len(requirements) > 1 else [],  # Conceptual Soundness
                 2: requirements[3:] if len(requirements) > 3 else []    # Performance Evaluation
             }
+            # Medium risk enhancements
+            if risk_level in ["Medium", "High", "Critical"]:
+                mapping[2].append("Standard stress testing procedures")
+            # High risk enhancements
             if risk_level in ["High", "Critical"]:
-                mapping[0].extend([
-                    "External validation (Critical models)",
-                    "Regulatory pre-approval consultation"
-                ])
+                mapping[0].append("Regulatory pre-approval consultation")
                 mapping[2].append("Comprehensive stress testing")
+            # Critical risk enhancements
+            if risk_level == "Critical":
+                mapping[0].append("External independent validation")
+                mapping[2].append("Advanced scenario analysis")
         elif stage == "deployment":
             mapping = {
                 0: requirements[0:2] if len(requirements) > 0 else [],  # Production Implementation
@@ -994,12 +1085,21 @@ class OSFIE23Processor:
                 1: [requirements[2]] if len(requirements) > 2 else [],  # Drift Detection
                 2: requirements[3:] if len(requirements) > 3 else []    # Escalation Procedures
             }
+            # Medium risk enhancements
+            if risk_level in ["Medium", "High", "Critical"]:
+                mapping[0].append("Regular performance reporting")
+                mapping[2].append("Structured escalation procedures")
+            # High risk enhancements
             if risk_level in ["High", "Critical"]:
                 mapping[0].extend([
-                    "Real-time performance dashboards",
-                    "Automated alert systems",
-                    "Monthly governance reporting"
+                    "Automated performance dashboards",
+                    "Frequent governance reporting"
                 ])
+                mapping[2].append("Automated alert systems")
+            # Critical risk enhancements
+            if risk_level == "Critical":
+                mapping[0].append("Real-time performance monitoring")
+                mapping[2].append("Immediate escalation capability")
         elif stage == "decommission":
             mapping = {
                 0: requirements[0:2] if len(requirements) > 0 else [],  # Retirement Process
@@ -1059,11 +1159,18 @@ class OSFIE23Processor:
                     {"item": "Model documentation completion", "required": True}
                 ]
             }
+            # Medium risk enhancements
+            if risk_level in ["Medium", "High", "Critical"]:
+                mapping[2].append({"item": "Model validation testing", "required": True})
+            # High risk enhancements
             if risk_level in ["High", "Critical"]:
                 mapping[2].extend([
                     {"item": "Bias and fairness testing", "required": True},
                     {"item": "Explainability documentation", "required": True}
                 ])
+            # Critical risk enhancements
+            if risk_level == "Critical":
+                mapping[2].append({"item": "External methodology review", "required": True})
         elif stage == "review":
             mapping = {
                 0: [  # Independent Validation
@@ -1074,9 +1181,14 @@ class OSFIE23Processor:
                     {"item": "Formal model approval", "required": True}
                 ]
             }
+            # Medium risk enhancements
+            if risk_level in ["Medium", "High", "Critical"]:
+                mapping[0].append({"item": "Validation testing completed", "required": True})
+            # High risk enhancements
             if risk_level in ["High", "Critical"]:
                 mapping[2].append({"item": "Senior management approval", "required": True})
                 mapping[0].append({"item": "Regulatory compliance verification", "required": True})
+            # Critical risk enhancements
             if risk_level == "Critical":
                 mapping[2].extend([
                     {"item": "Board-level approval", "required": True},
@@ -1093,8 +1205,13 @@ class OSFIE23Processor:
                     {"item": "Monitoring system activation", "required": True}
                 ]
             }
+            # Medium risk enhancements
+            if risk_level in ["Medium", "High", "Critical"]:
+                mapping[2].append({"item": "Change control documentation", "required": True})
+            # High risk enhancements
             if risk_level in ["High", "Critical"]:
                 mapping[2].append({"item": "Enhanced monitoring setup", "required": True})
+            # Critical risk enhancements
             if risk_level == "Critical":
                 mapping[2].append({"item": "Real-time monitoring activation", "required": True})
         elif stage == "monitoring":
@@ -1110,10 +1227,19 @@ class OSFIE23Processor:
                     {"item": "Model incident response procedures", "required": True}
                 ]
             }
+            # Medium risk enhancements
+            if risk_level in ["Medium", "High", "Critical"]:
+                mapping[0].append({"item": "Performance reporting procedures", "required": True})
+                mapping[2].append({"item": "Defined escalation pathways", "required": True})
+            # High risk enhancements
             if risk_level in ["High", "Critical"]:
                 mapping[0].append({"item": "Automated performance dashboards", "required": True})
                 mapping[1].append({"item": "Statistical drift detection tests", "required": True})
-                mapping[2].append({"item": "Rapid escalation pathways to senior management", "required": True})
+                mapping[2].append({"item": "Rapid escalation to senior management", "required": True})
+            # Critical risk enhancements
+            if risk_level == "Critical":
+                mapping[0].append({"item": "Real-time monitoring dashboard", "required": True})
+                mapping[2].append({"item": "Immediate executive notification", "required": True})
         elif stage == "decommission":
             # Note: These 3 elements are our implementation interpretation of OSFI Principle 3.6 (decommission requirement)
             mapping = {
@@ -1127,9 +1253,17 @@ class OSFIE23Processor:
                     {"item": "Model archive and documentation retention", "required": True}
                 ]
             }
+            # Medium risk enhancements
+            if risk_level in ["Medium", "High", "Critical"]:
+                mapping[2].append({"item": "Complete documentation archival", "required": True})
+            # High risk enhancements
             if risk_level in ["High", "Critical"]:
                 mapping[0].append({"item": "Risk assessment of decommission impacts", "required": True})
                 mapping[2].append({"item": "Regulatory compliance documentation archival", "required": True})
+            # Critical risk enhancements
+            if risk_level == "Critical":
+                mapping[0].append({"item": "Board notification of decommission", "required": True})
+                mapping[2].append({"item": "Long-term archival with audit trail", "required": True})
         else:
             mapping = {0: [], 1: [], 2: []}
 
