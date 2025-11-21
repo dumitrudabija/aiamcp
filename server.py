@@ -286,6 +286,15 @@ class MCPServer:
                         if framework_results:
                             arguments["assessment_results"] = framework_results
                             logger.info(f"Auto-injected assessment_results from session {session_id}")
+
+                    # Auto-inject lifecycle_stage from Step 3 if available (ensures consistency)
+                    session = self.workflow_engine.get_session(session_id)
+                    if session and "tool_results" in session and "evaluate_lifecycle_compliance" in session["tool_results"]:
+                        step3_result = session["tool_results"]["evaluate_lifecycle_compliance"].get("result", {})
+                        if "current_stage" in step3_result:
+                            arguments["lifecycle_stage"] = step3_result["current_stage"]
+                            logger.info(f"Auto-injected lifecycle_stage '{step3_result['current_stage']}' from Step 3 session data")
+
                 result = self._export_e23_report(arguments)
             else:
                 return {
@@ -1234,6 +1243,7 @@ class MCPServer:
         project_description = arguments.get("project_description", "")
         assessment_results = arguments.get("assessment_results", {})
         custom_filename = arguments.get("custom_filename")
+        injected_lifecycle_stage = arguments.get("lifecycle_stage")  # From Step 3 session if available
 
         logger.info(f"Exporting OSFI E-23 report for project: {project_name}")
 
@@ -1286,16 +1296,23 @@ class MCPServer:
             # Create Word document
             doc = Document()
 
-            # Detect lifecycle stage
-            from osfi_e23_structure import detect_lifecycle_stage
-            current_stage = detect_lifecycle_stage(project_description)
+            # Use lifecycle stage from Step 3 if available (injected from session), otherwise detect it
+            # This ensures Step 3 and Step 5 always use the same stage
+            if injected_lifecycle_stage:
+                current_stage = injected_lifecycle_stage
+                logger.info(f"Using lifecycle stage from Step 3 (session): {current_stage}")
+            else:
+                from osfi_e23_structure import detect_lifecycle_stage
+                current_stage = detect_lifecycle_stage(project_description)
+                logger.info(f"Step 3 not run - detected lifecycle stage: {current_stage}")
 
-            # Get Step 3 lifecycle compliance data (optional - enhances report)
+            # Get Step 3 lifecycle compliance data with the detected stage (optional - enhances report)
             lifecycle_compliance = None
             try:
                 lifecycle_compliance = self.osfi_e23_processor.evaluate_lifecycle_compliance(
                     project_name=project_name,
-                    project_description=project_description
+                    project_description=project_description,
+                    current_stage=current_stage  # Pass the detected stage to ensure consistency
                 )
             except Exception as e:
                 logger.warning(f"Could not get lifecycle compliance data: {e}")
