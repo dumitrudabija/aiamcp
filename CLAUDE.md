@@ -255,12 +255,19 @@ pip install -r requirements.txt
 - **Transparent Methodology**: All scoring calculations are deterministic and auditable
 - **No AI Risk Interpretation**: Server provides structure, Claude Desktop provides reasoning
 
-### OSFI E-23 Report Structure (v2.0)
-- **Standardized 4-Section Format**: Executive Summary, Risk Rating Methodology, Design Phase Compliance Checklist, Annex (OSFI Principles)
-- **Executive Summary**: Single paragraph (150-200 words) in plain English explaining risk level, key drivers, and governance requirements
-- **Risk Rating Methodology**: Complete transparency with detailed tables showing all quantitative/qualitative factors, weights, detection status, and amplification calculations
-- **Compliance Checklist**: Actionable checkboxes for all Design stage deliverables organized by OSFI Principles (3.2, 3.3) with specific deliverable requirements
-- **Target Length**: Approximately 4 pages with professional formatting, tables, and clear visual hierarchy
+### OSFI E-23 Report Structure (v2.2.9)
+- **Standardized 7-Chapter Format**: Executive Summary, Risk Rating Methodology, Lifecycle Coverage Assessment, Stage-Specific Compliance Checklist, Governance Structure, Monitoring Framework, Annex (OSFI Principles)
+- **Chapter 1: Executive Summary**: Single paragraph (150-200 words) in plain English explaining risk level, key drivers, and governance requirements
+- **Chapter 2: Risk Rating Methodology**: Complete transparency with detailed tables showing all quantitative/qualitative factors, weights, detection status, and amplification calculations
+- **Chapter 3: Lifecycle Coverage Assessment**: Coverage percentage (0/33/67/100%) showing which OSFI E-23 lifecycle elements are detected in project description (from Step 3)
+- **Chapter 4: Stage-Specific Compliance Checklist**: Actionable checkboxes for current lifecycle stage deliverables organized by OSFI Principles - title dynamically changes (e.g., "DESIGN STAGE COMPLIANCE CHECKLIST", "MONITORING STAGE COMPLIANCE CHECKLIST")
+- **Chapter 5: Governance Structure** (v2.2.9 expanded):
+  - **5.1 Governance Roles and Responsibilities**: Table showing Role | Responsibility | OSFI Required | Source with legend
+  - **5.2 Documentation Requirements**: Progressive list by risk level (Low/Medium/High/Critical) of required documentation types (from Step 4)
+  - **5.3 Review and Approval Procedures**: Risk-appropriate approval authorities and review procedures (from Step 2)
+- **Chapter 6: Monitoring Framework**: Ongoing monitoring requirements (if applicable, from Step 4)
+- **Chapter 7: Annex - OSFI E-23 Principles**: Complete OSFI Principle mapping
+- **Target Length**: Approximately 4-6 pages with professional formatting, tables, and clear visual hierarchy
 - **Customizable Weights**: Explicit note that scoring weights are exemplification - can be tuned to institutional specifications
 - **Implementation Documentation**: See `OSFI_E23_TUNABLE_PARAMETERS.md` for all customizable parameters and `OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md` for distinction between OSFI requirements and implementation choices
 

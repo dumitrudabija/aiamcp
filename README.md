@@ -283,12 +283,15 @@ Export AIA assessment results to a Microsoft Word document.
 #### 15. `export_e23_report`
 🏦 **OSFI E-23 STEP 5 OF 5 - REPORT GENERATION**: Export stage-specific OSFI E-23 compliance report to Microsoft Word document with comprehensive sections leveraging data from Steps 2, 3, and 4.
 
-**NEW (v2.1.0):**
+**NEW (v2.2.9):**
 - ✅ Stage-specific reports (Design/Review/Deployment/Monitoring/Decommission)
-- ✅ Section 3: Lifecycle Coverage Assessment (Step 3 data with color-coded percentages)
-- ✅ Section 4: Stage-Specific Compliance Checklist (Step 5 osfi_elements)
-- ✅ Section 5: Governance Structure (with OSFI-mandated vs choice clarity)
-- ✅ Section 6: Monitoring Framework (frequency, metrics, thresholds)
+- ✅ Chapter 3: Lifecycle Coverage Assessment (Step 3 data with color-coded percentages)
+- ✅ Chapter 4: Stage-Specific Compliance Checklist (Step 4 osfi_elements, title dynamically changes by stage)
+- ✅ Chapter 5: Governance Structure (v2.2.9 expanded with 3 subsections):
+  - 5.1 Governance Roles and Responsibilities (with OSFI-mandated vs choice clarity)
+  - 5.2 Documentation Requirements (progressive by risk level from Step 4)
+  - 5.3 Review and Approval Procedures (risk-appropriate authorities from Step 2)
+- ✅ Chapter 6: Monitoring Framework (frequency, metrics, thresholds)
 - ✅ Auto-detects lifecycle stage from project description
 - ✅ Compact size (~4-6 pages) by showing only current stage requirements
 - ✅ All professional validation warnings preserved
@@ -301,13 +304,16 @@ Export AIA assessment results to a Microsoft Word document.
 - `assessment_results`: Assessment results object from Step 2 (assess_model_risk)
 - `custom_filename` (optional): Custom filename (without extension)
 
-**Report Structure (7 sections):**
+**Report Structure (7 chapters):**
 1. Executive Summary
 2. Risk Rating Methodology
-3. Lifecycle Coverage Assessment (NEW)
-4. Stage-Specific Compliance Checklist (ENHANCED)
-5. Governance Structure (NEW)
-6. Monitoring Framework (NEW)
+3. Lifecycle Coverage Assessment (from Step 3)
+4. Stage-Specific Compliance Checklist (from Step 4, title dynamically changes by stage)
+5. Governance Structure (v2.2.9 expanded):
+   - 5.1 Governance Roles and Responsibilities
+   - 5.2 Documentation Requirements
+   - 5.3 Review and Approval Procedures
+6. Monitoring Framework (from Step 4)
 7. Annex: OSFI E-23 Principles
 
 ## Risk Assessment Frameworks

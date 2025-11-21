@@ -334,7 +334,10 @@ Reviews output       Asks questions             Applies regulations
     │   • Risk Rating Methodology                │
     │   • Lifecycle Coverage Assessment          │
     │   • Stage-Specific Compliance Checklist    │
-    │   • Governance Structure                   │
+    │   • Governance Structure (v2.2.9):         │
+    │     - 5.1 Roles and Responsibilities       │
+    │     - 5.2 Documentation Requirements       │
+    │     - 5.3 Review and Approval Procedures   │
     │   • Monitoring Framework                   │
     │   • OSFI E-23 Principles (Annex)           │
     │                                            │
