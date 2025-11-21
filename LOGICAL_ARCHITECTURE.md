@@ -1,7 +1,7 @@
 # Logical Architecture - Actor & Responsibility Flow
 
-**Version**: 2.0.1
-**Date**: 2025-11-20
+**Version**: 2.2.0
+**Date**: 2025-11-21
 **Purpose**: High-level architecture showing actors, responsibilities, and data flow from user input to final output
 
 ---
@@ -63,169 +63,242 @@ Reviews output       Asks questions             Applies regulations
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│ STEP 1: User Initiates                                                 │
+│ INITIATION: User Starts Assessment                                     │
 └────────────────────────────────────────────────────────────────────────┘
     USER: "I need to assess my credit risk model for OSFI E-23"
       ↓
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
-    │ - Parses natural language intent           │
-    │ - Recognizes "OSFI E-23" keyword           │
-    │ - Decides to call get_server_introduction  │
+    │ - Understands user wants OSFI E-23 help   │
+    │ - Recognizes regulatory framework keyword │
+    │ - Requests workflow introduction           │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
-    │ MCP PROTOCOL:                              │
-    │ - JSON-RPC call over stdio                 │
-    │ - Tool: get_server_introduction            │
-    │ - Parameters: {user_context: "OSFI E-23"} │
-    └────────────────────────────────────────────┘
-      ↓
-    ┌────────────────────────────────────────────┐
-    │ PYTHON - introduction_builder.py:          │
-    │ - framework_detector.detect() finds "osfi" │
-    │ - Builds 6-step workflow structure         │
-    │ - Returns JSON with workflow steps         │
+    │ PYTHON LOGIC:                              │
+    │ - Detects "OSFI E-23" context              │
+    │ - Builds 5-step workflow structure         │
+    │ - Returns complete workflow description    │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
-    │ - Receives JSON response                   │
-    │ - Formats as readable workflow             │
-    │ - Asks: "Proceed with OSFI E-23?"         │
+    │ - Presents 5-step workflow to user         │
+    │ - Explains each step's purpose             │
+    │ - Asks: "Ready to proceed?"                │
     │ - WAITS for user confirmation              │
     └────────────────────────────────────────────┘
       ↓
     USER: "Yes, proceed"
 
 ┌────────────────────────────────────────────────────────────────────────┐
-│ STEP 2: Project Description Validation (Step 1 of 6)                  │
+│ STEP 1 of 5: Validate Project Description                             │
 └────────────────────────────────────────────────────────────────────────┘
-    ┌────────────────────────────────────────────┐
-    │ CLAUDE (LLM):                              │
-    │ - Calls validate_project_description       │
-    │ - Passes project description from chat     │
-    └────────────────────────────────────────────┘
-      ↓
-    ┌────────────────────────────────────────────┐
-    │ PYTHON - description_validator.py:         │
-    │ - Counts words (Python len())              │
-    │ - Checks for 6 content areas (keyword match│
-    │ - Calculates coverage % (pure math)        │
-    │ - Returns: pass/fail + recommendations     │
-    └────────────────────────────────────────────┘
-      ↓
-    CLAUDE: Presents validation results
+    Purpose: Ensure description has sufficient detail for accurate assessment
 
-┌────────────────────────────────────────────────────────────────────────┐
-│ STEP 3: Risk Assessment (Step 2 of 6)                                 │
-└────────────────────────────────────────────────────────────────────────┘
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
-    │ - Calls assess_model_risk                  │
-    │ - Passes: project_name, description        │
+    │ - Extracts project description from chat   │
+    │ - Requests validation check                │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
-    │ PYTHON - osfi_e23_processor.py:            │
-    │                                            │
-    │ Line 266-283: KEYWORD MATCHING (PURE PYTHON)
-    │ ┌──────────────────────────────────────┐  │
-    │ │ description_lower = desc.lower()     │  │
-    │ │                                      │  │
-    │ │ 'high_volume': any(                 │  │
-    │ │   term in description_lower         │  │
-    │ │   for term in ['millions',          │  │
-    │ │                'thousands',          │  │
-    │ │                'large scale']       │  │
-    │ │ )                                   │  │
-    │ │                                      │  │
-    │ │ 'ai_ml_usage': any(                 │  │
-    │ │   term in description_lower         │  │
-    │ │   for term in ['ai', 'ml',          │  │
-    │ │                'neural network']    │  │
-    │ │ )                                   │  │
-    │ └──────────────────────────────────────┘  │
-    │                                            │
-    │ Line 286-287: SCORE CALCULATION            │
-    │ ┌──────────────────────────────────────┐  │
-    │ │ quant_score = sum(...) * 10          │  │
-    │ │ qual_score = sum(...) * 8            │  │
-    │ └──────────────────────────────────────┘  │
-    │                                            │
-    │ Line 308-318: RISK AMPLIFICATION           │
-    │ ┌──────────────────────────────────────┐  │
-    │ │ if financial_impact + ai_ml_usage:   │  │
-    │ │     multiplier += 0.3  # 30% boost   │  │
-    │ └──────────────────────────────────────┘  │
-    │                                            │
-    │ Line 321: FINAL SCORE                      │
-    │ ┌──────────────────────────────────────┐  │
-    │ │ return min(final_score, 100)         │  │
-    │ └──────────────────────────────────────┘  │
-    │                                            │
-    │ Returns: {                                 │
-    │   risk_score: 68,                          │
-    │   risk_level: "High",                      │
-    │   quantitative_indicators: {...},          │
-    │   qualitative_indicators: {...},           │
-    │   amplification_applied: 1.3               │
-    │ }                                          │
+    │ PYTHON LOGIC:                              │
+    │ - Counts words and checks length           │
+    │ - Scans for 6 content areas:               │
+    │   • System/Technology description          │
+    │   • Business purpose                       │
+    │   • Data sources                           │
+    │   • Impact scope                           │
+    │   • Decision process                       │
+    │   • Technical architecture                 │
+    │ - Calculates coverage percentage           │
+    │ - Returns: PASS/FAIL + guidance            │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
-    │ - Receives JSON with risk_score: 68        │
-    │ - Formats as: "Risk Level: High (68/100)"  │
-    │ - Adds interpretation: "This indicates..." │
-    │ - Recommends next steps                    │
+    │ - "✅ Step 1 Complete: Description Valid" │
+    │ - Shows coverage: "5/6 areas covered"     │
+    │ - Suggests improvements if needed          │
+    │ - Announces: "Moving to Step 2..."        │
     └────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────────────────────────┐
-│ STEPS 4-5: Lifecycle, Risk Rating, Compliance Framework               │
+│ STEP 2 of 5: Comprehensive Risk Assessment                            │
 └────────────────────────────────────────────────────────────────────────┘
-    [Similar flow: Claude calls tools → Python calculates → Claude presents]
+    Purpose: Calculate model risk level using OSFI E-23 methodology
+
+    ┌────────────────────────────────────────────┐
+    │ CLAUDE (LLM):                              │
+    │ - Requests comprehensive risk analysis     │
+    │ - Provides project details                 │
+    └────────────────────────────────────────────┘
+      ↓
+    ┌────────────────────────────────────────────┐
+    │ PYTHON LOGIC:                              │
+    │                                            │
+    │ 1. KEYWORD DETECTION                       │
+    │    Scans description for risk indicators:  │
+    │    - Quantitative: volume, financial,      │
+    │      customer-facing, revenue-critical     │
+    │    - Qualitative: AI/ML, complexity,       │
+    │      autonomy, explainability              │
+    │                                            │
+    │ 2. SCORE CALCULATION                       │
+    │    - Quantitative factors: 10 pts each     │
+    │    - Qualitative factors: 8 pts each       │
+    │    - Base score computed                   │
+    │                                            │
+    │ 3. RISK AMPLIFICATION                      │
+    │    Checks dangerous combinations:          │
+    │    - AI + Financial decisions: +30%        │
+    │    - Autonomous + Customer-facing: +20%    │
+    │    - Black-box + Regulatory: +25%          │
+    │    - Third-party + Critical: +15%          │
+    │                                            │
+    │ 4. DETAILED BREAKDOWN                      │
+    │    - Individual factor analysis            │
+    │    - Risk interaction identification       │
+    │    - Final risk level determination        │
+    │                                            │
+    │ Returns:                                   │
+    │   - Risk Score: 0-100                      │
+    │   - Risk Level: Low/Med/High/Critical      │
+    │   - Detected factors list                  │
+    │   - Amplification details                  │
+    │   - Factor-by-factor breakdown             │
+    └────────────────────────────────────────────┘
+      ↓
+    ┌────────────────────────────────────────────┐
+    │ CLAUDE (LLM):                              │
+    │ - "✅ Step 2 Complete: Risk Assessed"     │
+    │ - Presents: "Risk Level: High (68/100)"   │
+    │ - Explains key risk drivers                │
+    │ - Shows amplification reasons              │
+    │ - Recommends governance approach           │
+    │ - Announces: "Moving to Step 3..."        │
+    └────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────────────────────────┐
-│ STEP 6: Document Generation (Final Step)                              │
+│ STEP 3 of 5: Lifecycle Coverage Assessment                            │
 └────────────────────────────────────────────────────────────────────────┘
+    Purpose: Evaluate coverage of OSFI lifecycle requirements for current stage
+
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
-    │ - Calls export_e23_report                  │
-    │ - Passes all previous assessment results   │
+    │ - Requests lifecycle compliance check      │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
-    │ PYTHON - osfi_e23_report_generators.py:    │
+    │ PYTHON LOGIC:                              │
+    │ - Detects current lifecycle stage:         │
+    │   Design/Review/Deployment/                │
+    │   Monitoring/Decommission                  │
+    │ - Checks for 3 stage-specific elements     │
+    │ - Calculates coverage: 0/33/67/100%        │
+    │ - Identifies gaps                          │
     │                                            │
-    │ 1. Extract data from results:              │
-    │    - risk_level: "High"                    │
-    │    - risk_score: 68                        │
-    │    - detected_factors: [...]               │
-    │                                            │
-    │ 2. Use python-docx library:                │
-    │    doc = Document()                        │
-    │    doc.add_heading("OSFI E-23 Report")     │
-    │    doc.add_paragraph("Risk Level: High")   │
-    │                                            │
-    │ 3. Add compliance checklist:               │
-    │    for requirement in requirements:        │
-    │        doc.add_paragraph(f"☐ {req}")       │
-    │                                            │
-    │ 4. Save file:                              │
-    │    doc.save("OSFI_E23_Report.docx")        │
-    │                                            │
-    │ Returns: {                                 │
-    │   success: true,                           │
-    │   file_path: "/path/to/report.docx"        │
-    │ }                                          │
+    │ Returns:                                   │
+    │   - Current stage detected                 │
+    │   - Coverage percentage                    │
+    │   - Elements present vs missing            │
+    │   - Gap recommendations                    │
     └────────────────────────────────────────────┘
       ↓
     ┌────────────────────────────────────────────┐
     │ CLAUDE (LLM):                              │
-    │ - "✅ Report generated successfully!"      │
-    │ - "File: OSFI_E23_Report.docx"            │
-    │ - "Next steps: Review with compliance..."  │
+    │ - "✅ Step 3 Complete: Lifecycle Checked" │
+    │ - Shows: "Design Stage: 67% coverage"     │
+    │ - Explains what's documented               │
+    │ - Highlights missing elements              │
+    │ - Announces: "Moving to Step 4..."        │
+    └────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ STEP 4 of 5: Compliance Framework Creation                            │
+└────────────────────────────────────────────────────────────────────────┘
+    Purpose: Generate governance requirements and compliance checklist
+
+    ┌────────────────────────────────────────────┐
+    │ CLAUDE (LLM):                              │
+    │ - Requests compliance framework            │
+    │ - Provides risk level and stage            │
+    └────────────────────────────────────────────┘
+      ↓
+    ┌────────────────────────────────────────────┐
+    │ PYTHON LOGIC:                              │
+    │ - Creates risk-based governance:           │
+    │   • Approval authorities                   │
+    │   • Monitoring frequency                   │
+    │   • Documentation requirements             │
+    │                                            │
+    │ - Builds stage-specific checklist:         │
+    │   • 3 OSFI elements for current stage      │
+    │   • Requirements per element               │
+    │   • Deliverables list                      │
+    │   • Risk-level specific items              │
+    │                                            │
+    │ Returns:                                   │
+    │   - Governance structure                   │
+    │   - Complete compliance checklist          │
+    │   - Monitoring framework                   │
+    │   - Documentation standards                │
+    └────────────────────────────────────────────┘
+      ↓
+    ┌────────────────────────────────────────────┐
+    │ CLAUDE (LLM):                              │
+    │ - "✅ Step 4 Complete: Framework Ready"   │
+    │ - Shows governance requirements            │
+    │ - Presents compliance checklist            │
+    │ - Explains risk-based controls             │
+    │ - Announces: "Moving to Step 5..."        │
+    └────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ STEP 5 of 5: Report Generation                                        │
+└────────────────────────────────────────────────────────────────────────┘
+    Purpose: Create professional Word document with all assessment results
+
+    ┌────────────────────────────────────────────┐
+    │ CLAUDE (LLM):                              │
+    │ - Requests report generation               │
+    │ - Confirms all previous steps complete     │
+    └────────────────────────────────────────────┘
+      ↓
+    ┌────────────────────────────────────────────┐
+    │ PYTHON LOGIC:                              │
+    │ - Gathers data from all 4 previous steps   │
+    │ - Detects lifecycle stage                  │
+    │                                            │
+    │ - Generates Word document with:            │
+    │   • Executive Summary                      │
+    │   • Risk Rating Methodology                │
+    │   • Lifecycle Coverage Assessment          │
+    │   • Stage-Specific Compliance Checklist    │
+    │   • Governance Structure                   │
+    │   • Monitoring Framework                   │
+    │   • OSFI E-23 Principles (Annex)           │
+    │                                            │
+    │ - Applies stage-specific filtering         │
+    │ - Adds professional validation warnings    │
+    │ - Saves to file system                     │
+    │                                            │
+    │ Returns:                                   │
+    │   - Success status                         │
+    │   - File path                              │
+    │   - File size                              │
+    └────────────────────────────────────────────┘
+      ↓
+    ┌────────────────────────────────────────────┐
+    │ CLAUDE (LLM):                              │
+    │ - "✅ Step 5 Complete: Report Generated!" │
+    │ - Shows file location                      │
+    │ - Summarizes assessment outcome            │
+    │ - Recommends next steps:                   │
+    │   • Professional review required           │
+    │   • Governance approval needed             │
+    │   • Implementation planning                │
     └────────────────────────────────────────────┘
       ↓
     USER: Downloads and reviews Word document
@@ -235,83 +308,57 @@ Reviews output       Asks questions             Applies regulations
 
 ## Key Architectural Insights
 
-### 1. **MCP is Just a Communication Protocol**
+### 1. **Communication Protocol**
 
-```
-MCP Protocol = JSON-RPC over stdio
+The Model Context Protocol (MCP) acts as a simple communication bridge:
+- Claude sends requests to Python tools
+- Python executes regulatory logic and returns results
+- Claude formats results into readable conversation
 
-Example MCP Call:
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "assess_model_risk",
-    "arguments": {
-      "projectName": "Credit Model",
-      "projectDescription": "ML model using neural networks..."
-    }
-  }
-}
-
-MCP Response:
-{
-  "content": [{
-    "type": "text",
-    "text": "{\"risk_score\": 68, \"risk_level\": \"High\"}"
-  }]
-}
-```
-
-**That's it!** MCP just delivers function calls and returns results. All the work is Python.
+**That's it!** The protocol just enables conversation. All regulatory work happens in Python.
 
 ### 2. **Where the "Intelligence" Lives**
 
-| Task | Actor | Location |
-|------|-------|----------|
-| Understanding "assess my model" | Claude (LLM) | Claude's neural network |
-| Deciding which tool to call | Claude (LLM) | Claude's reasoning |
-| Finding keyword "neural network" | PYTHON | `any(term in desc for term in [...])` |
-| Calculating risk score | PYTHON | `sum(...) * 10` |
-| Applying amplification | PYTHON | `multiplier += 0.3` |
-| Determining "High" vs "Critical" | PYTHON | `if score >= 51: return "High"` |
-| Formatting results nicely | Claude (LLM) | Claude's language generation |
-| Making recommendations | Claude (LLM) | Claude's reasoning |
+| Task | Actor | Why This Actor |
+|------|-------|----------------|
+| Understanding natural language | Claude (LLM) | Language comprehension |
+| Deciding workflow steps | Claude (LLM) | Conversation orchestration |
+| Keyword detection | PYTHON | String matching logic |
+| Risk score calculation | PYTHON | Mathematical formulas |
+| Regulatory rule application | PYTHON | OSFI E-23 requirements |
+| Compliance determination | PYTHON | Official framework logic |
+| Result presentation | Claude (LLM) | Natural language formatting |
+| Strategic recommendations | Claude (LLM) | Contextual reasoning |
 
-### 3. **The Python Code is 100% Portable**
+### 3. **Python Logic is Standalone**
 
-You could remove Claude entirely and use the Python code as:
+The regulatory logic doesn't depend on Claude:
+- Can be called directly from Python scripts
+- Can be integrated into other systems
+- Can export to different formats (Word, Jira, databases)
+- Claude just makes it conversational
 
-```python
-# Direct Python usage (NO LLM)
-from osfi_e23_processor import OSFIE23Processor
-
-processor = OSFIE23Processor()
-result = processor.assess_model_risk(
-    project_name="Credit Model",
-    project_description="Neural network for loan approvals..."
-)
-
-print(result['risk_level'])  # "High"
-print(result['risk_score'])  # 68
-```
-
-**Everything works the same!** The MCP layer just makes it conversational.
+**Core principle:** Regulatory logic is separate from user interface.
 
 ---
 
-## Alternative Output Formats (e.g., Jira Tickets)
+## Alternative Output Formats
 
-### Current Flow (Word Document)
-```
-Python Assessment → export_e23_report() → Word Document
-```
+The 5-step assessment workflow is output-agnostic:
 
-### Alternative Flow (Jira Ticket)
-```
-Python Assessment → create_jira_ticket() → Jira API → Ticket Created
-```
+**Current Implementation: Word Document**
+- Steps 1-4: Same assessment logic
+- Step 5: Generate Word document
 
-**Nothing changes in the assessment logic!** Only the final export step changes.
+**Alternative: Jira Tickets**
+- Steps 1-4: Same assessment logic
+- Step 5: Create Jira tickets via API
+
+**Alternative: Database**
+- Steps 1-4: Same assessment logic
+- Step 5: Insert records into database
+
+**Key Point:** Regulatory assessment logic is independent of output format.
 
 ---
 

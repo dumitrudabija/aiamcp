@@ -514,7 +514,7 @@ We created **stage-specific checklists** with actionable items:
 
 ---
 
-### A.6 Process Workflow (6-Step Sequence)
+### A.6 Process Workflow (5-Step Sequence)
 
 **OSFI E-23 Requirement:**
 
@@ -526,20 +526,21 @@ OSFI does NOT prescribe:
 
 **Our Implementation**:
 
-We created a **6-step workflow** for conducting OSFI E-23 assessments:
+We created a **5-step workflow** for conducting OSFI E-23 assessments:
 
 1. **validate_project_description** - Ensure adequate information
-2. **assess_model_risk** - Calculate risk score and level
+2. **assess_model_risk** - Calculate risk score, level, and detailed breakdown
 3. **evaluate_lifecycle_compliance** - Check stage-specific requirements
-4. **generate_risk_rating** - Produce risk rating with amplification
-5. **create_compliance_framework** - Generate governance requirements
-6. **export_e23_report** - Create Word document deliverable
+4. **create_compliance_framework** - Generate governance requirements
+5. **export_e23_report** - Create Word document deliverable
 
 **Workflow Features**:
 - **Sequential logic**: Each step builds on previous
 - **State persistence**: Can pause and resume
 - **Dependency validation**: Can't skip required steps
 - **Auto-detection**: Suggests next step based on current state
+
+**Note**: Step 2 includes comprehensive risk assessment with detailed scoring breakdown (formerly split across two steps in earlier versions).
 
 **Status**: ENTIRELY our design. OSFI requires the substantive work (risk rating, lifecycle governance, etc.) but doesn't mandate this specific workflow structure.
 
@@ -558,7 +559,7 @@ We created a **6-step workflow** for conducting OSFI E-23 assessments:
 | **Specific monitoring frequencies** | ❌ Not specified | Quarterly → Daily | HIGH - Fully customizable |
 | **Compliance tracking mechanism** | ❌ Not specified | Lifecycle compliance tool | HIGH - Entirely our design |
 | **Checklist format** | ❌ Not specified | Checkbox deliverables | HIGH - Entirely our design |
-| **6-step workflow sequence** | ❌ Not specified | Our process design | HIGH - Entirely our design |
+| **5-step workflow sequence** | ❌ Not specified | Our process design | HIGH - Entirely our design |
 | **Automated assessment** | ❌ Not mentioned | Our technical approach | HIGH - Entirely our design |
 
 ---
@@ -576,9 +577,9 @@ We created a **6-step workflow** for conducting OSFI E-23 assessments:
 2. **Specific governance requirements** at each risk level
 3. **Compliance tracking mechanisms** (our lifecycle evaluation tool)
 4. **Checklist formats** and deliverable templates
-5. **Workflow sequence** (6-step process)
+5. **Workflow sequence** (5-step process)
 6. **Automation approach** (MCP server with keyword detection)
-7. **Report structure** (4-section Word document)
+7. **Report structure** (7-section Word document)
 
 #### Critical Distinction:
 
@@ -603,7 +604,7 @@ We created a **6-step workflow** for conducting OSFI E-23 assessments:
 - Our choice of 4 risk levels
 - Our specific governance tier mappings
 - Our compliance checklist structure
-- Our 6-step workflow sequence
+- Our 5-step workflow sequence
 - Our automated assessment approach
 
 #### If Customizing:
