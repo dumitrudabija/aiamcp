@@ -319,17 +319,27 @@ class IntroductionBuilder:
             "assistant_directive": assistant_directive,
             "server_introduction": {
                 "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
-                "version": "2.2.0",
-                "purpose": "Official framework compliance for Canada's Algorithmic Impact Assessment (AIA) and OSFI Guideline E-23 Model Risk Management",
+                "version": "2.2.9",
+                "purpose": "Proof of Concept implementation leveraging Canada's AIA and OSFI E-23 frameworks",
                 "transparency_notice": {
-                    "critical_distinction": "This server provides OFFICIAL regulatory framework data. All calculations, scores, and compliance determinations come from verified government sources - NOT AI generation.",
-                    "data_sources": [
-                        "🔧 MCP SERVER (Official): Canada.ca AIA framework questions and scoring",
-                        "🔧 MCP SERVER (Official): OSFI E-23 risk management methodology",
-                        "🔧 MCP SERVER (Official): Validated calculations using government formulas",
-                        "🧠 CLAUDE (AI-Generated): Result interpretations and recommendations only"
+                    "critical_distinction": "⚠️ PROOF OF CONCEPT: This server uses official framework structures but implements exemplification logic that requires institutional customization.",
+                    "what_is_official": [
+                        "✅ AIA OFFICIAL: 104 questions from Canada.ca Treasury Board Directive",
+                        "✅ OSFI E-23 OFFICIAL: Principles (1.1-3.6), lifecycle stages, Appendix 1 structure",
+                        "✅ FRAMEWORK STRUCTURE: Official regulatory requirements and terminology"
                     ],
-                    "anti_hallucination_design": "AI cannot modify official scores, risk levels, or compliance determinations - these come exclusively from the MCP server using government-verified data"
+                    "what_is_proof_of_concept": [
+                        "⚙️ IMPLEMENTATION CHOICE: Risk scoring weights, thresholds, and formulas (NOT official)",
+                        "⚙️ IMPLEMENTATION CHOICE: Governance mappings and approval authorities (exemplification only)",
+                        "⚙️ IMPLEMENTATION CHOICE: Amplification factors and risk calculations (tunable parameters)",
+                        "⚙️ IMPLEMENTATION CHOICE: Specific requirements mapped to lifecycle stages (interpretation)"
+                    ],
+                    "data_sources": [
+                        "🔧 MCP SERVER: Official framework questions and structures from government sources",
+                        "⚙️ MCP SERVER: Proof of concept risk scoring and governance logic (requires customization)",
+                        "🧠 CLAUDE (AI): Result interpretations, gap analysis, and recommendations"
+                    ],
+                    "critical_requirement": "⚠️ ALL IMPLEMENTATION LOGIC must be validated and customized by your institution's Model Risk Management and compliance teams. This is NOT production-ready without institutional adaptation."
                 }
             },
             "tool_categories": {
@@ -388,25 +398,26 @@ class IntroductionBuilder:
                 ]
             },
             "compliance_warnings": {
-                "professional_validation": "⚠️ ALL RESULTS require validation by qualified professionals and approval by appropriate governance authorities",
-                "regulatory_compliance": "⚠️ This tool provides STRUCTURE ONLY - professional judgment is required for regulatory compliance",
-                "anti_hallucination": "⚠️ Official scores and risk levels come from MCP server using government data - AI provides interpretation only",
-                "audit_requirements": "⚠️ Results must be reviewed by appropriate risk management and compliance teams before regulatory use"
+                "proof_of_concept": "⚠️ CRITICAL: This is a PROOF OF CONCEPT implementation. All scoring logic, risk calculations, and governance mappings are exemplification - NOT official government specifications",
+                "professional_validation": "⚠️ ALL RESULTS require validation by qualified professionals and approval by appropriate governance authorities before any regulatory use",
+                "customization_required": "⚠️ Financial institutions MUST customize risk weights, thresholds, governance structures, and approval authorities to match their institutional framework",
+                "regulatory_compliance": "⚠️ This tool provides FRAMEWORK STRUCTURE from official sources - but implementation logic requires institutional adaptation and professional validation",
+                "audit_requirements": "⚠️ Results must be validated, customized, and approved by your institution's Model Risk Management and compliance teams before regulatory use"
             },
             "usage_examples": {
                 "proper_usage": [
                     "✅ Use workflows for complete guided assessments",
                     "✅ Validate project descriptions before framework tools",
                     "✅ Follow the complete framework workflow sequences",
-                    "✅ Use official scores for regulatory compliance",
-                    "✅ Export generated documents for audit trails"
+                    "✅ Customize risk parameters to match your institutional framework",
+                    "✅ Export generated documents as templates for institutional adaptation"
                 ],
                 "improper_usage": [
                     "❌ Do NOT skip workflow steps or call tools out of sequence",
                     "❌ Do NOT use AI interpretations for regulatory decisions",
                     "❌ Do NOT bypass description validation requirements",
-                    "❌ Do NOT use framework tools without proper project information",
-                    "❌ Do NOT modify or substitute official scoring calculations"
+                    "❌ Do NOT use proof-of-concept scoring without institutional customization",
+                    "❌ Do NOT treat exemplification logic as production-ready specifications"
                 ]
             },
             "next_steps_guidance": {
