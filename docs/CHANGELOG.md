@@ -2,6 +2,121 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.1.0] - 2025-11-21
+
+### 🔄 OSFI E-23 Workflow Streamlining - Enhanced Data Integration
+
+#### Overview
+Major refactoring of Steps 3-6 in the OSFI E-23 workflow to improve clarity, consistency, and data integration. Establishes clear separation of concerns and leverages cross-step data flow for comprehensive compliance reporting.
+
+#### Problem Resolved
+- **Step 3 Complexity**: 4 coverage indicators with 2 mapping to the same OSFI principle created confusion
+- **Terminology Confusion**: Using "compliance" for keyword detection was misleading
+- **Step 4 Overlap**: Included governance elements that belonged in Step 5
+- **Step 5 Scope**: Returned requirements for all 5 lifecycle stages instead of current stage only
+- **Incomplete Checklists**: Monitoring and decommission stages had empty checklist items
+- **Report Limitations**: Step 6 was hardcoded for Design stage only and didn't leverage Step 3/5 data
+- **Missing Transparency**: No clear indication of OSFI-mandated vs implementation choices
+
+#### Solution Implemented
+
+**Step 3 (evaluate_lifecycle_compliance):**
+- ✅ Reduced from 4 to 3 coverage indicators per stage (1:1 mapping with OSFI subcomponents)
+- ✅ Changed terminology from "compliance" to "coverage" for accuracy
+- ✅ Updated tool descriptions and user-facing messages
+- ✅ Coverage percentages: 0%, 33%, 67%, 100% (based on 3 elements)
+
+**Step 4 (generate_risk_rating):**
+- ✅ Removed `governance_intensity`, `review_frequency`, `approval_authority` (moved to Step 5)
+- ✅ Streamlined to focus purely on risk rating and factor analysis
+- ✅ Removed unused `_determine_governance_intensity()` function
+- ✅ Clear separation: Step 4 = "What is the risk?" vs Step 5 = "What governance is needed?"
+
+**Step 5 (create_compliance_framework):**
+- ✅ Made stage-specific: shows only current stage requirements (not all 5 stages)
+- ✅ Created `osfi_elements` structure organized by 3 OSFI subcomponents per stage
+- ✅ Each element includes: `requirements`, `deliverables`, `checklist_items`
+- ✅ Added `osfi_required`/`osfi_implied`/`source` fields to `governance_structure`
+- ✅ Added checklist items for all 3 elements in monitoring stage:
+  - Performance Tracking: "Regular performance monitoring", "Automated performance dashboards" (High/Critical)
+  - Drift Detection: "Data drift monitoring setup", "Statistical drift detection tests" (High/Critical)
+  - Escalation Procedures: "Model incident response procedures", "Rapid escalation pathways" (High/Critical)
+- ✅ Added checklist items for all 3 elements in decommission stage:
+  - Retirement Process: "Formal decommission approval", "Risk assessment of impacts" (High/Critical)
+  - Stakeholder Notification: "Stakeholder decommission notification"
+  - Documentation Retention: "Model archive and documentation retention", "Regulatory compliance archival" (High/Critical)
+- ✅ Removed timeline components (not OSFI-mandated)
+
+**Step 6 (export_e23_report):**
+- ✅ Renamed `generate_design_stage_report()` → `generate_osfi_e23_report()`
+- ✅ Made reports stage-specific (Design/Review/Deployment/Monitoring/Decommission)
+- ✅ Added Section 3: **Lifecycle Coverage Assessment** (Step 3 data)
+  - Coverage percentage with color coding (Green/Yellow/Orange)
+  - Table showing 3 OSFI elements detected/not detected
+  - Gap analysis with missing elements and recommendations
+- ✅ Added Section 4: **Stage-Specific Compliance Checklist** (Step 5 osfi_elements)
+  - Organized by 3 OSFI subcomponents for current stage
+  - Requirements, deliverables, and checklist items per element
+  - Risk-level specific items with "Required" markers
+- ✅ Added Section 5: **Governance Structure** (Step 5 governance_structure)
+  - 4-column table: Role, Responsibility, OSFI Required, Source
+  - Legend: ✓ Yes (OSFI-mandated), ~ Implied, ✗ No (implementation choice)
+- ✅ Added Section 6: **Monitoring Framework** (Step 5 monitoring_framework)
+  - Monitoring frequency and reporting schedule
+  - Key performance metrics and alert thresholds
+- ✅ Updated server.py integration to auto-detect stage and pass Step 3/5 data
+- ✅ Preserved all professional validation warnings (beginning and end)
+- ✅ Added backwards compatibility wrapper for old function name
+
+#### Technical Details
+
+**Files Modified:**
+- `osfi_e23_processor.py` - Steps 3, 4, 5 refactoring (560 lines changed)
+- `osfi_e23_report_generators.py` - Step 6 complete overhaul (444 lines added)
+- `server.py` - Step 6 integration with Steps 3 and 5 (64 lines changed)
+- `config/tool_registry.py` - Tool description updates for Steps 3-5 (11 lines changed)
+- `introduction_builder.py` - Workflow guidance updates for coverage terminology (8 lines changed)
+
+**Tests Created:**
+- `test_checklist_completeness.py` (158 lines) - Verifies monitoring/decommission checklists complete
+- `test_step4_streamlined.py` (220 lines) - Verifies Step 4 focuses on risk rating only
+- `test_step6_updated.py` (239 lines) - Verifies stage-specific reports with new sections
+
+#### Impact & Benefits
+
+**Clarity:**
+- ✅ Clear 1:1 mapping between coverage indicators and OSFI subcomponents
+- ✅ Accurate terminology: "coverage" (keyword detection) vs "compliance" (actual deliverables)
+- ✅ Transparent distinction between OSFI-mandated and implementation choices
+
+**Consistency:**
+- ✅ All lifecycle stages now have complete checklist items for all 3 OSFI elements
+- ✅ Uniform structure across all stages in osfi_elements
+- ✅ Risk-level specific requirements clearly marked
+
+**Data Integration:**
+- ✅ Step 6 reports leverage data from Steps 2, 3, and 5
+- ✅ Coverage assessment (Step 3) → Checklist (Step 5) → Report (Step 6) flow
+- ✅ No duplication between steps
+
+**Report Quality:**
+- ✅ Stage-specific reports (only shows current stage requirements)
+- ✅ Compact size maintained (~4-6 pages) by focusing on relevant stage
+- ✅ 7 comprehensive sections with professional formatting
+- ✅ All professional validation warnings preserved
+
+**Code Quality:**
+- ✅ Clear separation of concerns (Step 4: risk, Step 5: governance/compliance)
+- ✅ Removed unused code (_determine_governance_intensity)
+- ✅ All tests passing (100% success rate)
+
+#### Migration Notes
+- Report function renamed but backwards compatible via wrapper
+- Existing workflows continue to function unchanged
+- New report sections only appear when Step 3/5 data is available
+
+---
+
 ## [2.0.1] - 2025-11-20
 
 ### 🔧 Workflow Confirmation Fix - User Control Enhancement

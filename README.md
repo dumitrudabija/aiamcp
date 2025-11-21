@@ -232,38 +232,92 @@ Export AIA assessment results to a Microsoft Word document.
 - `projectDescription`: **CRITICAL**: Factual, detailed description with specific technical architecture, documented data sources/volumes, explicit business use cases
 
 #### 13. `evaluate_lifecycle_compliance`
-🏦 **OSFI E-23 STEP 3 OF 6 - LIFECYCLE COMPLIANCE**: Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages.
+🏦 **OSFI E-23 STEP 3 OF 6 - LIFECYCLE COVERAGE ASSESSMENT**: Evaluate lifecycle coverage by detecting presence of 3 official OSFI E-23 subcomponents for the current stage. Returns coverage percentage (0%, 33%, 67%, 100%) based on keyword detection.
+
+**NEW (v2.1.0):**
+- ✅ 3 coverage indicators per stage (1:1 mapping with OSFI subcomponents)
+- ✅ Terminology changed from "compliance" to "coverage" for accuracy
+- ✅ Coverage percentages: 0/33/67/100% (based on 3 elements detected)
 
 **Parameters:**
 - `projectName`: Name of the model being evaluated
 - `projectDescription`: Detailed description of the model and its current lifecycle stage
 - `currentStage` (optional): Current lifecycle stage (Design, Review, Deployment, Monitoring, Decommission)
 
+**Returns:**
+- Coverage percentage and elements detected
+- Gap analysis with missing elements
+- OSFI subcomponents for current stage
+
 #### 14. `generate_risk_rating`
-🏦 **OSFI E-23 STEP 4 OF 6 - RISK RATING DOCUMENTATION**: Generate detailed risk rating assessment using OSFI E-23 methodology.
+🏦 **OSFI E-23 STEP 4 OF 6 - RISK RATING DOCUMENTATION**: Generate detailed risk rating assessment using OSFI E-23 methodology. Focuses purely on risk assessment and analysis.
+
+**NEW (v2.1.0):**
+- ✅ Streamlined to focus on risk rating only (no governance elements)
+- ✅ Returns: risk_rating, risk_score, risk_analysis, risk_factor_analysis
+- ✅ Clear separation: Step 4 = "What is the risk?" vs Step 5 = "What governance is needed?"
 
 **Parameters:**
 - `projectName`: Name of the model being rated
 - `projectDescription`: Detailed description including technical details, business impact, and usage context
 
+**Returns:**
+- Risk level (Low/Medium/High/Critical) and numerical score
+- Detailed risk factor analysis with quantitative and qualitative scores
+- Risk amplification calculations
+
 #### 15. `create_compliance_framework`
-🏦 **OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK**: Create comprehensive compliance framework based on OSFI E-23 requirements.
+🏦 **OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK**: Create stage-specific compliance framework with governance structure, OSFI elements organized by 3 subcomponents, monitoring framework, and documentation requirements.
+
+**NEW (v2.1.0):**
+- ✅ Stage-specific (shows only current stage requirements, not all 5 stages)
+- ✅ osfi_elements structure with 3 OSFI subcomponents per stage
+- ✅ Each element includes: requirements, deliverables, checklist_items
+- ✅ Governance structure with osfi_required/osfi_implied/source fields
+- ✅ Complete checklists for monitoring and decommission stages
+- ✅ Risk-level specific requirements clearly marked
 
 **Parameters:**
 - `projectName`: Name of the model requiring compliance framework
 - `projectDescription`: Detailed description of the model, its business purpose, and organizational context
+- `currentStage`: Current lifecycle stage (required for stage-specific framework)
 - `riskLevel` (optional): Pre-determined risk level (Low, Medium, High, Critical)
 
+**Returns:**
+- Governance structure (roles with OSFI-mandated vs choice clarity)
+- osfi_elements (3 subcomponents with requirements/deliverables/checklists)
+- Monitoring framework (frequency, metrics, thresholds)
+- Documentation requirements (risk-based)
+
 #### 16. `export_e23_report`
-🏦 **OSFI E-23 STEP 6 OF 6 - REPORT GENERATION**: Export OSFI E-23 assessment results to Microsoft Word document. This is the FINAL STEP in the complete OSFI E-23 workflow.
+🏦 **OSFI E-23 STEP 6 OF 6 - REPORT GENERATION**: Export stage-specific OSFI E-23 compliance report to Microsoft Word document with comprehensive sections leveraging data from Steps 2, 3, and 5.
+
+**NEW (v2.1.0):**
+- ✅ Stage-specific reports (Design/Review/Deployment/Monitoring/Decommission)
+- ✅ Section 3: Lifecycle Coverage Assessment (Step 3 data with color-coded percentages)
+- ✅ Section 4: Stage-Specific Compliance Checklist (Step 5 osfi_elements)
+- ✅ Section 5: Governance Structure (with OSFI-mandated vs choice clarity)
+- ✅ Section 6: Monitoring Framework (frequency, metrics, thresholds)
+- ✅ Auto-detects lifecycle stage from project description
+- ✅ Compact size (~4-6 pages) by showing only current stage requirements
+- ✅ All professional validation warnings preserved
 
 ⚠️ **COMPLIANCE WARNING**: Requires professional validation.
 
 **Parameters:**
 - `project_name`: Name of the model being assessed
 - `project_description`: Description of the model and its business application
-- `assessment_results`: Assessment results object from previous E-23 assessment
+- `assessment_results`: Assessment results object from Step 2 (assess_model_risk)
 - `custom_filename` (optional): Custom filename (without extension)
+
+**Report Structure (7 sections):**
+1. Executive Summary
+2. Risk Rating Methodology
+3. Lifecycle Coverage Assessment (NEW)
+4. Stage-Specific Compliance Checklist (ENHANCED)
+5. Governance Structure (NEW)
+6. Monitoring Framework (NEW)
+7. Annex: OSFI E-23 Principles
 
 ## Risk Assessment Frameworks
 
