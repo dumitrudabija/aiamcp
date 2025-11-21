@@ -2,6 +2,52 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.1] - 2025-11-21
+
+### 🔧 Tool Description & Architecture Documentation Fixes
+
+#### get_server_introduction Tool Description Update
+**Problem:** Tool description referenced outdated 6-step OSFI E-23 workflow after Step 4 was merged into Step 2.
+
+**Fixed:**
+- ✅ `tool_registry.py`: Changed "6 steps for OSFI E-23" → "5 steps for OSFI E-23"
+- ✅ `tool_registry.py`: Updated examples to reference "5-step workflow"
+- ✅ `introduction_builder.py`: Updated version from "2.0.0" → "2.2.0"
+
+**Impact:** MCP tool description now accurately reflects actual workflow implementation.
+
+#### Session Persistence Architecture Documentation (LOGICAL_ARCHITECTURE.md v2.3.0)
+**Problem:** Documentation incorrectly described Claude as passing data between workflow steps.
+
+**Major Correction - How Data Actually Flows:**
+- ❌ **BEFORE (Incorrect):** "Claude passes risk level from Step 2 and stage from Step 3"
+- ✅ **AFTER (Correct):** "Python auto-session maintains ALL workflow state; Claude does NOT pass data"
+
+**What Was Added:**
+- ✅ New section: "Session Persistence & Data Flow Architecture"
+- ✅ Documented auto-session creation for OSFI E-23 tools
+- ✅ Documented automatic storage in `session["tool_results"][tool_name]`
+- ✅ Documented auto-injection for export tools
+- ✅ Updated all 5 steps to show session storage/retrieval
+- ✅ Added concrete data flow examples
+- ✅ Updated Summary: Responsibility Matrix
+
+**The Real Architecture:**
+```
+When Claude calls ANY OSFI E-23 tool:
+1. Python auto-creates/retrieves session
+2. Python stores tool result → session["tool_results"][tool_name]
+3. Later tools auto-retrieve from session state
+4. Export tools auto-inject missing assessment_results
+5. Session lifetime: 2 hours
+```
+
+**Files Updated:**
+- `LOGICAL_ARCHITECTURE.md` (v2.2.0 → v2.3.0)
+- `ARCHITECTURE.md` (data flow corrections)
+
+**Impact:** Documentation now accurately represents the session persistence architecture where Python maintains all state through workflow engine, not Claude passing parameters.
+
 ## [2.2.0] - 2025-11-21
 
 ### ⚡ OSFI E-23 Workflow Simplification - Step 4 Merged into Step 2
