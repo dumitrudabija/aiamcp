@@ -33,7 +33,7 @@ from utils.data_extractors import AIADataExtractor, OSFIE23DataExtractor
 from aia_analysis import AIAAnalyzer
 from introduction_builder import IntroductionBuilder
 from aia_report_generator import AIAReportGenerator
-from osfi_e23_report_generators import generate_design_stage_report
+from osfi_e23_report_generators import generate_osfi_e23_report
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
@@ -1219,10 +1219,17 @@ class MCPServer:
 
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
+        current_stage = arguments.get("currentStage")
         risk_level = arguments.get("riskLevel")
 
         logger.info(f"OSFI E-23 compliance framework creation for: {project_name}")
-        
+
+        # Detect lifecycle stage if not provided
+        if not current_stage:
+            from osfi_e23_structure import detect_lifecycle_stage
+            current_stage = detect_lifecycle_stage(project_description)
+            logger.info(f"Auto-detected lifecycle stage: {current_stage}")
+
         # If risk_level is provided, create a mock risk assessment
         risk_assessment = None
         if risk_level:
@@ -1234,11 +1241,12 @@ class MCPServer:
                     "qualitative_indicators": {}
                 }
             }
-        
+
         # Use the OSFI E-23 processor
         result = self.osfi_e23_processor.create_compliance_framework(
             project_name=project_name,
             project_description=project_description,
+            current_stage=current_stage,
             risk_assessment=risk_assessment
         )
 
@@ -1302,12 +1310,41 @@ class MCPServer:
             # Create Word document
             doc = Document()
 
-            # Generate the OSFI E-23 Design Stage report
-            doc = generate_design_stage_report(
+            # Detect lifecycle stage
+            from osfi_e23_structure import detect_lifecycle_stage
+            current_stage = detect_lifecycle_stage(project_description)
+
+            # Get Step 3 lifecycle compliance data (optional - enhances report)
+            lifecycle_compliance = None
+            try:
+                lifecycle_compliance = self.osfi_e23_processor.evaluate_lifecycle_compliance(
+                    project_name=project_name,
+                    project_description=project_description
+                )
+            except Exception as e:
+                logger.warning(f"Could not get lifecycle compliance data: {e}")
+
+            # Get Step 5 compliance framework data (optional - enhances report)
+            compliance_framework = None
+            try:
+                compliance_framework = self.osfi_e23_processor.create_compliance_framework(
+                    project_name=project_name,
+                    project_description=project_description,
+                    current_stage=current_stage,
+                    risk_assessment=assessment_results
+                )
+            except Exception as e:
+                logger.warning(f"Could not get compliance framework data: {e}")
+
+            # Generate the OSFI E-23 stage-specific report
+            doc = generate_osfi_e23_report(
                 project_name=project_name,
                 project_description=project_description,
                 assessment_results=assessment_results,
-                doc=doc
+                doc=doc,
+                current_stage=current_stage,
+                lifecycle_compliance=lifecycle_compliance,
+                compliance_framework=compliance_framework
             )
 
             # Save document
@@ -1317,18 +1354,27 @@ class MCPServer:
             file_size = os.path.getsize(file_path)
             file_size_kb = round(file_size / 1024, 1)
 
-            # Extract risk level for response
+            # Extract risk level and stage for response
             risk_level = assessment_results.get("risk_level", "Unknown")
+            stage_display_names = {
+                "design": "Design",
+                "review": "Review",
+                "deployment": "Deployment",
+                "monitoring": "Monitoring",
+                "decommission": "Decommission"
+            }
+            stage_display = stage_display_names.get(current_stage, "Design")
 
             return {
                 "assistant_directive": {
-                    "critical_instruction": "The COMPLETE OSFI E-23 compliance report has been generated and saved by the MCP server. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review."
+                    "critical_instruction": f"The COMPLETE OSFI E-23 compliance report has been generated and saved by the MCP server for {stage_display} stage. Present ONLY the file path and success message below. Do NOT generate, create, or write any additional report content. Do NOT offer to create summaries or additional documents. The Word document is complete and ready for professional review."
                 },
                 "success": True,
                 "file_path": file_path,
                 "file_size": f"{file_size_kb}KB",
                 "risk_level": risk_level,
-                "message": f"✅ OSFI E-23 Model Risk Management compliance report saved successfully to {filename}"
+                "lifecycle_stage": current_stage,
+                "message": f"✅ OSFI E-23 {stage_display} Stage compliance report saved successfully to {filename}"
             }
 
         except PermissionError:

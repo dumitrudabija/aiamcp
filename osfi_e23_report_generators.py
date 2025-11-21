@@ -15,28 +15,45 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def generate_design_stage_report(
+def generate_osfi_e23_report(
     project_name: str,
     project_description: str,
     assessment_results: Dict[str, Any],
-    doc: Document
+    doc: Document,
+    current_stage: str = "design",
+    lifecycle_compliance: Dict[str, Any] = None,
+    compliance_framework: Dict[str, Any] = None
 ) -> Document:
     """
-    Generate streamlined OSFI E-23 Design stage compliance report.
+    Generate streamlined OSFI E-23 stage-specific compliance report.
 
-    Follows standard 4-section structure:
+    Follows standard structure:
     1. Executive Summary
     2. Risk Rating Methodology
-    3. Design Phase Compliance Checklist
-    4. Annex: OSFI E-23 Principles
+    3. Lifecycle Coverage Assessment (from Step 3)
+    4. Stage-Specific Compliance Checklist (from Step 5)
+    5. Governance Structure (from Step 5)
+    6. Monitoring Framework (from Step 5, if applicable)
+    7. Annex: OSFI E-23 Principles
 
-    Target: ~4 pages with clear, professional formatting.
+    Target: ~4-6 pages with clear, professional formatting.
+    Stage-specific content ensures report only shows current stage requirements.
     """
     # Extract key data
     risk_level = assessment_results.get("risk_level", "Unknown")
     risk_score = assessment_results.get("risk_score", 0)
     risk_analysis = assessment_results.get("risk_analysis", {})
     assessment_date = datetime.now().strftime("%B %d, %Y")
+
+    # Stage display name
+    stage_display_names = {
+        "design": "Design",
+        "review": "Review",
+        "deployment": "Deployment",
+        "monitoring": "Monitoring",
+        "decommission": "Decommission"
+    }
+    stage_display = stage_display_names.get(current_stage, "Design")
 
     # Title page
     title = doc.add_heading('OSFI E-23 Model Risk Assessment', 0)
@@ -47,7 +64,7 @@ def generate_design_stage_report(
 
     # Metadata
     doc.add_paragraph()
-    _add_metadata(doc, assessment_date, risk_level, risk_score)
+    _add_metadata(doc, assessment_date, risk_level, risk_score, stage_display)
 
     # Data source transparency
     doc.add_paragraph()
@@ -59,18 +76,34 @@ def generate_design_stage_report(
     doc.add_page_break()
 
     # 1. Executive Summary
-    _add_executive_summary_with_disclaimer(doc, project_name, project_description, risk_level, risk_score, risk_analysis)
+    _add_executive_summary_with_disclaimer(doc, project_name, project_description, risk_level, risk_score, risk_analysis, stage_display)
 
     # 2. Risk Rating Methodology
     _add_risk_methodology(doc, risk_analysis, risk_level, risk_score)
 
-    # 3. Design Phase Compliance Checklist
-    _add_compliance_checklist(doc, project_description, risk_level, risk_score)
+    # 3. Lifecycle Coverage Assessment (Step 3)
+    if lifecycle_compliance:
+        _add_lifecycle_coverage_section(doc, lifecycle_compliance, current_stage, stage_display)
+
+    # 4. Stage-Specific Compliance Checklist (Step 5)
+    if compliance_framework and compliance_framework.get("osfi_elements"):
+        _add_stage_compliance_checklist(doc, compliance_framework, current_stage, stage_display, risk_level)
+    else:
+        # Fallback to hardcoded Design checklist if Step 5 data not available
+        _add_compliance_checklist(doc, project_description, risk_level, risk_score, stage_display)
+
+    # 5. Governance Structure (Step 5)
+    if compliance_framework and compliance_framework.get("governance_structure"):
+        _add_governance_structure_section(doc, compliance_framework.get("governance_structure"), risk_level)
+
+    # 6. Monitoring Framework (Step 5 - if applicable)
+    if compliance_framework and compliance_framework.get("monitoring_framework"):
+        _add_monitoring_framework_section(doc, compliance_framework.get("monitoring_framework"))
 
     doc.add_page_break()
 
     # Annex: OSFI E-23 Principles
-    _add_annex_principles(doc)
+    _add_annex_principles(doc, current_stage)
 
     # Professional validation disclaimer (end)
     doc.add_page_break()
@@ -79,7 +112,29 @@ def generate_design_stage_report(
     return doc
 
 
-def _add_metadata(doc: Document, assessment_date: str, risk_level: str, risk_score: int):
+# Backwards compatibility wrapper
+def generate_design_stage_report(
+    project_name: str,
+    project_description: str,
+    assessment_results: Dict[str, Any],
+    doc: Document
+) -> Document:
+    """
+    Backwards compatibility wrapper for generate_osfi_e23_report.
+    Defaults to Design stage with no Step 3/5 data.
+    """
+    return generate_osfi_e23_report(
+        project_name=project_name,
+        project_description=project_description,
+        assessment_results=assessment_results,
+        doc=doc,
+        current_stage="design",
+        lifecycle_compliance=None,
+        compliance_framework=None
+    )
+
+
+def _add_metadata(doc: Document, assessment_date: str, risk_level: str, risk_score: int, stage_display: str):
     """Add assessment metadata section."""
     p = doc.add_paragraph()
     p.add_run('Assessment Date: ').bold = True
@@ -87,7 +142,7 @@ def _add_metadata(doc: Document, assessment_date: str, risk_level: str, risk_sco
 
     p = doc.add_paragraph()
     p.add_run('Current Lifecycle Stage: ').bold = True
-    p.add_run('Design')
+    p.add_run(stage_display)
 
     p = doc.add_paragraph()
     p.add_run('Risk Rating: ').bold = True
@@ -188,7 +243,7 @@ def _add_professional_validation_disclaimer(doc: Document, position: str = "begi
 
 
 def _add_executive_summary_with_disclaimer(doc: Document, project_name: str, project_description: str,
-                          risk_level: str, risk_score: int, risk_analysis: Dict[str, Any]):
+                          risk_level: str, risk_score: int, risk_analysis: Dict[str, Any], stage_display: str):
     """Add executive summary section with data source transparency."""
     doc.add_heading('1. EXECUTIVE SUMMARY', level=1)
 
@@ -265,11 +320,16 @@ def _add_executive_summary_with_disclaimer(doc: Document, project_name: str, pro
             f"The model's core functionality includes {cap_text}, which contribute to its risk profile."
         )
 
-    # Design stage status
-    summary_parts.append(
-        f"Currently at Design stage, requiring completion of all model rationale, data governance, "
-        f"and development documentation before transitioning to the Review stage."
-    )
+    # Current stage status
+    stage_next_steps = {
+        "design": "requiring completion of all model rationale, data governance, and development documentation before transitioning to the Review stage",
+        "review": "undergoing independent validation and conceptual soundness assessment before deployment approval",
+        "deployment": "implementing production controls with quality assurance and change management processes",
+        "monitoring": "requiring ongoing performance tracking, drift detection, and escalation procedures",
+        "decommission": "following formal retirement procedures with stakeholder notification and documentation retention"
+    }
+    next_steps = stage_next_steps.get(stage_display.lower(), "requiring appropriate lifecycle controls per OSFI E-23 guidelines")
+    summary_parts.append(f"Currently at {stage_display} stage, {next_steps}.")
 
     summary = " ".join(summary_parts)
     doc.add_paragraph(summary)
@@ -472,9 +532,9 @@ def _add_risk_methodology(doc: Document, risk_analysis: Dict[str, Any],
 
 
 def _add_compliance_checklist(doc: Document, project_description: str,
-                              risk_level: str, risk_score: int):
-    """Add design phase compliance checklist."""
-    doc.add_heading('3. DESIGN PHASE COMPLIANCE CHECKLIST', level=1)
+                              risk_level: str, risk_score: int, stage_display: str = "Design"):
+    """Add stage-specific compliance checklist (fallback - uses hardcoded Design items)."""
+    doc.add_heading(f'3. {stage_display.upper()} PHASE COMPLIANCE CHECKLIST', level=1)
 
     # Chapter-specific transparency note
     p = doc.add_paragraph()
@@ -633,9 +693,17 @@ def _add_checklist_item(doc: Document, item: str, deliverable: str):
     p2.paragraph_format.space_after = Pt(6)
 
 
-def _add_annex_principles(doc: Document):
+def _add_annex_principles(doc: Document, current_stage: str = "design"):
     """Add annex with OSFI E-23 principles."""
-    doc.add_heading('ANNEX: OSFI E-23 PRINCIPLES (DESIGN STAGE)', level=1)
+    stage_display_names = {
+        "design": "DESIGN STAGE",
+        "review": "REVIEW STAGE",
+        "deployment": "DEPLOYMENT STAGE",
+        "monitoring": "MONITORING STAGE",
+        "decommission": "DECOMMISSION STAGE"
+    }
+    stage_title = stage_display_names.get(current_stage, "DESIGN STAGE")
+    doc.add_heading(f'ANNEX: OSFI E-23 PRINCIPLES ({stage_title})', level=1)
 
     # Chapter-specific transparency note
     p = doc.add_paragraph()
@@ -699,3 +767,327 @@ def _add_annex_principles(doc: Document):
         run.bold = True
         doc.add_paragraph(description)
         doc.add_paragraph()
+
+
+def _add_lifecycle_coverage_section(doc: Document, lifecycle_compliance: Dict[str, Any],
+                                    current_stage: str, stage_display: str):
+    """Add Step 3 lifecycle coverage assessment section."""
+    doc.add_heading('3. LIFECYCLE COVERAGE ASSESSMENT', level=1)
+
+    # Chapter-specific transparency note
+    p = doc.add_paragraph()
+    run = p.add_run('🔧 DETERMINISTIC OUTPUT: ')
+    run.bold = True
+    run.font.size = Pt(9)
+    run2 = p.add_run(
+        'Coverage based on keyword detection in project description. Not a compliance audit.'
+    )
+    run2.font.size = Pt(9)
+    run2.italic = True
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # Extract coverage data from Step 3 response
+    compliance_analysis = lifecycle_compliance.get("compliance_analysis", {})
+    coverage_percentage = compliance_analysis.get("compliance_percentage", 0)
+    elements_covered = compliance_analysis.get("compliance_score", 0)
+    total_elements = compliance_analysis.get("total_indicators", 3)
+    gaps_identified = compliance_analysis.get("gaps_identified", [])
+    stage_indicators = compliance_analysis.get("stage_indicators", {})
+
+    # Coverage summary
+    p = doc.add_paragraph()
+    p.add_run(f'{stage_display} Stage Coverage: ').bold = True
+    run = p.add_run(f'{coverage_percentage}% ({elements_covered}/{total_elements} elements detected)')
+    if coverage_percentage == 100:
+        run.font.color.rgb = RGBColor(0, 128, 0)  # Green
+    elif coverage_percentage >= 67:
+        run.font.color.rgb = RGBColor(255, 192, 0)  # Yellow
+    else:
+        run.font.color.rgb = RGBColor(255, 102, 0)  # Orange
+    run.bold = True
+
+    doc.add_paragraph()
+
+    # Important note
+    p = doc.add_paragraph()
+    run = p.add_run('IMPORTANT NOTE: ')
+    run.bold = True
+    p.add_run(
+        'This coverage assessment indicates whether the project description mentions the 3 official '
+        f'OSFI E-23 subcomponents for {stage_display} stage. It does NOT verify actual compliance '
+        'or deliverable completeness. Full compliance requires professional validation of actual '
+        'documentation and deliverables.'
+    )
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # OSFI Elements Detection Table
+    doc.add_heading(f'OSFI E-23 {stage_display} Stage Elements', level=2)
+
+    # Create table with 3 rows (one per element)
+    table = doc.add_table(rows=total_elements + 1, cols=3)
+    table.style = 'Light Grid Accent 1'
+
+    # Header row
+    table.rows[0].cells[0].text = 'OSFI Element'
+    table.rows[0].cells[1].text = 'Detected'
+    table.rows[0].cells[2].text = 'Coverage Indicator'
+
+    # Data rows
+    element_names = {
+        "design": ["Model Rationale", "Model Data", "Model Development"],
+        "review": ["Independent Validation", "Conceptual Soundness", "Performance Evaluation"],
+        "deployment": ["Production Implementation", "Quality Control", "Change Management"],
+        "monitoring": ["Performance Tracking", "Drift Detection", "Escalation Procedures"],
+        "decommission": ["Retirement Process", "Stakeholder Notification", "Documentation Retention"]
+    }
+
+    elements = element_names.get(current_stage, ["Element 1", "Element 2", "Element 3"])
+
+    # Get indicator keys for this stage
+    indicator_keys = list(stage_indicators.keys()) if stage_indicators else []
+
+    for idx, element_name in enumerate(elements):
+        detected = stage_indicators.get(indicator_keys[idx], False) if idx < len(indicator_keys) else False
+        table.rows[idx + 1].cells[0].text = element_name
+        table.rows[idx + 1].cells[1].text = '✓ Yes' if detected else '✗ No'
+
+        # Get coverage indicator description
+        if detected:
+            table.rows[idx + 1].cells[2].text = 'Keywords found in description'
+        else:
+            table.rows[idx + 1].cells[2].text = 'Not mentioned'
+
+    doc.add_paragraph()
+
+    # Gap analysis if present
+    if gaps_identified:
+        doc.add_heading('Coverage Gaps', level=3)
+        p = doc.add_paragraph()
+        p.add_run('Missing Elements: ').bold = True
+        for gap in gaps_identified:
+            # Convert key name to readable format
+            gap_display = gap.replace('_covered', '').replace('_', ' ').title()
+            doc.add_paragraph(gap_display, style='List Bullet')
+
+        # Add recommendation
+        doc.add_paragraph()
+        p = doc.add_paragraph()
+        p.add_run('Recommendation: ').bold = True
+        p.add_run('Enhance project description to address missing elements before proceeding to next lifecycle stage.')
+
+
+def _add_stage_compliance_checklist(doc: Document, compliance_framework: Dict[str, Any],
+                                    current_stage: str, stage_display: str, risk_level: str):
+    """Add Step 5 stage-specific compliance checklist using osfi_elements structure."""
+    doc.add_heading(f'4. {stage_display.upper()} STAGE COMPLIANCE CHECKLIST', level=1)
+
+    # Chapter-specific transparency note
+    p = doc.add_paragraph()
+    run = p.add_run('🔧 DETERMINISTIC OUTPUT: ')
+    run.bold = True
+    run.font.size = Pt(9)
+    run2 = p.add_run(
+        'This checklist is generated from OSFI E-23 principles. Items are not AI-generated.'
+    )
+    run2.font.size = Pt(9)
+    run2.italic = True
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # Important notes
+    p = doc.add_paragraph()
+    run = p.add_run('IMPORTANT NOTE: ')
+    run.bold = True
+    p.add_run(
+        'This checklist represents an interpretation of OSFI E-23 principles and is provided '
+        'for exemplification purposes. Each financial institution must design its own '
+        'implementation based on their specific governance framework, risk appetite, and '
+        'operational context.'
+    )
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # Get osfi_elements
+    osfi_elements = compliance_framework.get("osfi_elements", [])
+
+    # Iterate through the 3 OSFI elements
+    for idx, element in enumerate(osfi_elements, 1):
+        element_name = element.get("element_name", f"Element {idx}")
+        osfi_principle = element.get("osfi_principle", "")
+
+        # Element heading
+        doc.add_heading(f'4.{idx} {element_name} ({osfi_principle})', level=2)
+
+        # Requirements
+        requirements = element.get("requirements", [])
+        if requirements:
+            p = doc.add_paragraph()
+            p.add_run('Requirements:').bold = True
+            for req in requirements:
+                doc.add_paragraph(req, style='List Bullet')
+
+        doc.add_paragraph()
+
+        # Deliverables
+        deliverables = element.get("deliverables", [])
+        if deliverables:
+            p = doc.add_paragraph()
+            p.add_run('Key Deliverables:').bold = True
+            for deliv in deliverables:
+                doc.add_paragraph(deliv, style='List Bullet')
+
+        doc.add_paragraph()
+
+        # Checklist items
+        checklist_items = element.get("checklist_items", [])
+        if checklist_items:
+            p = doc.add_paragraph()
+            p.add_run('Checklist:').bold = True
+            for item in checklist_items:
+                item_text = item.get("item", "") if isinstance(item, dict) else item
+                required = item.get("required", True) if isinstance(item, dict) else True
+
+                p = doc.add_paragraph()
+                p.add_run('☐ ').font.size = Pt(12)
+                run = p.add_run(item_text)
+                run.bold = True
+                if required:
+                    run2 = p.add_run(' (Required)')
+                    run2.font.color.rgb = RGBColor(192, 0, 0)
+                    run2.italic = True
+
+        doc.add_paragraph()
+
+    # Completion note
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    run = p.add_run('COMPLETION REQUIREMENT: ')
+    run.bold = True
+    run.font.color.rgb = RGBColor(192, 0, 0)
+    p.add_run(
+        f'All items above must be addressed according to the {risk_level} risk rating '
+        f'to transition from {stage_display} to the next lifecycle stage per OSFI E-23 guidelines.'
+    )
+
+
+def _add_governance_structure_section(doc: Document, governance_structure: Dict[str, Any], risk_level: str):
+    """Add Step 5 governance structure section."""
+    doc.add_heading('5. GOVERNANCE STRUCTURE', level=1)
+
+    # Chapter-specific transparency note
+    p = doc.add_paragraph()
+    run = p.add_run('🔧 DETERMINISTIC OUTPUT: ')
+    run.bold = True
+    run.font.size = Pt(9)
+    run2 = p.add_run(
+        'Governance structure based on OSFI E-23 requirements and risk-based practices.'
+    )
+    run2.font.size = Pt(9)
+    run2.italic = True
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # Important note
+    p = doc.add_paragraph()
+    run = p.add_run('IMPORTANT NOTE: ')
+    run.bold = True
+    p.add_run(
+        'Governance roles and approval authorities shown below are based on OSFI E-23 requirements '
+        '(where mandated) and common industry practices (where suggested). Each institution must '
+        'align governance structure with its own organizational design and risk appetite.'
+    )
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # Governance roles table
+    doc.add_heading(f'Governance Roles and Responsibilities ({risk_level} Risk)', level=2)
+
+    # Create table
+    rows_needed = len(governance_structure) + 1
+    table = doc.add_table(rows=rows_needed, cols=4)
+    table.style = 'Light Grid Accent 1'
+
+    # Header row
+    table.rows[0].cells[0].text = 'Role'
+    table.rows[0].cells[1].text = 'Responsibility'
+    table.rows[0].cells[2].text = 'OSFI Required'
+    table.rows[0].cells[3].text = 'Source'
+
+    # Data rows
+    for idx, (role_key, role_data) in enumerate(governance_structure.items(), 1):
+        role_display = role_key.replace('_', ' ').title()
+        table.rows[idx].cells[0].text = role_display
+        table.rows[idx].cells[1].text = role_data.get("role", "")
+
+        osfi_required = role_data.get("osfi_required", False)
+        osfi_implied = role_data.get("osfi_implied", False)
+
+        if osfi_required:
+            table.rows[idx].cells[2].text = '✓ Yes'
+        elif osfi_implied:
+            table.rows[idx].cells[2].text = '~ Implied'
+        else:
+            table.rows[idx].cells[2].text = '✗ No'
+
+        table.rows[idx].cells[3].text = role_data.get("source", "")
+
+    doc.add_paragraph()
+
+    # Legend
+    p = doc.add_paragraph()
+    p.add_run('Legend:').bold = True
+    doc.add_paragraph('✓ Yes = Explicitly required by OSFI E-23 (e.g., Appendix 1 mandatory fields)', style='List Bullet')
+    doc.add_paragraph('~ Implied = Implied by OSFI E-23 principles (e.g., independent reviewer)', style='List Bullet')
+    doc.add_paragraph('✗ No = Suggested implementation choice based on risk-based governance', style='List Bullet')
+
+
+def _add_monitoring_framework_section(doc: Document, monitoring_framework: Dict[str, Any]):
+    """Add Step 5 monitoring framework section."""
+    doc.add_heading('6. MONITORING FRAMEWORK', level=1)
+
+    # Chapter-specific transparency note
+    p = doc.add_paragraph()
+    run = p.add_run('🔧 DETERMINISTIC OUTPUT: ')
+    run.bold = True
+    run.font.size = Pt(9)
+    run2 = p.add_run(
+        'Monitoring frequencies and thresholds are risk-based exemplifications.'
+    )
+    run2.font.size = Pt(9)
+    run2.italic = True
+    p_format = p.paragraph_format
+    p_format.space_after = Pt(12)
+
+    # Monitoring frequency
+    frequency = monitoring_framework.get("monitoring_frequency", "Not specified")
+    p = doc.add_paragraph()
+    p.add_run('Monitoring Frequency: ').bold = True
+    p.add_run(frequency)
+
+    # Reporting schedule
+    reporting = monitoring_framework.get("reporting_schedule", "Not specified")
+    p = doc.add_paragraph()
+    p.add_run('Reporting Schedule: ').bold = True
+    p.add_run(reporting)
+
+    doc.add_paragraph()
+
+    # Key metrics
+    key_metrics = monitoring_framework.get("key_metrics", [])
+    if key_metrics:
+        doc.add_heading('Key Performance Metrics', level=2)
+        for metric in key_metrics:
+            doc.add_paragraph(metric, style='List Bullet')
+
+    doc.add_paragraph()
+
+    # Alert thresholds
+    alert_thresholds = monitoring_framework.get("alert_thresholds", {})
+    if alert_thresholds:
+        doc.add_heading('Alert Thresholds', level=2)
+        for threshold_name, threshold_value in alert_thresholds.items():
+            p = doc.add_paragraph()
+            p.add_run(f'{threshold_name.replace("_", " ").title()}: ').bold = True
+            p.add_run(threshold_value)

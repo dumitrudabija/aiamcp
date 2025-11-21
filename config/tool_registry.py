@@ -287,7 +287,7 @@ class ToolRegistry:
             },
             {
                 "name": "evaluate_lifecycle_compliance",
-                "description": "🏦 OSFI E-23 STEP 3 OF 6 - LIFECYCLE COMPLIANCE: Evaluate model lifecycle compliance against OSFI E-23 requirements across all 5 stages (Design, Review, Deployment, Monitoring, Decommission). This is STEP 3 in the complete OSFI E-23 workflow. Identifies compliance gaps and provides stage-specific recommendations.",
+                "description": "🏦 OSFI E-23 STEP 3 OF 6 - LIFECYCLE COVERAGE ASSESSMENT: Evaluate coverage of OSFI E-23 lifecycle elements across all 5 stages (Design, Review, Deployment, Monitoring, Decommission). This is STEP 3 in the complete OSFI E-23 workflow.\n\nFor each lifecycle stage, this tool assesses the 3 official OSFI E-23 subcomponents (e.g., Design stage: Model Rationale, Model Data, Model Development per Principles 3.2 & 3.3). Provides coverage percentage: 0%, 33%, 67%, or 100%.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -330,7 +330,7 @@ class ToolRegistry:
             },
             {
                 "name": "create_compliance_framework",
-                "description": "🏦 OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK: Create comprehensive compliance framework based on OSFI E-23 requirements. This is STEP 5 in the complete OSFI E-23 workflow. Generates detailed governance structure, policies, procedures, and controls tailored to the model's risk level and business context.",
+                "description": "🏦 OSFI E-23 STEP 5 OF 6 - COMPLIANCE FRAMEWORK: Create stage-specific compliance framework based on OSFI E-23 requirements. This is STEP 5 in the complete OSFI E-23 workflow. Generates governance structure, requirements, and controls tailored to the model's current lifecycle stage and risk level.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -342,9 +342,14 @@ class ToolRegistry:
                             "type": "string",
                             "description": "Detailed description of the model, its business purpose, and organizational context"
                         },
+                        "currentStage": {
+                            "type": "string",
+                            "description": "Optional: Current lifecycle stage (from Step 3). If not provided, will be auto-detected.",
+                            "enum": ["design", "review", "deployment", "monitoring", "decommission"]
+                        },
                         "riskLevel": {
                             "type": "string",
-                            "description": "Optional: Pre-determined risk level to tailor framework requirements",
+                            "description": "Optional: Pre-determined risk level (from Step 2) to tailor framework requirements",
                             "enum": ["Low", "Medium", "High", "Critical"]
                         }
                     },

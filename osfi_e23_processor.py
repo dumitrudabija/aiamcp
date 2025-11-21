@@ -483,10 +483,33 @@ class OSFIE23Processor:
         
         # Analyze project for lifecycle compliance
         compliance_analysis = self._analyze_lifecycle_compliance(project_description, current_stage)
-        
+
         # Generate next steps and recommendations
         next_steps = self._generate_lifecycle_next_steps(current_stage, compliance_analysis)
-        
+
+        # Get OSFI subcomponents for this stage
+        from osfi_e23_structure import OSFI_LIFECYCLE_COMPONENTS, get_stage_principles
+        stage_subcomponents = OSFI_LIFECYCLE_COMPONENTS.get(current_stage, {}).get("subcomponents", [])
+        stage_principles = get_stage_principles(current_stage)
+
+        # Create user-facing coverage explanation
+        coverage_pct = compliance_analysis["compliance_percentage"]
+        detected_count = compliance_analysis["compliance_score"]
+        total_count = compliance_analysis["total_indicators"]
+
+        coverage_explanation = (
+            f"📊 **Coverage Assessment for {stage_info['name']} Stage**\n\n"
+            f"This assessment evaluates coverage of the following OSFI E-23 elements:\n\n"
+        )
+
+        for i, subcomponent in enumerate(stage_subcomponents, 1):
+            coverage_explanation += f"  {i}. {subcomponent}\n"
+
+        coverage_explanation += (
+            f"\n**Coverage Result**: {detected_count} of {total_count} elements detected ({coverage_pct}% coverage)\n\n"
+            f"**OSFI Principles**: {', '.join(stage_principles)}"
+        )
+
         return {
             "project_name": project_name,
             "project_description": project_description,
@@ -496,52 +519,55 @@ class OSFIE23Processor:
             "requirements": stage_info["requirements"],
             "deliverables": stage_info["deliverables"],
             "compliance_analysis": compliance_analysis,
+            "coverage_explanation": coverage_explanation,
+            "osfi_subcomponents": stage_subcomponents,
+            "osfi_principles": stage_principles,
             "next_steps": next_steps,
             "all_lifecycle_stages": list(self.lifecycle_components.keys())
         }
     
     def _analyze_lifecycle_compliance(self, project_description: str, stage: str) -> Dict[str, Any]:
-        """Analyze project description for lifecycle compliance indicators."""
+        """Analyze project description for lifecycle coverage indicators.
+
+        Maps 1:1 to official OSFI E-23 lifecycle subcomponents.
+        Each stage has exactly 3 indicators corresponding to 3 OSFI subcomponents.
+        """
         description_lower = project_description.lower()
-        
+
+        # Coverage indicators mapped 1:1 to OSFI E-23 subcomponents
         compliance_indicators = {
             "design": {
-                "rationale_defined": any(term in description_lower for term in ['purpose', 'objective', 'rationale', 'business case']),
-                "data_governance": any(term in description_lower for term in ['data quality', 'data governance', 'data standards']),
-                "methodology_documented": any(term in description_lower for term in ['methodology', 'approach', 'algorithm', 'technique']),
-                "performance_criteria": any(term in description_lower for term in ['performance', 'accuracy', 'metrics', 'criteria'])
+                "model_rationale_covered": any(term in description_lower for term in ['purpose', 'objective', 'rationale', 'business case', 'business need', 'justification']),
+                "model_data_covered": any(term in description_lower for term in ['data quality', 'data governance', 'data standards', 'data source', 'data lineage']),
+                "model_development_covered": any(term in description_lower for term in ['methodology', 'approach', 'algorithm', 'technique', 'development', 'performance', 'accuracy', 'metrics'])
             },
             "review": {
-                "independent_review": any(term in description_lower for term in ['review', 'validation', 'assessment', 'evaluation']),
-                "documentation_complete": any(term in description_lower for term in ['documented', 'documentation', 'recorded']),
-                "testing_performed": any(term in description_lower for term in ['testing', 'validation', 'verification']),
-                "approval_obtained": any(term in description_lower for term in ['approved', 'authorization', 'sign-off'])
+                "independent_validation_covered": any(term in description_lower for term in ['independent', 'validation', 'review', 'assessment', 'third party', 'external review']),
+                "conceptual_soundness_covered": any(term in description_lower for term in ['conceptual', 'soundness', 'methodology review', 'design review', 'assumptions', 'limitations']),
+                "performance_evaluation_covered": any(term in description_lower for term in ['performance', 'testing', 'evaluation', 'validation testing', 'accuracy', 'benchmark'])
             },
             "deployment": {
-                "production_ready": any(term in description_lower for term in ['production', 'deployment', 'implementation']),
-                "testing_completed": any(term in description_lower for term in ['tested', 'testing', 'validation']),
-                "monitoring_setup": any(term in description_lower for term in ['monitoring', 'tracking', 'surveillance']),
-                "procedures_documented": any(term in description_lower for term in ['procedures', 'process', 'workflow'])
+                "production_implementation_covered": any(term in description_lower for term in ['production', 'deployment', 'implementation', 'go-live', 'rollout', 'launch']),
+                "quality_control_covered": any(term in description_lower for term in ['quality control', 'quality assurance', 'testing', 'validation', 'qa', 'verification']),
+                "change_management_covered": any(term in description_lower for term in ['change management', 'change control', 'version control', 'approval process', 'governance'])
             },
             "monitoring": {
-                "monitoring_active": any(term in description_lower for term in ['monitoring', 'tracking', 'observing']),
-                "thresholds_defined": any(term in description_lower for term in ['threshold', 'limit', 'boundary', 'alert']),
-                "reporting_established": any(term in description_lower for term in ['reporting', 'dashboard', 'metrics']),
-                "escalation_procedures": any(term in description_lower for term in ['escalation', 'alert', 'notification'])
+                "performance_tracking_covered": any(term in description_lower for term in ['monitoring', 'tracking', 'performance', 'metrics', 'kpi', 'dashboard', 'observability']),
+                "drift_detection_covered": any(term in description_lower for term in ['drift', 'data drift', 'model drift', 'degradation', 'distribution shift', 'stability']),
+                "escalation_procedures_covered": any(term in description_lower for term in ['escalation', 'alert', 'notification', 'threshold', 'breach', 'contingency', 'remediation'])
             },
             "decommission": {
-                "retirement_planned": any(term in description_lower for term in ['retirement', 'decommission', 'sunset']),
-                "stakeholders_notified": any(term in description_lower for term in ['notification', 'communication', 'stakeholder']),
-                "documentation_archived": any(term in description_lower for term in ['archive', 'retention', 'storage']),
-                "impact_assessed": any(term in description_lower for term in ['impact', 'effect', 'consequence'])
+                "retirement_process_covered": any(term in description_lower for term in ['retirement', 'decommission', 'decommissioning', 'sunset', 'end of life', 'phase out']),
+                "stakeholder_notification_covered": any(term in description_lower for term in ['notification', 'communication', 'stakeholder', 'inform', 'announce', 'alert users']),
+                "documentation_retention_covered": any(term in description_lower for term in ['archive', 'retention', 'storage', 'documentation', 'records', 'historical data'])
             }
         }
-        
+
         stage_indicators = compliance_indicators.get(stage, {})
         compliance_score = sum(1 for indicator in stage_indicators.values() if indicator)
         total_indicators = len(stage_indicators)
         compliance_percentage = (compliance_score / total_indicators * 100) if total_indicators > 0 else 0
-        
+
         return {
             "stage_indicators": stage_indicators,
             "compliance_score": compliance_score,
@@ -635,10 +661,7 @@ class OSFIE23Processor:
             "risk_description": risk_description,
             "overall_score": overall_score,
             "risk_scores": risk_scores,
-            "risk_factor_analysis": risk_factor_analysis,
-            "governance_intensity": self._determine_governance_intensity(risk_level),
-            "review_frequency": self._determine_review_frequency(risk_level),
-            "approval_authority": self._determine_approval_authority(risk_level)
+            "risk_factor_analysis": risk_factor_analysis
         }
     
     def _calculate_detailed_risk_scores(self, quantitative_factors: Dict[str, bool],
@@ -724,22 +747,6 @@ class OSFIE23Processor:
         
         return analysis
     
-    def _determine_governance_intensity(self, risk_level: str) -> Dict[str, str]:
-        """Determine governance intensity based on risk level."""
-        intensity_mapping = {
-            "Low": "Minimal - Basic documentation and annual reviews",
-            "Medium": "Standard - Regular monitoring and semi-annual reviews", 
-            "High": "Enhanced - Comprehensive oversight and quarterly reviews",
-            "Critical": "Maximum - Continuous monitoring and monthly reviews"
-        }
-        
-        return {
-            "level": risk_level,
-            "description": intensity_mapping.get(risk_level, "Standard"),
-            "monitoring_frequency": self._get_monitoring_frequency(risk_level),
-            "documentation_requirements": self._get_documentation_requirements(risk_level)
-        }
-    
     def _determine_review_frequency(self, risk_level: str) -> str:
         """Determine review frequency based on risk level."""
         frequency_mapping = {
@@ -799,44 +806,45 @@ class OSFIE23Processor:
         return base_docs
     
     def create_compliance_framework(self, project_name: str, project_description: str,
+                                  current_stage: str,
                                   risk_assessment: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
-        Create comprehensive compliance framework for OSFI E-23.
-        
+        Create compliance framework for OSFI E-23 based on current lifecycle stage.
+
         Args:
             project_name: Name of the model/project
             project_description: Detailed description
-            risk_assessment: Optional existing risk assessment
-            
+            current_stage: Current lifecycle stage (from Step 3)
+            risk_assessment: Optional existing risk assessment (from Step 2)
+
         Returns:
-            Comprehensive compliance framework
+            Stage-specific compliance framework
         """
-        logger.info(f"Creating compliance framework for: {project_name}")
-        
+        logger.info(f"Creating compliance framework for: {project_name} at stage: {current_stage}")
+
         # Get or perform risk assessment
         if not risk_assessment:
             risk_assessment = self.assess_model_risk(project_name, project_description)
-        
+
         risk_level = risk_assessment.get("risk_level", "Medium")
-        
-        # Generate comprehensive framework
+
+        # Generate stage-specific framework with OSFI element structure
         framework = {
             "project_name": project_name,
             "project_description": project_description,
             "framework_date": datetime.now().isoformat(),
+            "current_stage": current_stage,
             "risk_assessment_summary": {
                 "risk_level": risk_level,
                 "risk_score": risk_assessment.get("risk_score", 0),
                 "key_risk_factors": self._extract_key_risk_factors(risk_assessment)
             },
             "governance_structure": self._create_governance_structure(risk_level),
-            "lifecycle_requirements": self._create_lifecycle_requirements(risk_level),
+            "osfi_elements": self._create_osfi_element_structure(current_stage, risk_level),
             "monitoring_framework": self._create_monitoring_framework(risk_level),
-            "documentation_requirements": self._get_documentation_requirements(risk_level),
-            "compliance_checklist": self._create_compliance_checklist(risk_level),
-            "implementation_timeline": self._create_implementation_timeline(risk_level)
+            "documentation_requirements": self._get_documentation_requirements(risk_level)
         }
-        
+
         return framework
     
     def _extract_key_risk_factors(self, risk_assessment: Dict[str, Any]) -> List[str]:
@@ -859,67 +867,305 @@ class OSFIE23Processor:
         return risk_factors[:10]  # Limit to top 10
     
     def _create_governance_structure(self, risk_level: str) -> Dict[str, Any]:
-        """Create governance structure based on risk level."""
+        """
+        Create governance structure based on risk level.
+
+        Includes OSFI-mandated, OSFI-implied, and implementation-suggested roles.
+        """
         base_structure = {
-            "model_owner": "Designated business unit responsible for model",
-            "model_developer": "Technical team or vendor developing the model",
-            "model_reviewer": "Independent validation team",
-            "model_approver": self._determine_approval_authority(risk_level)
+            "model_owner": {
+                "role": "Designated business unit responsible for model",
+                "osfi_required": True,
+                "source": "OSFI Appendix 1 required field"
+            },
+            "model_developer": {
+                "role": "Technical team or vendor developing the model",
+                "osfi_required": True,
+                "source": "OSFI Appendix 1 required field"
+            },
+            "model_reviewer": {
+                "role": "Independent validation team",
+                "osfi_required": False,
+                "osfi_implied": True,
+                "source": "OSFI Principle 3.4 requires independent assessment"
+            },
+            "model_approver": {
+                "role": self._determine_approval_authority(risk_level),
+                "osfi_required": False,
+                "osfi_implied": True,
+                "source": "Implied by lifecycle governance requirements"
+            }
         }
-        
+
+        # Risk-based enhancements (implementation choice based on Principle 2.3)
         if risk_level in ["High", "Critical"]:
             base_structure.update({
-                "model_risk_committee": "Senior committee overseeing model risk",
-                "compliance_officer": "Compliance function ensuring regulatory adherence",
-                "legal_ethics_advisor": "Legal and ethics review for complex models"
+                "model_risk_committee": {
+                    "role": "Senior committee overseeing model risk",
+                    "osfi_required": False,
+                    "osfi_implied": False,
+                    "source": "Implementation choice - risk-based governance practice"
+                },
+                "compliance_officer": {
+                    "role": "Compliance function ensuring regulatory adherence",
+                    "osfi_required": False,
+                    "osfi_implied": False,
+                    "source": "Implementation choice - risk-based governance practice"
+                },
+                "legal_ethics_advisor": {
+                    "role": "Legal and ethics review for complex models",
+                    "osfi_required": False,
+                    "osfi_implied": False,
+                    "source": "Implementation choice - risk-based governance practice"
+                }
             })
-        
+
         if risk_level == "Critical":
             base_structure.update({
-                "board_oversight": "Board of Directors oversight for critical models",
-                "external_validator": "Independent third-party validation",
-                "regulatory_liaison": "Direct regulatory communication channel"
+                "board_oversight": {
+                    "role": "Board of Directors oversight for critical models",
+                    "osfi_required": False,
+                    "osfi_implied": False,
+                    "source": "Implementation choice - industry practice for critical models"
+                },
+                "external_validator": {
+                    "role": "Independent third-party validation",
+                    "osfi_required": False,
+                    "osfi_implied": False,
+                    "source": "Implementation choice - industry practice for critical models"
+                },
+                "regulatory_liaison": {
+                    "role": "Direct regulatory communication channel",
+                    "osfi_required": False,
+                    "osfi_implied": False,
+                    "source": "Implementation choice - industry practice for critical models"
+                }
             })
-        
+
         return base_structure
     
-    def _create_lifecycle_requirements(self, risk_level: str) -> Dict[str, Dict[str, Any]]:
-        """Create lifecycle requirements based on risk level."""
-        requirements = {}
-        
-        for stage, stage_info in self.lifecycle_components.items():
-            stage_requirements = {
-                "requirements": stage_info["requirements"].copy(),
-                "deliverables": stage_info["deliverables"].copy(),
-                "timeline": self._get_stage_timeline(stage, risk_level),
-                "approval_required": stage in ["review", "deployment"] or risk_level in ["High", "Critical"]
+    def _create_osfi_element_structure(self, current_stage: str, risk_level: str) -> List[Dict[str, Any]]:
+        """
+        Create OSFI element-based structure linking subcomponents to requirements and checklists.
+
+        Organizes stage requirements, deliverables, and checklist items by the 3 official
+        OSFI E-23 subcomponents for the current stage.
+        """
+        from osfi_e23_structure import OSFI_LIFECYCLE_COMPONENTS, get_stage_principles
+
+        # Get stage info
+        if current_stage not in self.lifecycle_components:
+            current_stage = "design"
+
+        stage_info = self.lifecycle_components[current_stage]
+        osfi_components = OSFI_LIFECYCLE_COMPONENTS.get(current_stage, {})
+        subcomponents = osfi_components.get("subcomponents", [])
+        principles = osfi_components.get("principles", [])
+
+        # Map requirements to OSFI elements (stage-specific)
+        requirements_map = self._map_requirements_to_elements(current_stage, stage_info["requirements"], risk_level)
+
+        # Map deliverables to OSFI elements (stage-specific)
+        deliverables_map = self._map_deliverables_to_elements(current_stage, stage_info["deliverables"])
+
+        # Map checklist items to OSFI elements (stage-specific, risk-aware)
+        checklist_map = self._map_checklist_to_elements(current_stage, risk_level)
+
+        # Build element structure
+        elements = []
+        for i, subcomponent in enumerate(subcomponents):
+            element = {
+                "element_name": subcomponent,
+                "osfi_principle": principles[0] if len(principles) == 1 else principles[min(i, len(principles)-1)],
+                "requirements": requirements_map.get(i, []),
+                "deliverables": deliverables_map.get(i, []),
+                "checklist_items": checklist_map.get(i, [])
             }
-            
-            # Enhanced requirements for higher risk levels
+            elements.append(element)
+
+        return elements
+
+    def _map_requirements_to_elements(self, stage: str, requirements: List[str], risk_level: str) -> Dict[int, List[str]]:
+        """Map requirements to OSFI element indices."""
+        # Base mapping for each stage
+        if stage == "design":
+            mapping = {
+                0: [requirements[0]] if len(requirements) > 0 else [],  # Model Rationale
+                1: [requirements[1]] if len(requirements) > 1 else [],  # Model Data
+                2: requirements[2:5] if len(requirements) > 2 else []   # Model Development
+            }
+            # Add risk-based enhancements
             if risk_level in ["High", "Critical"]:
-                if stage == "design":
-                    stage_requirements["requirements"].extend([
-                        "Comprehensive bias and fairness assessment",
-                        "Detailed explainability analysis",
-                        "Regulatory compliance review"
-                    ])
-                elif stage == "review":
-                    stage_requirements["requirements"].extend([
-                        "External validation (Critical models)",
-                        "Regulatory pre-approval consultation",
-                        "Comprehensive stress testing"
-                    ])
-                elif stage == "monitoring":
-                    stage_requirements["requirements"].extend([
-                        "Real-time performance dashboards",
-                        "Automated alert systems",
-                        "Monthly governance reporting"
-                    ])
-            
-            requirements[stage] = stage_requirements
-        
-        return requirements
-    
+                mapping[2].extend([
+                    "Comprehensive bias and fairness assessment",
+                    "Detailed explainability analysis",
+                    "Regulatory compliance review"
+                ])
+        elif stage == "review":
+            mapping = {
+                0: [requirements[0]] if len(requirements) > 0 else [],  # Independent Validation
+                1: requirements[1:3] if len(requirements) > 1 else [],  # Conceptual Soundness
+                2: requirements[3:] if len(requirements) > 3 else []    # Performance Evaluation
+            }
+            if risk_level in ["High", "Critical"]:
+                mapping[0].extend([
+                    "External validation (Critical models)",
+                    "Regulatory pre-approval consultation"
+                ])
+                mapping[2].append("Comprehensive stress testing")
+        elif stage == "deployment":
+            mapping = {
+                0: requirements[0:2] if len(requirements) > 0 else [],  # Production Implementation
+                1: [requirements[2]] if len(requirements) > 2 else [],  # Quality Control
+                2: requirements[3:] if len(requirements) > 3 else []    # Change Management
+            }
+        elif stage == "monitoring":
+            mapping = {
+                0: requirements[0:2] if len(requirements) > 0 else [],  # Performance Tracking
+                1: [requirements[2]] if len(requirements) > 2 else [],  # Drift Detection
+                2: requirements[3:] if len(requirements) > 3 else []    # Escalation Procedures
+            }
+            if risk_level in ["High", "Critical"]:
+                mapping[0].extend([
+                    "Real-time performance dashboards",
+                    "Automated alert systems",
+                    "Monthly governance reporting"
+                ])
+        elif stage == "decommission":
+            mapping = {
+                0: requirements[0:2] if len(requirements) > 0 else [],  # Retirement Process
+                1: [requirements[2]] if len(requirements) > 2 else [],  # Stakeholder Notification
+                2: requirements[3:] if len(requirements) > 3 else []    # Documentation Retention
+            }
+        else:
+            mapping = {0: requirements, 1: [], 2: []}
+
+        return mapping
+
+    def _map_deliverables_to_elements(self, stage: str, deliverables: List[str]) -> Dict[int, List[str]]:
+        """Map deliverables to OSFI element indices."""
+        if stage == "design":
+            return {
+                0: [deliverables[0]] if len(deliverables) > 0 else [],  # Model Rationale
+                1: [deliverables[1]] if len(deliverables) > 1 else [],  # Model Data
+                2: deliverables[2:] if len(deliverables) > 2 else []    # Model Development
+            }
+        elif stage == "review":
+            return {
+                0: [deliverables[0]] if len(deliverables) > 0 else [],  # Independent Validation (report)
+                1: [deliverables[1]] if len(deliverables) > 1 else [],  # Conceptual Soundness (risk assessment)
+                2: deliverables[2:] if len(deliverables) > 2 else []    # Performance Evaluation
+            }
+        elif stage == "deployment":
+            return {
+                0: [deliverables[0], deliverables[1]] if len(deliverables) > 1 else [],  # Production Implementation
+                1: [],  # Quality Control (covered in procedures)
+                2: deliverables[2:] if len(deliverables) > 2 else []  # Change Management
+            }
+        elif stage == "monitoring":
+            return {
+                0: [deliverables[0], deliverables[1]] if len(deliverables) > 1 else [],  # Performance Tracking
+                1: [],  # Drift Detection (covered in dashboards)
+                2: deliverables[2:] if len(deliverables) > 2 else []  # Escalation
+            }
+        elif stage == "decommission":
+            return {
+                0: [deliverables[0]] if len(deliverables) > 0 else [],  # Retirement Process
+                1: [deliverables[1]] if len(deliverables) > 1 else [],  # Stakeholder Notification
+                2: deliverables[2:] if len(deliverables) > 2 else []    # Documentation Retention
+            }
+        else:
+            return {0: deliverables, 1: [], 2: []}
+
+    def _map_checklist_to_elements(self, stage: str, risk_level: str) -> Dict[int, List[Dict[str, Any]]]:
+        """Map checklist items to OSFI element indices."""
+        if stage == "design":
+            mapping = {
+                0: [  # Model Rationale
+                    {"item": "Model inventory registration", "required": True},
+                    {"item": "Risk rating assignment", "required": True}
+                ],
+                1: [],  # Model Data (no specific items currently)
+                2: [  # Model Development
+                    {"item": "Model documentation completion", "required": True}
+                ]
+            }
+            if risk_level in ["High", "Critical"]:
+                mapping[2].extend([
+                    {"item": "Bias and fairness testing", "required": True},
+                    {"item": "Explainability documentation", "required": True}
+                ])
+        elif stage == "review":
+            mapping = {
+                0: [  # Independent Validation
+                    {"item": "Independent model review", "required": True}
+                ],
+                1: [],  # Conceptual Soundness (covered in review)
+                2: [  # Performance Evaluation
+                    {"item": "Formal model approval", "required": True}
+                ]
+            }
+            if risk_level in ["High", "Critical"]:
+                mapping[2].append({"item": "Senior management approval", "required": True})
+                mapping[0].append({"item": "Regulatory compliance verification", "required": True})
+            if risk_level == "Critical":
+                mapping[2].extend([
+                    {"item": "Board-level approval", "required": True},
+                    {"item": "External validation", "required": True},
+                    {"item": "Regulatory pre-approval", "required": False}
+                ])
+        elif stage == "deployment":
+            mapping = {
+                0: [  # Production Implementation
+                    {"item": "Production deployment testing", "required": True}
+                ],
+                1: [],  # Quality Control (covered in testing)
+                2: [  # Change Management
+                    {"item": "Monitoring system activation", "required": True}
+                ]
+            }
+            if risk_level in ["High", "Critical"]:
+                mapping[2].append({"item": "Enhanced monitoring setup", "required": True})
+            if risk_level == "Critical":
+                mapping[2].append({"item": "Real-time monitoring activation", "required": True})
+        elif stage == "monitoring":
+            # Note: These 3 elements are our implementation interpretation of OSFI Principle 3.6 (monitoring requirement)
+            mapping = {
+                0: [  # Performance Tracking
+                    {"item": "Regular performance monitoring", "required": True}
+                ],
+                1: [  # Drift Detection
+                    {"item": "Data drift monitoring setup", "required": True}
+                ],
+                2: [  # Escalation Procedures
+                    {"item": "Model incident response procedures", "required": True}
+                ]
+            }
+            if risk_level in ["High", "Critical"]:
+                mapping[0].append({"item": "Automated performance dashboards", "required": True})
+                mapping[1].append({"item": "Statistical drift detection tests", "required": True})
+                mapping[2].append({"item": "Rapid escalation pathways to senior management", "required": True})
+        elif stage == "decommission":
+            # Note: These 3 elements are our implementation interpretation of OSFI Principle 3.6 (decommission requirement)
+            mapping = {
+                0: [  # Retirement Process
+                    {"item": "Formal decommission approval", "required": True}
+                ],
+                1: [  # Stakeholder Notification
+                    {"item": "Stakeholder decommission notification", "required": True}
+                ],
+                2: [  # Documentation Retention
+                    {"item": "Model archive and documentation retention", "required": True}
+                ]
+            }
+            if risk_level in ["High", "Critical"]:
+                mapping[0].append({"item": "Risk assessment of decommission impacts", "required": True})
+                mapping[2].append({"item": "Regulatory compliance documentation archival", "required": True})
+        else:
+            mapping = {0: [], 1: [], 2: []}
+
+        return mapping
+
     def _create_monitoring_framework(self, risk_level: str) -> Dict[str, Any]:
         """Create monitoring framework based on risk level."""
         base_framework = {
@@ -961,97 +1207,3 @@ class OSFIE23Processor:
         
         return base_framework
     
-    def _create_compliance_checklist(self, risk_level: str) -> List[Dict[str, Any]]:
-        """Create compliance checklist based on risk level."""
-        checklist = [
-            {"item": "Model inventory registration", "required": True, "stage": "design"},
-            {"item": "Risk rating assignment", "required": True, "stage": "design"},
-            {"item": "Model documentation completion", "required": True, "stage": "design"},
-            {"item": "Independent model review", "required": True, "stage": "review"},
-            {"item": "Formal model approval", "required": True, "stage": "review"},
-            {"item": "Production deployment testing", "required": True, "stage": "deployment"},
-            {"item": "Monitoring system activation", "required": True, "stage": "deployment"},
-            {"item": "Regular performance monitoring", "required": True, "stage": "monitoring"}
-        ]
-        
-        if risk_level in ["High", "Critical"]:
-            checklist.extend([
-                {"item": "Bias and fairness testing", "required": True, "stage": "design"},
-                {"item": "Explainability documentation", "required": True, "stage": "design"},
-                {"item": "Senior management approval", "required": True, "stage": "review"},
-                {"item": "Regulatory compliance verification", "required": True, "stage": "review"},
-                {"item": "Enhanced monitoring setup", "required": True, "stage": "deployment"}
-            ])
-        
-        if risk_level == "Critical":
-            checklist.extend([
-                {"item": "Board-level approval", "required": True, "stage": "review"},
-                {"item": "External validation", "required": True, "stage": "review"},
-                {"item": "Regulatory pre-approval", "required": False, "stage": "review"},
-                {"item": "Real-time monitoring activation", "required": True, "stage": "deployment"}
-            ])
-        
-        return checklist
-    
-    def _create_implementation_timeline(self, risk_level: str) -> Dict[str, str]:
-        """Create implementation timeline based on risk level."""
-        base_timeline = {
-            "design_phase": "4-8 weeks",
-            "review_phase": "2-4 weeks", 
-            "deployment_phase": "2-3 weeks",
-            "monitoring_setup": "1-2 weeks"
-        }
-        
-        if risk_level in ["High", "Critical"]:
-            base_timeline.update({
-                "design_phase": "8-12 weeks",
-                "review_phase": "4-6 weeks",
-                "deployment_phase": "3-4 weeks",
-                "monitoring_setup": "2-3 weeks"
-            })
-        
-        if risk_level == "Critical":
-            base_timeline.update({
-                "design_phase": "12-16 weeks",
-                "review_phase": "6-8 weeks",
-                "external_validation": "4-6 weeks",
-                "regulatory_consultation": "2-4 weeks",
-                "deployment_phase": "4-6 weeks"
-            })
-        
-        return base_timeline
-    
-    def _get_stage_timeline(self, stage: str, risk_level: str) -> str:
-        """Get timeline for specific stage based on risk level."""
-        timelines = {
-            "Low": {
-                "design": "2-4 weeks",
-                "review": "1-2 weeks",
-                "deployment": "1-2 weeks",
-                "monitoring": "Ongoing",
-                "decommission": "1-2 weeks"
-            },
-            "Medium": {
-                "design": "4-6 weeks",
-                "review": "2-3 weeks",
-                "deployment": "2-3 weeks",
-                "monitoring": "Ongoing",
-                "decommission": "2-3 weeks"
-            },
-            "High": {
-                "design": "6-10 weeks",
-                "review": "3-5 weeks",
-                "deployment": "3-4 weeks",
-                "monitoring": "Ongoing",
-                "decommission": "3-4 weeks"
-            },
-            "Critical": {
-                "design": "10-16 weeks",
-                "review": "6-8 weeks",
-                "deployment": "4-6 weeks",
-                "monitoring": "Ongoing",
-                "decommission": "4-6 weeks"
-            }
-        }
-        
-        return timelines.get(risk_level, {}).get(stage, "2-4 weeks")
