@@ -228,6 +228,9 @@ class MCPServer:
         """
         Get lifecycle stage from session or set it if provided.
 
+        CRITICAL: This function does NOT attempt to detect or interpret lifecycle stage
+        from project description. It ONLY uses explicitly provided stage or defaults.
+
         Priority order:
         1. Explicitly provided stage parameter (and update session)
         2. Stage stored in session from previous call
@@ -236,7 +239,7 @@ class MCPServer:
         Args:
             session_id: Session ID
             provided_stage: Explicitly provided stage (overrides session)
-            project_description: Project description (for logging only)
+            project_description: Project description (unused - kept for backwards compatibility)
 
         Returns:
             Lowercase stage name ('design', 'review', 'deployment', 'monitoring', 'decommission')

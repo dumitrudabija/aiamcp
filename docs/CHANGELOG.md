@@ -2,6 +2,60 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [2.2.3] - 2025-11-21
+
+### 🔧 Enhancement: Explicit Lifecycle Stage Question
+
+#### Change: Require Explicit User Answer for Lifecycle Stage
+**Goal:** Prevent misinterpretation of project descriptions as lifecycle stages.
+
+**Problem:** System could potentially misinterpret keywords in project descriptions (e.g., "deploy" → deployment stage) even though user didn't explicitly specify stage.
+
+**Solution:** Make lifecycle stage question explicit and mandatory in `get_server_introduction`, with NO interpretation from descriptions.
+
+**Implementation:**
+
+1. **Updated Assistant Directives** (`introduction_builder.py`):
+   - OSFI E-23 focused: "You MUST ask the user TWO questions: (1) Which lifecycle stage is your model in? and (2) Do you want to proceed?"
+   - Combined workflows: Added explicit stage question requirement
+   - Added explicit instruction: "Do NOT attempt to detect or interpret the lifecycle stage from the project description - ONLY use what the user explicitly states"
+
+2. **Enhanced Lifecycle Stage Selection Text**:
+   - Changed "IMPORTANT" → "CRITICAL: You must explicitly state which lifecycle stage your model is in"
+   - Added warning: "⚠️ The system will NOT attempt to detect or interpret the stage from your project description. You must explicitly state the stage."
+   - Changed user prompt to explicit QUESTION format
+   - Clarified: "If you do not explicitly answer this question, we will assume Design stage"
+   - Provided clear examples of valid responses
+
+3. **Updated Function Documentation** (`server.py`):
+   - Added docstring note: "CRITICAL: This function does NOT attempt to detect or interpret lifecycle stage from project description"
+   - Clarified that `project_description` parameter is "unused - kept for backwards compatibility"
+
+**User Experience:**
+```
+🔄 CRITICAL: You must explicitly state which lifecycle stage your model is in
+
+⚠️ The system will NOT attempt to detect or interpret the stage from your project description.
+You must explicitly state the stage.
+
+QUESTION: Which lifecycle stage is your model currently in?
+(Design/Review/Deployment/Monitoring/Decommission)
+
+If you do not explicitly answer this question, we will assume Design stage.
+
+Examples:
+- 'My model is in the Monitoring stage'
+- 'Review stage'
+- 'proceed' or no answer = Design stage (default)
+```
+
+**Behavior:**
+- ✅ User says "Monitoring" → uses Monitoring stage
+- ✅ User says "proceed" or no answer → uses Design stage (default)
+- ❌ User's description contains "deploy" but doesn't explicitly say "Deployment" → uses Design stage (default)
+
+**Result:** No ambiguity - system ONLY uses what user explicitly states, never interprets descriptions.
+
 ## [2.2.2] - 2025-11-21
 
 ### 🔧 Critical Bug Fix: Lifecycle Stage Consistency

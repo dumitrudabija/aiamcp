@@ -83,8 +83,9 @@ class IntroductionBuilder:
             "description": "OSFI Guideline E-23 for federally regulated financial institutions",
             "framework": "osfi_e23",
             "lifecycle_stage_selection": {
-                "instruction": "🔄 IMPORTANT: Specify your model's current lifecycle stage",
-                "default": "Design (assumed if not specified)",
+                "instruction": "🔄 CRITICAL: You must explicitly state which lifecycle stage your model is in",
+                "default": "Design (will be used if you do not explicitly specify a different stage)",
+                "important_note": "⚠️ The system will NOT attempt to detect or interpret the stage from your project description. You must explicitly state the stage.",
                 "options": [
                     {"stage": "Design", "description": "Initial model development and planning phase"},
                     {"stage": "Review", "description": "Independent validation and testing phase"},
@@ -92,8 +93,8 @@ class IntroductionBuilder:
                     {"stage": "Monitoring", "description": "Production operation and ongoing performance tracking"},
                     {"stage": "Decommission", "description": "Model retirement or replacement"}
                 ],
-                "user_prompt": "Please specify your model's lifecycle stage (or we'll assume Design). Example: 'My model is in the Monitoring stage' or just 'proceed' for Design.",
-                "note": "The stage you specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
+                "user_prompt": "QUESTION: Which lifecycle stage is your model currently in? (Design/Review/Deployment/Monitoring/Decommission)\n\nIf you do not explicitly answer this question, we will assume Design stage.\n\nExamples:\n- 'My model is in the Monitoring stage'\n- 'Review stage'\n- 'proceed' or no answer = Design stage (default)",
+                "note": "The stage you explicitly specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
             },
             "sequence": [
                 {
@@ -177,8 +178,9 @@ class IntroductionBuilder:
                 "title": "🏦 OSFI E-23 Framework Complete Workflow",
                 "description": "OSFI Guideline E-23 Model Risk Management for federally regulated financial institutions",
                 "lifecycle_stage_selection": {
-                    "instruction": "🔄 IMPORTANT: Specify your model's current lifecycle stage",
-                    "default": "Design (assumed if not specified)",
+                    "instruction": "🔄 CRITICAL: You must explicitly state which lifecycle stage your model is in",
+                    "default": "Design (will be used if you do not explicitly specify a different stage)",
+                    "important_note": "⚠️ The system will NOT attempt to detect or interpret the stage from your project description. You must explicitly state the stage.",
                     "options": [
                         {"stage": "Design", "description": "Initial model development and planning phase"},
                         {"stage": "Review", "description": "Independent validation and testing phase"},
@@ -186,8 +188,8 @@ class IntroductionBuilder:
                         {"stage": "Monitoring", "description": "Production operation and ongoing performance tracking"},
                         {"stage": "Decommission", "description": "Model retirement or replacement"}
                     ],
-                    "user_prompt": "Please specify your model's lifecycle stage (or we'll assume Design). Example: 'My model is in the Monitoring stage' or just 'proceed' for Design.",
-                    "note": "The stage you specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
+                    "user_prompt": "QUESTION: Which lifecycle stage is your model currently in? (Design/Review/Deployment/Monitoring/Decommission)\n\nIf you do not explicitly answer this question, we will assume Design stage.\n\nExamples:\n- 'My model is in the Monitoring stage'\n- 'Review stage'\n- 'proceed' or no answer = Design stage (default)",
+                    "note": "The stage you explicitly specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
                 },
                 "sequence": [
                     {
@@ -272,12 +274,12 @@ class IntroductionBuilder:
         elif framework_focus == 'osfi_e23':
             assistant_directive = {
                 "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present the OSFI E-23 workflow to the user. Do NOT call any other tools immediately after this. Mention that AIA is also available if they ask, but focus on OSFI E-23 since that's what was detected from context.",
-                "behavioral_requirement": "After presenting the OSFI E-23 introduction, you MUST ask the user if they want to proceed with this OSFI E-23 workflow and WAIT for their explicit confirmation (e.g., 'yes', 'proceed', 'run OSFI E-23') before calling Step 1 (validate_project_description)."
+                "behavioral_requirement": "After presenting the OSFI E-23 introduction, you MUST ask the user TWO questions and WAIT for their responses: (1) Which lifecycle stage is your model in? (Design/Review/Deployment/Monitoring/Decommission - default is Design if not specified), and (2) Do you want to proceed with this OSFI E-23 workflow? Do NOT attempt to detect or interpret the lifecycle stage from the project description - ONLY use what the user explicitly states."
             }
         else:  # both
             assistant_directive = {
                 "critical_instruction": "STOP AND PRESENT THIS INTRODUCTION FIRST. Present BOTH frameworks since the context is unclear. Do NOT call any other tools immediately after this. Ask the user which framework applies to their project.",
-                "behavioral_requirement": "After presenting both workflows, you MUST ask the user which framework they want to use (AIA, OSFI E-23, or both) and WAIT for their response before proceeding."
+                "behavioral_requirement": "After presenting both workflows, you MUST ask the user which framework they want to use (AIA, OSFI E-23, or both) and WAIT for their response. If they choose OSFI E-23 or both, also ask which lifecycle stage their model is in (Design/Review/Deployment/Monitoring/Decommission - default is Design if not specified). Do NOT attempt to detect or interpret the lifecycle stage from the project description - ONLY use what the user explicitly states."
             }
 
         # Build base introduction (common to all)
