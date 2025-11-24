@@ -341,9 +341,9 @@ Then in Claude Desktop:
 
 #### Test OSFI E-23 Assessment
 1. Request: "Run OSFI E-23 assessment for [model description]"
-2. Verify 6-step workflow presented
+2. Verify 5-step workflow presented
 3. Complete assessment
-4. Check risk rating calculation
+4. Check risk rating calculation (integrated into step 2)
 5. Export and review report
 
 ### Test Data

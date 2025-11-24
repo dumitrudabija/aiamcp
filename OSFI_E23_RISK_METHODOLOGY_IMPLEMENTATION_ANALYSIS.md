@@ -355,7 +355,7 @@ Our OSFI E-23 implementation includes several process components:
 3. **Risk-Based Governance Intensity** (varying requirements by risk level)
 4. **Lifecycle Compliance Tracking** (what we check at each stage)
 5. **Compliance Checklists** (deliverables per stage)
-6. **Process Workflow** (6-step assessment sequence)
+6. **Process Workflow** (5-step assessment sequence - v2.0.0)
 
 For each, we distinguish: What does OSFI **REQUIRE** vs. What did we **CHOOSE** to implement?
 
@@ -642,7 +642,7 @@ We created a **5-step workflow** for conducting OSFI E-23 assessments:
 - What the monitoring frequencies are (Quarterly → Daily)
 - What documentation is required (our 3-tier structure)
 - How compliance is tracked (our checklist system)
-- What the workflow looks like (our 6-step process)
+- What the workflow looks like (our 5-step process - v2.0.0)
 
 **Bottom Line**: OSFI says "you must differentiate," but we decide "here's how we'll differentiate."
 

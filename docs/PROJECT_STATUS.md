@@ -347,17 +347,13 @@ It provides both MCP (Model Context Protocol) integration with Claude Desktop an
 - **Parameters**: `projectName` (string), `projectDescription` (string), `currentStage` (enum, optional)
 - **Status**: ✅ Schema validated, tool tested
 
-#### 14. **`generate_risk_rating`**
-- **Description**: Generate detailed risk rating assessment using OSFI E-23 methodology
-- **Parameters**: `projectName` (string), `projectDescription` (string)
-- **Status**: ✅ Schema validated, tool tested
-
-#### 15. **`create_compliance_framework`**
+#### 14. **`create_compliance_framework`**
 - **Description**: Create comprehensive compliance framework based on OSFI E-23 requirements
 - **Parameters**: `projectName` (string), `projectDescription` (string), `riskLevel` (enum, optional)
 - **Status**: ✅ Schema validated, tool tested
+- **Note**: Risk rating generation merged into assess_model_risk (v2.0.0)
 
-#### 16. **`export_e23_report`** ⚠️
+#### 15. **`export_e23_report`** ⚠️
 - **Description**: Export OSFI E-23 assessment results to Microsoft Word document (COMPLIANCE WARNING: Requires professional validation)
 - **Parameters**: `project_name` (string), `project_description` (string), `assessment_results` (object), `custom_filename` (string, optional)
 - **Status**: ✅ Schema validated, compliance warnings implemented
@@ -421,11 +417,10 @@ echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_questi
 11. **export_assessment_report** - Export AIA results to Word document
 
 #### OSFI E-23 Framework Tools
-12. **assess_model_risk** ⚠️ - Model risk assessment (requires professional validation)
+12. **assess_model_risk** ⚠️ - Model risk assessment with integrated risk rating (requires professional validation)
 13. **evaluate_lifecycle_compliance** - Model lifecycle compliance evaluation
-14. **generate_risk_rating** - Detailed risk rating assessment
-15. **create_compliance_framework** - Comprehensive compliance framework creation
-16. **export_e23_report** ⚠️ - Export E-23 results to Word document (requires professional validation)
+14. **create_compliance_framework** - Comprehensive compliance framework creation
+15. **export_e23_report** ⚠️ - Export E-23 results to Word document (requires professional validation)
 
 ### Usage Examples
 ```

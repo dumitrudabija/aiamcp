@@ -85,7 +85,7 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
 
 **Returns:**
 - Complete server capabilities overview
-- **NEW**: Complete 6-step OSFI E-23 workflow sequence (validate → assess → evaluate → generate → create → export)
+- **NEW**: Complete 5-step OSFI E-23 workflow sequence (validate → assess → evaluate → create → export)
 - **NEW**: Complete 5-step AIA workflow sequence
 - **NEW**: 4 framework selection options with user choice prompting
 - Tool categories and descriptions
@@ -509,9 +509,10 @@ use_mcp_tool("aia-assessment", "get_server_introduction", {});
 - **Impact**: Professional modular architecture enabling faster development and easier maintenance
 
 ### v1.15.0 - Enhanced Workflow Guidance with Explicit Sequences
-- **Major Enhancement**: Complete 6-step OSFI E-23 workflow and 5-step AIA workflow now embedded in `get_server_introduction` response
+- **Major Enhancement**: Complete workflow sequences (originally 6-step OSFI E-23, later streamlined to 5-step in v2.0.0) and 5-step AIA workflow now embedded in `get_server_introduction` response
 - **Workflow Visibility**: Users see complete assessment sequences upfront when saying "run through OSFI/AIA framework"
-- **Step-Numbered Tools**: All OSFI E-23 tools labeled with position (STEP X OF 6) and full workflow context
+- **Step-Numbered Tools**: All OSFI E-23 tools labeled with position in workflow and full workflow context
+- **NOTE**: v2.0.0 later merged risk assessment and rating generation into single step, reducing OSFI E-23 to 5 steps
 - **Stronger Behavioral Directives**: "STOP AND PRESENT THIS INTRODUCTION FIRST" ensures workflow visibility before execution
 - **Framework Selection**: 4 clear options (AIA, OSFI E-23, Workflow Mode, Combined) with explicit user choice prompting
 - **Enhanced Tool Descriptions**: Each tool shows complete workflow sequence and emphasizes executing ALL steps

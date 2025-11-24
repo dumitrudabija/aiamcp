@@ -47,18 +47,17 @@ def test_introduction_workflow_guidance():
     assert "sequence" in osfi_workflow, "Missing OSFI workflow sequence"
 
     osfi_steps = osfi_workflow["sequence"]
-    assert len(osfi_steps) == 6, f"Expected 6 OSFI steps, got {len(osfi_steps)}"
+    assert len(osfi_steps) == 5, f"Expected 5 OSFI steps, got {len(osfi_steps)}"
 
     print(f"✅ OSFI E-23 workflow has {len(osfi_steps)} steps:")
     for step in osfi_steps:
         print(f"   Step {step['step']}: {step['tool']} - {step['purpose']}")
 
-    # Verify step sequence
+    # Verify step sequence (v2.0.0 merged generate_risk_rating into assess_model_risk)
     expected_tools = [
         "validate_project_description",
         "assess_model_risk",
         "evaluate_lifecycle_compliance",
-        "generate_risk_rating",
         "create_compliance_framework",
         "export_e23_report"
     ]
@@ -105,11 +104,10 @@ def test_introduction_workflow_guidance():
 
     tool_checks = {
         "validate_project_description": "STEP 1",
-        "assess_model_risk": "STEP 2 OF 6",
-        "evaluate_lifecycle_compliance": "STEP 3 OF 6",
-        "generate_risk_rating": "STEP 4 OF 6",
-        "create_compliance_framework": "STEP 5 OF 6",
-        "export_e23_report": "STEP 6 OF 6"
+        "assess_model_risk": "STEP 2 OF 5",
+        "evaluate_lifecycle_compliance": "STEP 3 OF 5",
+        "create_compliance_framework": "STEP 4 OF 5",
+        "export_e23_report": "STEP 5 OF 5"
     }
 
     for tool in tools:
