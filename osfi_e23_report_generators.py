@@ -721,42 +721,94 @@ def _add_annex_principles(doc: Document, current_stage: str = "design"):
     p_format = p.paragraph_format
     p_format.space_after = Pt(12)
 
+    # Complete list of all OSFI E-23 Principles (1.1-3.6) organized by Outcome
     principles = [
+        # Outcome 1: Model risk is well understood and managed across the enterprise
+        (
+            "OUTCOME 1: Model risk is well understood and managed across the enterprise",
+            None  # Section header, no description
+        ),
+        (
+            "Principle 1.1: Governance Structure",
+            "Effective reporting structures and proper resourcing should enable sound model governance. "
+            "This includes clear accountability, defined roles and responsibilities, and adequate "
+            "resources for model risk management activities."
+        ),
+        (
+            "Principle 1.2: Strategic Alignment",
+            "The MRM framework should align risk-taking activities to strategic objectives and risk appetite. "
+            "Model risk tolerance should be established and integrated with enterprise risk management."
+        ),
+        (
+            "Principle 1.3: Model Appropriateness",
+            "Models should be appropriate for their business purposes. This includes ensuring models "
+            "are fit-for-purpose, regularly reviewed for continued appropriateness, and aligned with "
+            "the institution's risk appetite and business strategy."
+        ),
+        # Outcome 2: Model risk is managed using a risk-based approach
+        (
+            "OUTCOME 2: Model risk is managed using a risk-based approach",
+            None  # Section header, no description
+        ),
         (
             "Principle 2.1: Model Inventory",
-            "Institutions must maintain a comprehensive inventory of all models, including "
-            "provisional risk ratings for models in development. This ensures visibility and "
-            "tracking from inception."
+            "Institutions should identify and track all models in use or recently decommissioned. "
+            "This ensures visibility and tracking from inception, including provisional risk ratings "
+            "for models in development."
         ),
         (
             "Principle 2.2: Risk Rating Methodology",
-            "Institutions must establish their own risk rating approach assessing key dimensions "
+            "Institutions should establish a model risk rating approach that assesses key dimensions "
             "of model risk. The rating determines governance intensity and review frequency requirements."
         ),
         (
             "Principle 2.3: Governance Intensity",
-            "The level of governance, documentation, and oversight must be commensurate with the "
-            "model's risk rating. Critical models require board-level approval, external validation, "
+            "The scope, scale, and intensity of MRM should be commensurate with the risk introduced "
+            "by the model. Critical models require board-level approval, external validation, "
             "and enhanced monitoring."
         ),
+        # Outcome 3: Model governance covers the entire model lifecycle
         (
-            "Principle 3.2: Model Design - Rationale and Data",
-            "Model design must establish clear organizational rationale, ensure data quality and "
-            "governance, and address AI/ML-specific considerations including explainability, bias, "
-            "and privacy."
+            "OUTCOME 3: Model governance covers the entire model lifecycle",
+            None  # Section header, no description
+        ),
+        (
+            "Principle 3.1: MRM Framework",
+            "MRM policies, procedures, and controls should be robust, flexible, and lead to effective "
+            "requirements applied across the model lifecycle. This includes comprehensive documentation "
+            "and clear standards for each lifecycle stage."
+        ),
+        (
+            "Principle 3.2: Model Data",
+            "Data used to develop the model should be suitable for the intended use. Model design must "
+            "establish clear organizational rationale, ensure data quality and governance, and address "
+            "AI/ML-specific considerations including explainability, bias, and privacy."
         ),
         (
             "Principle 3.3: Model Development",
-            "Model development must follow documented methodologies with clear assumptions, "
-            "appropriate testing, defined performance criteria, and comprehensive documentation "
-            "for independent review."
+            "Institutions should have model development processes that set clear standards for "
+            "performance and documentation. This includes documented methodologies with clear "
+            "assumptions, appropriate testing, and defined performance criteria."
         ),
         (
             "Principle 3.4: Independent Model Review",
-            "All models require independent validation by qualified personnel separate from "
-            "development, with scope and rigor commensurate with risk rating. Critical models "
-            "require external validation."
+            "Institutions should have a process to independently assess conceptual soundness and "
+            "performance of models. All models require independent validation by qualified personnel "
+            "separate from development, with scope and rigor commensurate with risk rating."
         ),
+        (
+            "Principle 3.5: Model Deployment",
+            "Models should be deployed in an environment with quality and change control processes. "
+            "This includes production implementation controls, version management, access controls, "
+            "and formal change management procedures to ensure model integrity."
+        ),
+        (
+            "Principle 3.6: Model Monitoring and Decommission",
+            "Institutions should have defined standards for model monitoring, and model decommission. "
+            "This includes ongoing performance tracking, drift detection, escalation procedures, "
+            "and formal retirement processes with stakeholder notification and documentation retention."
+        ),
+        # Appendix
         (
             "OSFI Appendix 1: Model Inventory Requirements",
             "Specifies mandatory tracking fields including model ID, name, owner, developer, "
@@ -768,8 +820,15 @@ def _add_annex_principles(doc: Document, current_stage: str = "design"):
         p = doc.add_paragraph()
         run = p.add_run(title)
         run.bold = True
-        doc.add_paragraph(description)
-        doc.add_paragraph()
+        # Check if this is a section header (Outcome header)
+        if description is None:
+            # Style as section header
+            run.font.size = Pt(12)
+            p.paragraph_format.space_before = Pt(12)
+            p.paragraph_format.space_after = Pt(6)
+        else:
+            doc.add_paragraph(description)
+            doc.add_paragraph()
 
 
 def _add_current_stage_requirements_section(doc: Document, lifecycle_compliance: Dict[str, Any],
