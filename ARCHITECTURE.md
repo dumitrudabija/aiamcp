@@ -1,7 +1,7 @@
 # Architecture Documentation
 
-**Version**: 2.2.0
-**Date**: 2025-11-21
+**Version**: 3.2.0
+**Date**: 2025-12-06
 **Architecture Type**: Modular, Service-Oriented, Delegation Pattern
 
 ---
@@ -183,26 +183,83 @@ def __init__(self):
 
 ---
 
-### OSFI E-23 Modules
+### OSFI E-23 Modules (v3.0)
+
+#### osfi_e23_risk_dimensions.py (NEW in v3.0)
+**Responsibility**: 6 Risk Dimensions framework with 31 factors
+
+**Contains**:
+- `RISK_DIMENSIONS`: Complete dimension definitions with factors and thresholds
+- `DIMENSION_ORDER`: Ordered list of dimension IDs
+- Helper functions: `get_dimension()`, `get_all_dimensions()`, `get_dimension_factors()`
+
+**6 Dimensions**:
+1. Misuse & Unintended Harm (4 factors)
+2. Output Reliability & Integrity (5 factors)
+3. Fairness & Customer Impact (6 factors)
+4. Operational & Security Risk (6 factors)
+5. Model Complexity & Opacity (5 factors)
+6. Governance & Oversight (5 factors)
+
+---
+
+#### risk_dimension_extraction.py (v3.1.0, enhanced v3.2.0)
+**Responsibility**: AI-assisted contextual fact extraction for risk assessment
+
+**Architecture**: Two-phase workflow enabling AI extraction with deterministic scoring
+- **Phase 1**: Generate extraction prompt for Claude to analyze project description
+- **Phase 2**: Validate and score extracted JSON deterministically
+
+**Key Functions**:
+- `generate_extraction_prompt(description)`: Creates structured prompt for all 31 factors
+- `validate_extraction_response(response)`: Validates JSON against dimension schema
+- `score_factor()`: Deterministic threshold/level scoring per factor
+- `score_dimension()`: Aggregate factor scores to dimension risk
+- `calculate_overall_risk()`: Final risk rating from dimension scores
+- `format_not_stated_for_report()`: Generate report section for missing info
+- `reload_prompt_config()`: Hot reload prompt templates from YAML config (v3.2.0)
+- `get_prompt_config()`: Get current configuration dict (v3.2.0)
+
+**Configurable Prompt Templates (v3.2.0)**:
+- Templates loaded from `config/extraction_prompts.yaml` if available
+- Falls back to built-in defaults if config missing or malformed
+- Supports hot reload without server restart
+- Allows non-developers to tune extraction behavior via YAML
+
+**NOT_STATED Handling**:
+- Missing values default to Medium risk (score = 2)
+- Tracked separately for reporting transparency
+- Report includes list of NOT_STATED factors with clarification recommendations
+
+**Design Principles**:
+1. AI extracts facts, Python scores deterministically
+2. User confirmation required before scoring
+3. Same extraction JSON always produces same risk score
+4. Missing information clearly tracked and documented
+5. Prompt templates configurable via external YAML (v3.2.0)
+
+---
 
 #### osfi_e23_structure.py
-**Responsibility**: Official OSFI E-23 Principles, Outcomes, and lifecycle definitions
+**Responsibility**: Official OSFI E-23 Principles, lifecycle definitions, and risk-based requirements
 
 **Contains**:
 - All 12 OSFI Principles (1.1-3.6)
 - 3 Outcomes
 - 5 lifecycle stages (Design, Review, Deployment, Monitoring, Decommission)
-- Appendix 1 model inventory fields
+- `LIFECYCLE_REQUIREMENTS_BY_RISK`: Risk-scaled governance requirements per stage
+- Helper functions for requirement lookup
 
 ---
 
-#### osfi_e23_report_generators.py
+#### osfi_e23_report_generators.py (v3.0)
 **Responsibility**: Stage-specific OSFI E-23 report generation
 
 **Features**:
-- Risk-adaptive content (tone varies by risk level)
-- Lifecycle-focused (only shows relevant stage requirements)
-- Streamlined format (4-6 pages instead of 40KB+)
+- 6 Risk Dimensions assessment table
+- Risk-scaled lifecycle requirements from `LIFECYCLE_REQUIREMENTS_BY_RISK`
+- 1-2 checklist items per requirement area
+- Compact ~4 page format
 
 ---
 
@@ -254,7 +311,7 @@ def detect(self, user_context: str, session_id: str) -> str:
 **Responsibility**: Tool metadata and MCP protocol registration
 
 **Contains**:
-- Tool definitions (16 tools total)
+- Tool definitions (13 tools total - v3.0 reduced from 16)
 - Tool descriptions and schemas
 - MCP protocol compatibility
 - Workflow step metadata

@@ -82,26 +82,48 @@ class IntroductionBuilder:
             "title": "🏦 OSFI E-23 Model Risk Management",
             "description": "OSFI Guideline E-23 for federally regulated financial institutions",
             "framework": "osfi_e23",
+            "version": "3.2.0",
+            "key_feature": {
+                "title": "🧠 AI-Assisted Contextual Extraction with Deterministic Scoring",
+                "description": "Step 2 uses a two-phase approach that combines AI understanding with rule-based scoring",
+                "how_it_works": [
+                    "📝 Phase 1: I analyze your project description and extract values for 31 risk factors across 6 dimensions",
+                    "✅ You confirm: I present the extracted values for your review and confirmation",
+                    "🔢 Phase 2: The MCP server scores deterministically using fixed thresholds (no AI interpretation)",
+                    "📊 Result: Transparent, reproducible risk scores with clear audit trail"
+                ],
+                "benefits": [
+                    "✅ Contextual understanding - Not crude keyword matching",
+                    "✅ User verification - You confirm extracted values before scoring",
+                    "✅ Deterministic scoring - Same values always produce same risk score",
+                    "✅ Transparent defaults - Missing information defaults to Medium and is flagged"
+                ]
+            },
+            "risk_dimensions": {
+                "title": "📊 6 Risk Dimensions (31 Factors)",
+                "dimensions": [
+                    {"name": "Misuse & Unintended Harm", "factors": 4, "example": "Financial exposure, decision volume, scope expansion"},
+                    {"name": "Output Reliability & Integrity", "factors": 5, "example": "Error rate, consistency, explainability"},
+                    {"name": "Fairness & Customer Impact", "factors": 6, "example": "Disparate impact, population affected, adverse action severity"},
+                    {"name": "Operational & Security Risk", "factors": 6, "example": "Uptime requirements, data sensitivity, attack surface"},
+                    {"name": "Model Complexity & Opacity", "factors": 5, "example": "Feature count, model type, autonomy level"},
+                    {"name": "Governance & Oversight", "factors": 5, "example": "Human review, regulatory scrutiny, model ownership"}
+                ],
+                "scoring": "Each factor scored on 4-level scale: Low (1) | Medium (2) | High (3) | Critical (4)"
+            },
             "implementation_notice": {
                 "critical_understanding": "🔧 IMPLEMENTATION STATUS: Proof of Concept with Exemplification Logic",
                 "what_this_means": [
                     "✅ OSFI E-23 REQUIREMENTS: Framework structure, principles, and lifecycle stages are official OSFI requirements",
                     "⚙️ IMPLEMENTATION CHOICES: Risk scoring weights, thresholds, and governance mappings are exemplification - NOT official OSFI specifications",
-                    "🔧 TUNABLE PARAMETERS: All risk factors, weights, amplification multipliers, and thresholds can be customized",
-                    "🏦 INSTITUTIONAL CUSTOMIZATION REQUIRED: Financial institutions must tune parameters to match their risk appetite, governance structure, and regulatory expectations"
+                    "🔧 TUNABLE PARAMETERS: All risk factors, weights, and thresholds can be customized",
+                    "🏦 INSTITUTIONAL CUSTOMIZATION REQUIRED: Financial institutions must tune parameters to match their risk appetite"
                 ],
-                "key_distinctions": {
-                    "osfi_mandated": "Lifecycle stages, Principles (1.1-3.6), Outcomes (1-3), general MRM framework structure",
-                    "implementation_choices": "Risk scoring formulas, specific weights (10/8 points), amplification factors (30%/20%/25%/15%), threshold boundaries (0-25/26-50/51-75/76-100)",
-                    "institutional_decisions": "Which risks to prioritize, acceptable risk levels, governance authorities, review frequencies, approval chains"
-                },
-                "customization_guidance": "See OSFI_E23_TUNABLE_PARAMETERS.md for all adjustable parameters and OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md for detailed distinction between OSFI requirements and implementation choices",
-                "professional_requirement": "⚠️ CRITICAL: All parameters, scores, and governance requirements must be validated and approved by your institution's Model Risk Management function and compliance teams before use"
+                "professional_requirement": "⚠️ CRITICAL: All parameters, scores, and governance requirements must be validated by your institution's Model Risk Management function"
             },
             "lifecycle_stage_selection": {
                 "instruction": "🔄 CRITICAL: You must explicitly state which lifecycle stage your model is in",
                 "default": "Design (will be used if you do not explicitly specify a different stage)",
-                "important_note": "⚠️ The system will NOT attempt to detect or interpret the stage from your project description. You must explicitly state the stage.",
                 "options": [
                     {"stage": "Design", "description": "Initial model development and planning phase"},
                     {"stage": "Review", "description": "Independent validation and testing phase"},
@@ -109,8 +131,7 @@ class IntroductionBuilder:
                     {"stage": "Monitoring", "description": "Production operation and ongoing performance tracking"},
                     {"stage": "Decommission", "description": "Model retirement or replacement"}
                 ],
-                "user_prompt": "QUESTION: Which lifecycle stage would you like to assess?\n\nOptions: Design | Review | Deployment | Monitoring | Decommission\n\nNote: Based on your project description, a specific stage may be suggested as likely. However, this is just a suggestion to help you.\n\n⚠️ DEFAULT: If you say 'proceed' or don't explicitly specify a stage, we will use Design stage (regardless of any suggestion).\n\nTo explicitly assess a specific stage:\n- 'Monitoring'\n- 'Yes, Monitoring stage'\n- 'Review stage'\n- 'Deployment'\n\nTo use Design stage (default):\n- 'proceed'\n- 'Design'\n- 'continue'",
-                "note": "The stage you explicitly specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
+                "user_prompt": "QUESTION: Which lifecycle stage is your model currently in?\n\nOptions: Design | Review | Deployment | Monitoring | Decommission"
             },
             "sequence": [
                 {
@@ -122,30 +143,27 @@ class IntroductionBuilder:
                 {
                     "step": 2,
                     "tool": "assess_model_risk",
-                    "purpose": "Comprehensive model risk assessment using quantitative and qualitative factors",
-                    "output": "Risk rating (Low/Medium/High/Critical) with detailed factor analysis"
+                    "purpose": "Risk assessment using 6 Risk Dimensions with AI-assisted extraction",
+                    "how_it_works": {
+                        "phase_1": "Returns extraction prompt → I analyze description and extract 31 factor values → You confirm",
+                        "phase_2": "Extracted values submitted → MCP validates and scores deterministically → Risk rating produced"
+                    },
+                    "output": "Risk rating (Low/Medium/High/Critical) with dimension-level breakdown and NOT_STATED tracking"
                 },
                 {
                     "step": 3,
-                    "tool": "evaluate_lifecycle_compliance",
-                    "purpose": "Check which current stage requirements are mentioned in description (keyword matching)",
-                    "output": "Coverage percentage (0/33/67/100%) showing which keywords were found - NOT compliance verification"
-                },
-                {
-                    "step": 4,
-                    "tool": "create_compliance_framework",
-                    "purpose": "Build complete governance and compliance framework",
-                    "output": "Full E-23 compliance structure with policies and controls"
-                },
-                {
-                    "step": 5,
                     "tool": "export_e23_report",
-                    "purpose": "Generate executive-ready stage-specific report",
-                    "output": "Professional Word document (4-6 pages) with stage-specific content"
+                    "purpose": "Generate stage-specific compliance report with risk-scaled requirements",
+                    "output": "Professional Word document (~4 pages) with lifecycle requirements and checklists"
                 }
             ],
+            "not_stated_handling": {
+                "what_happens": "When a risk factor value cannot be determined from your description",
+                "default_behavior": "Factor defaults to Medium risk (score = 2)",
+                "transparency": "All NOT_STATED factors are tracked and listed in the report",
+                "recommendation": "The report includes suggestions to clarify missing information for more accurate assessment"
+            },
             "recommended_use": "Models used by federally regulated financial institutions (banks, credit unions, insurance companies)",
-            "minimum_viable": "Steps 1, 2, and 5 provide basic compliance; all 5 steps provide comprehensive coverage",
             "note": "💡 If your model makes automated decisions affecting citizens, you may need AIA framework too. Just ask!"
         }
 
@@ -193,35 +211,38 @@ class IntroductionBuilder:
             "osfi_e23_workflow": {
                 "title": "🏦 OSFI E-23 Framework Complete Workflow",
                 "description": "OSFI Guideline E-23 Model Risk Management for federally regulated financial institutions",
-                "implementation_notice": {
-                    "critical_understanding": "🔧 IMPLEMENTATION STATUS: Proof of Concept with Exemplification Logic",
-                    "what_this_means": [
-                        "✅ OSFI E-23 REQUIREMENTS: Framework structure, principles, and lifecycle stages are official OSFI requirements",
-                        "⚙️ IMPLEMENTATION CHOICES: Risk scoring weights, thresholds, and governance mappings are exemplification - NOT official OSFI specifications",
-                        "🔧 TUNABLE PARAMETERS: All risk factors, weights, amplification multipliers, and thresholds can be customized",
-                        "🏦 INSTITUTIONAL CUSTOMIZATION REQUIRED: Financial institutions must tune parameters to match their risk appetite, governance structure, and regulatory expectations"
+                "version": "3.2.0",
+                "key_feature": {
+                    "title": "🧠 AI-Assisted Contextual Extraction with Deterministic Scoring",
+                    "description": "Step 2 uses a two-phase approach combining AI understanding with rule-based scoring",
+                    "how_it_works": [
+                        "📝 Phase 1: Claude analyzes description and extracts 31 risk factor values",
+                        "✅ User confirms extracted values before scoring",
+                        "🔢 Phase 2: MCP scores deterministically using fixed thresholds",
+                        "📊 Transparent, reproducible risk scores with audit trail"
+                    ]
+                },
+                "risk_dimensions": {
+                    "count": 6,
+                    "total_factors": 31,
+                    "dimensions": [
+                        "Misuse & Unintended Harm (4 factors)",
+                        "Output Reliability & Integrity (5 factors)",
+                        "Fairness & Customer Impact (6 factors)",
+                        "Operational & Security Risk (6 factors)",
+                        "Model Complexity & Opacity (5 factors)",
+                        "Governance & Oversight (5 factors)"
                     ],
-                    "key_distinctions": {
-                        "osfi_mandated": "Lifecycle stages, Principles (1.1-3.6), Outcomes (1-3), general MRM framework structure",
-                        "implementation_choices": "Risk scoring formulas, specific weights (10/8 points), amplification factors (30%/20%/25%/15%), threshold boundaries (0-25/26-50/51-75/76-100)",
-                        "institutional_decisions": "Which risks to prioritize, acceptable risk levels, governance authorities, review frequencies, approval chains"
-                    },
-                    "customization_guidance": "See OSFI_E23_TUNABLE_PARAMETERS.md for all adjustable parameters and OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md for detailed distinction between OSFI requirements and implementation choices",
-                    "professional_requirement": "⚠️ CRITICAL: All parameters, scores, and governance requirements must be validated and approved by your institution's Model Risk Management function and compliance teams before use"
+                    "scoring": "4-level scale: Low (1) | Medium (2) | High (3) | Critical (4)"
+                },
+                "implementation_notice": {
+                    "critical_understanding": "🔧 PROOF OF CONCEPT with exemplification logic",
+                    "professional_requirement": "⚠️ All scores must be validated by your institution's Model Risk Management function"
                 },
                 "lifecycle_stage_selection": {
-                    "instruction": "🔄 CRITICAL: You must explicitly state which lifecycle stage your model is in",
-                    "default": "Design (will be used if you do not explicitly specify a different stage)",
-                    "important_note": "⚠️ The system will NOT attempt to detect or interpret the stage from your project description. You must explicitly state the stage.",
-                    "options": [
-                        {"stage": "Design", "description": "Initial model development and planning phase"},
-                        {"stage": "Review", "description": "Independent validation and testing phase"},
-                        {"stage": "Deployment", "description": "Implementation and go-live preparation"},
-                        {"stage": "Monitoring", "description": "Production operation and ongoing performance tracking"},
-                        {"stage": "Decommission", "description": "Model retirement or replacement"}
-                    ],
-                    "user_prompt": "QUESTION: Which lifecycle stage would you like to assess?\n\nOptions: Design | Review | Deployment | Monitoring | Decommission\n\nNote: Based on your project description, a specific stage may be suggested as likely. However, this is just a suggestion to help you.\n\n⚠️ DEFAULT: If you say 'proceed' or don't explicitly specify a stage, we will use Design stage (regardless of any suggestion).\n\nTo explicitly assess a specific stage:\n- 'Monitoring'\n- 'Yes, Monitoring stage'\n- 'Review stage'\n- 'Deployment'\n\nTo use Design stage (default):\n- 'proceed'\n- 'Design'\n- 'continue'",
-                    "note": "The stage you explicitly specify will be used consistently across all assessment steps (Steps 3, 4, and 5)."
+                    "instruction": "🔄 You must specify lifecycle stage",
+                    "default": "Design (if not specified)",
+                    "options": ["Design", "Review", "Deployment", "Monitoring", "Decommission"]
                 },
                 "sequence": [
                     {
@@ -233,30 +254,26 @@ class IntroductionBuilder:
                     {
                         "step": 2,
                         "tool": "assess_model_risk",
-                        "purpose": "Comprehensive model risk assessment using quantitative and qualitative factors",
-                        "output": "Risk rating (Low/Medium/High/Critical) with detailed factor analysis"
+                        "purpose": "Risk assessment using 6 Risk Dimensions with AI-assisted extraction",
+                        "how_it_works": {
+                            "phase_1": "Returns extraction prompt → Claude extracts 31 factor values → User confirms",
+                            "phase_2": "Extracted values submitted → MCP validates and scores deterministically"
+                        },
+                        "output": "Risk rating (Low/Medium/High/Critical) with dimension-level breakdown"
                     },
                     {
                         "step": 3,
-                        "tool": "evaluate_lifecycle_compliance",
-                        "purpose": "Check which current stage requirements are mentioned in description (keyword matching)",
-                        "output": "Coverage percentage (0/33/67/100%) showing which keywords were found - NOT compliance verification"
-                    },
-                    {
-                        "step": 4,
-                        "tool": "create_compliance_framework",
-                        "purpose": "Build complete governance and compliance framework",
-                        "output": "Full E-23 compliance structure with policies and controls"
-                    },
-                    {
-                        "step": 5,
                         "tool": "export_e23_report",
-                        "purpose": "Generate executive-ready stage-specific report",
-                        "output": "Professional Word document (4-6 pages) with stage-specific content"
+                        "purpose": "Generate stage-specific compliance report with risk-scaled requirements",
+                        "output": "Professional Word document (~4 pages) with lifecycle requirements and checklists"
                     }
                 ],
-                "recommended_use": "Models used by federally regulated financial institutions (banks, credit unions, insurance companies)",
-                "note": "All 5 steps provide comprehensive OSFI E-23 coverage. Minimum viable assessment: steps 1-2 and 5."
+                "not_stated_handling": {
+                    "behavior": "Missing factors default to Medium risk (score = 2)",
+                    "transparency": "All NOT_STATED factors tracked and listed in report"
+                },
+                "recommended_use": "Models used by federally regulated financial institutions",
+                "note": "All 3 steps provide comprehensive OSFI E-23 coverage."
             },
             "combined_workflow": {
                 "title": "🇨🇦🏦 Combined AIA + OSFI E-23 Workflow",
@@ -319,7 +336,7 @@ class IntroductionBuilder:
             "assistant_directive": assistant_directive,
             "server_introduction": {
                 "title": "🇨🇦 Canada's Regulatory Assessment MCP Server",
-                "version": "2.2.9",
+                "version": "3.2.0",
                 "purpose": "Proof of Concept implementation leveraging Canada's AIA and OSFI E-23 frameworks",
                 "transparency_notice": {
                     "critical_distinction": "⚠️ PROOF OF CONCEPT: This server uses official framework structures but implements exemplification logic that requires institutional customization.",
@@ -359,8 +376,8 @@ class IntroductionBuilder:
                     "official_source": "Canada.ca Treasury Board Directive on Automated Decision-Making"
                 },
                 "osfi_e23_framework": {
-                    "description": "🏦 OSFI Guideline E-23 Model Risk Management",
-                    "tools": ["assess_model_risk", "evaluate_lifecycle_compliance", "create_compliance_framework", "export_e23_report"],
+                    "description": "🏦 OSFI Guideline E-23 Model Risk Management (3-step workflow)",
+                    "tools": ["assess_model_risk", "export_e23_report"],
                     "official_source": "Office of the Superintendent of Financial Institutions Canada"
                 }
             }

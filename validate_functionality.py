@@ -135,6 +135,11 @@ def validate_tool_registration() -> Tuple[bool, List[str]]:
         result = server._list_tools(1)
         tools = result.get("result", {}).get("tools", [])
 
+        # v3.0: OSFI E-23 simplified to 3 steps:
+        # (1) validate_project_description
+        # (2) assess_model_risk (with extraction-based scoring)
+        # (3) export_e23_report
+        # Removed: evaluate_lifecycle_compliance, generate_risk_rating, create_compliance_framework
         expected_tools = [
             "get_server_introduction",
             "validate_project_description",
@@ -148,9 +153,6 @@ def validate_tool_registration() -> Tuple[bool, List[str]]:
             "functional_preview",
             "export_assessment_report",
             "assess_model_risk",
-            "evaluate_lifecycle_compliance",
-            "generate_risk_rating",
-            "create_compliance_framework",
             "export_e23_report",
         ]
 

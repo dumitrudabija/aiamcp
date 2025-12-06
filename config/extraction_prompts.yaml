@@ -1,0 +1,189 @@
+# =============================================================================
+# OSFI E-23 Risk Factor Extraction Prompts
+# =============================================================================
+#
+# This configuration file allows non-developers to tune the prompts sent to
+# Claude for extracting risk factor values from project descriptions.
+#
+# USAGE:
+#   - Edit the text strings below to adjust Claude's extraction behavior
+#   - Changes take effect immediately (no code changes required)
+#   - Use {placeholders} for dynamic content (do not remove these)
+#
+# PLACEHOLDERS:
+#   {project_description}  - The user's project description text
+#   {factor_sections}      - Auto-generated list of factors to extract
+#   {json_template}        - Auto-generated JSON response template
+#   {NOT_STATED}           - The constant for missing values (currently "NOT_STATED")
+#
+# =============================================================================
+
+version: "1.0.0"
+
+# -----------------------------------------------------------------------------
+# MAIN EXTRACTION PROMPT
+# -----------------------------------------------------------------------------
+# This is the primary prompt sent to Claude to extract risk factor values.
+
+extraction_prompt:
+  # Header section - sets the context and task
+  header: |
+    ## Risk Factor Extraction Task
+
+    Analyze the following project description and extract values for each risk factor.
+    For each factor, provide ONLY factual information explicitly stated or clearly implied.
+    If information is not available, use "{NOT_STATED}".
+
+  # Project description section wrapper
+  project_section: |
+    ### Project Description:
+    ---
+    {project_description}
+    ---
+
+  # Instructions before the factor list
+  instructions: |
+    ### Extraction Instructions:
+
+    For each dimension below, extract the requested factor values based ONLY on
+    information in the project description. Do not infer or assume values.
+
+  # Output format section - defines the expected JSON response
+  output_format: |
+    ### Required Output Format:
+
+    Return a JSON object with this exact structure:
+    ```json
+    {{
+      "extraction_metadata": {{
+        "confidence_notes": "Any notes about extraction confidence or ambiguity"
+      }},
+      "dimensions": {{
+    {json_template}
+      }}
+    }}
+    ```
+
+  # Important notes at the end of the prompt
+  important_notes: |
+    IMPORTANT:
+    - Use exact factor IDs as shown above
+    - For quantitative factors: provide numeric values or "{NOT_STATED}"
+    - For qualitative factors: use one of the provided level keys (low/medium/high/critical) or "{NOT_STATED}"
+    - Include brief evidence quotes where possible
+
+
+# -----------------------------------------------------------------------------
+# FACTOR PRESENTATION TEMPLATES
+# -----------------------------------------------------------------------------
+# How individual factors are presented in the extraction prompt.
+
+factor_templates:
+  # Template for quantitative factors (numeric values with thresholds)
+  quantitative: |
+    - **{factor_id}** ({factor_name}):
+      Type: Quantitative ({unit})
+      Ranges: {ranges}
+      Extract: The numeric {unit} value, or "{NOT_STATED}" if not mentioned
+
+  # Template for qualitative factors (categorical levels)
+  qualitative: |
+    - **{factor_id}** ({factor_name}):
+      Type: Qualitative
+      Options: {options}
+      Extract: The matching level, or "{NOT_STATED}" if not determinable
+
+
+# -----------------------------------------------------------------------------
+# DIMENSION SECTION TEMPLATE
+# -----------------------------------------------------------------------------
+# How each risk dimension section is formatted.
+
+dimension_template: |
+  ### {dimension_name}
+  *Core Question: {core_question}*
+
+  Factors to extract:
+  {factor_questions}
+
+
+# -----------------------------------------------------------------------------
+# JSON TEMPLATE FORMATTING
+# -----------------------------------------------------------------------------
+# Templates for the JSON response structure shown to Claude.
+
+json_templates:
+  # Template for a single factor in the JSON example
+  factor_entry:
+    quantitative: '"{factor_id}": {{"value": "<number or {NOT_STATED}>", "evidence": "<quote or null>"}}'
+    qualitative: '"{factor_id}": {{"value": "<low|medium|high|critical|{NOT_STATED}>", "evidence": "<quote or null>"}}'
+
+
+# -----------------------------------------------------------------------------
+# BEHAVIORAL INSTRUCTIONS
+# -----------------------------------------------------------------------------
+# Additional instructions that can be toggled or modified.
+
+behavioral_instructions:
+  # Whether to allow reasonable inferences (false = strict extraction only)
+  allow_inferences: false
+
+  # Instruction text based on allow_inferences setting
+  inference_instruction_strict: |
+    Do not infer or assume values. Only extract information that is explicitly
+    stated or directly implied by the text.
+
+  inference_instruction_flexible: |
+    You may make reasonable inferences when clear evidence supports them,
+    but note these as inferences in the evidence field.
+
+  # Confidence reporting instruction
+  confidence_instruction: |
+    In the extraction_metadata.confidence_notes field, note any factors where
+    the extracted value has lower confidence or required interpretation.
+
+
+# -----------------------------------------------------------------------------
+# NOT_STATED HANDLING
+# -----------------------------------------------------------------------------
+# Configuration for how missing information is handled.
+
+not_stated_handling:
+  # The constant value used for missing information
+  constant: "NOT_STATED"
+
+  # Default risk level applied when NOT_STATED
+  default_risk_level: "medium"
+  default_risk_score: 2
+
+  # Explanation shown in reports
+  explanation: |
+    This factor was not found in the project description and has been
+    defaulted to Medium risk. Consider adding this information to the
+    project documentation for more accurate risk assessment.
+
+
+# -----------------------------------------------------------------------------
+# RESPONSE VALIDATION MESSAGES
+# -----------------------------------------------------------------------------
+# Messages shown during validation of Claude's extraction response.
+
+validation_messages:
+  invalid_quantitative: "Invalid quantitative value for {dim_id}.{factor_id}: '{raw_value}'"
+  invalid_qualitative: "Invalid qualitative level for {dim_id}.{factor_id}: '{raw_value}'"
+  type_mismatch: "Expected string level for {dim_id}.{factor_id}, got: {value_type}"
+  success_all_extracted: "All risk factors were successfully extracted from the project description."
+  factors_defaulted: "{count} factors defaulted to Medium risk (information not stated in description):"
+
+
+# -----------------------------------------------------------------------------
+# MCP TOOL RESPONSE INSTRUCTIONS
+# -----------------------------------------------------------------------------
+# Instructions included in the MCP tool response for Claude.
+
+tool_response_instructions:
+  task: "Extract risk factor values from the project description"
+  output_format: "JSON as specified in the prompt"
+  handling_missing: "Use '{NOT_STATED}' for any values not found"
+  confirmation_required: "Present extracted values to user for confirmation before proceeding"
+  next_step: "After user confirms extraction, call assess_model_risk with the JSON response"

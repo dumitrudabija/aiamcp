@@ -45,7 +45,7 @@ class ToolRegistry:
             },
             {
                 "name": "validate_project_description",
-                "description": "🔍 STEP 1 - FRAMEWORK READINESS VALIDATOR: Validate project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. This is STEP 1 for both AIA and OSFI E-23 workflows. Ensures descriptions contain sufficient information across key areas required by both frameworks. Use this as the first step before framework assessments to prevent 'insufficient description' errors.",
+                "description": "🔍 STEP 1 OF 3 - FRAMEWORK READINESS VALIDATOR: Validate project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. OSFI E-23 WORKFLOW: (1) validate_project_description [YOU ARE HERE] → (2) assess_model_risk → (3) export_e23_report. Ensures descriptions contain sufficient information across key areas required by both frameworks.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -268,7 +268,7 @@ class ToolRegistry:
             },
             {
                 "name": "assess_model_risk",
-                "description": "🏦 OSFI E-23 STEP 2 OF 5 - MODEL RISK ASSESSMENT: Comprehensive model risk assessment with detailed risk scoring breakdown using Canada's OSFI Guideline E-23 framework. This is STEP 2 in the complete OSFI E-23 workflow. COMPLETE OSFI WORKFLOW: (1) validate_project_description → (2) assess_model_risk [YOU ARE HERE] → (3) evaluate_lifecycle_compliance → (4) create_compliance_framework → (5) export_e23_report. When user says 'run through OSFI framework', you should execute ALL 5 steps in sequence. ⚠️ COMPLIANCE WARNING: This tool provides structured assessment framework only. All results must be validated by qualified model risk professionals and approved by appropriate governance authorities. Risk assessments must be based on factual, verifiable project information - not AI interpretation.",
+                "description": "🏦 OSFI E-23 STEP 2 OF 3 - MODEL RISK ASSESSMENT: Comprehensive model risk assessment using 6 Risk Dimensions (31 factors) under Canada's OSFI Guideline E-23 framework. TWO-PHASE WORKFLOW: (1) First call returns extraction prompt for Claude to analyze description and extract risk factor values; (2) Second call with extracted_factors performs deterministic scoring. User must confirm lifecycle stage before proceeding. COMPLETE OSFI WORKFLOW: (1) validate_project_description → (2) assess_model_risk [YOU ARE HERE] → (3) export_e23_report. ⚠️ COMPLIANCE WARNING: All results must be validated by qualified model risk professionals.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -278,69 +278,25 @@ class ToolRegistry:
                         },
                         "projectDescription": {
                             "type": "string",
-                            "description": "CRITICAL: Provide factual, detailed description including specific technical architecture, documented data sources/volumes, explicit business use cases, defined decision-making processes, and measurable performance criteria. Avoid vague descriptions requiring AI interpretation."
-                        }
-                    },
-                    "required": ["projectName", "projectDescription"],
-                    "additionalProperties": False
-                }
-            },
-            {
-                "name": "evaluate_lifecycle_compliance",
-                "description": "🏦 OSFI E-23 STEP 3 OF 5 - CURRENT STAGE REQUIREMENTS: Check which OSFI E-23 requirements for the current lifecycle stage are mentioned in your project description using keyword matching. This is STEP 3 in the complete OSFI E-23 workflow.\n\nFor the selected stage, checks for 3 key elements using keyword detection (e.g., Design stage: Model Rationale, Model Data, Model Development). Returns coverage percentage: 0%, 33%, 67%, or 100% based on which keywords are found.\n\n⚠️ NOTE: This is basic keyword matching - NOT compliance verification. Use results to identify gaps in your project description.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "projectName": {
-                            "type": "string",
-                            "description": "Name of the model being evaluated"
-                        },
-                        "projectDescription": {
-                            "type": "string",
-                            "description": "Detailed description of the model and its current lifecycle stage"
+                            "description": "CRITICAL: Provide factual, detailed description including specific technical architecture, documented data sources/volumes, explicit business use cases, defined decision-making processes, and measurable performance criteria."
                         },
                         "currentStage": {
                             "type": "string",
-                            "description": "Current lifecycle stage of the model",
-                            "enum": ["Design", "Review", "Deployment", "Monitoring", "Decommission"]
-                        }
-                    },
-                    "required": ["projectName", "projectDescription"],
-                    "additionalProperties": False
-                }
-            },
-            {
-                "name": "create_compliance_framework",
-                "description": "🏦 OSFI E-23 STEP 4 OF 5 - COMPLIANCE FRAMEWORK: Create stage-specific compliance framework based on OSFI E-23 requirements. This is STEP 4 in the complete OSFI E-23 workflow. Generates governance structure, requirements, and controls tailored to the model's current lifecycle stage and risk level.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "projectName": {
-                            "type": "string",
-                            "description": "Name of the model requiring compliance framework"
-                        },
-                        "projectDescription": {
-                            "type": "string",
-                            "description": "Detailed description of the model, its business purpose, and organizational context"
-                        },
-                        "currentStage": {
-                            "type": "string",
-                            "description": "Optional: Current lifecycle stage (from Step 3). If not provided, will be auto-detected.",
+                            "description": "Current lifecycle stage of the model. User should confirm this before proceeding.",
                             "enum": ["design", "review", "deployment", "monitoring", "decommission"]
                         },
-                        "riskLevel": {
-                            "type": "string",
-                            "description": "Optional: Pre-determined risk level (from Step 2) to tailor framework requirements",
-                            "enum": ["Low", "Medium", "High", "Critical"]
+                        "extracted_factors": {
+                            "type": "object",
+                            "description": "PHASE 2 ONLY: JSON object containing extracted risk factor values from Claude's analysis of the project description. Required structure: { 'dimensions': { 'dimension_id': { 'factor_id': { 'value': <number|string|NOT_STATED>, 'evidence': <string|null> } } } }. If not provided, returns extraction prompt for Phase 1."
                         }
                     },
-                    "required": ["projectName", "projectDescription"],
+                    "required": ["projectName", "projectDescription", "currentStage"],
                     "additionalProperties": False
                 }
             },
             {
                 "name": "export_e23_report",
-                "description": "🏦 OSFI E-23 STEP 5 OF 5 - REPORT GENERATION: Generates and saves a COMPLETE stage-specific OSFI E-23 compliance report as a Microsoft Word document. This is the FINAL STEP (Step 5) in the complete OSFI E-23 workflow. The MCP server creates the entire document including executive summary, risk analysis, lifecycle coverage, compliance checklist, and governance structure. ⚠️ COMPLIANCE WARNING: Generated reports are templates requiring professional validation. All content must be reviewed by qualified model risk professionals, validated against actual project characteristics, and approved by appropriate governance authorities before use for regulatory compliance.",
+                "description": "🏦 OSFI E-23 STEP 3 OF 3 - REPORT GENERATION: Generates a stage-specific OSFI E-23 compliance report as a Microsoft Word document. COMPLETE OSFI WORKFLOW: (1) validate_project_description → (2) assess_model_risk → (3) export_e23_report [YOU ARE HERE]. Report includes executive summary, 6 Risk Dimensions assessment, lifecycle requirements scaled by risk level, and OSFI principles annex. ⚠️ COMPLIANCE WARNING: Generated reports require professional validation before regulatory use.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -354,11 +310,16 @@ class ToolRegistry:
                         },
                         "assessment_results": {
                             "type": "object",
-                            "description": "OPTIONAL: Assessment results object from previous E-23 assessment. If not provided, will automatically retrieve from session state. The MCP server automatically stores assessment results when tools are called in sequence."
+                            "description": "OPTIONAL: Assessment results from Step 2 (assess_model_risk). If not provided, will retrieve from session state."
+                        },
+                        "current_stage": {
+                            "type": "string",
+                            "description": "Current lifecycle stage (from Step 2). Required for generating stage-specific requirements.",
+                            "enum": ["design", "review", "deployment", "monitoring", "decommission"]
                         },
                         "custom_filename": {
                             "type": "string",
-                            "description": "Optional custom filename (without extension). If not provided, will use E23_Report_[ProjectName]_[YYYY-MM-DD].docx format"
+                            "description": "Optional custom filename (without extension). Default: OSFI_E23_Report_[ProjectName]_[YYYY-MM-DD].docx"
                         }
                     },
                     "required": ["project_name", "project_description"],

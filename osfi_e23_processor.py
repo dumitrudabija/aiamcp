@@ -3,6 +3,11 @@ OSFI E-23 Model Risk Management Processor
 
 Handles the core logic for processing OSFI Guideline E-23 Model Risk Management
 assessments for federally regulated financial institutions in Canada.
+
+Version 3.0 Changes:
+- New 6 Risk Dimension framework (see osfi_e23_risk_dimensions.py)
+- Dimension-based assessment with 31 factors across 6 dimensions
+- Legacy indicator-based assessment preserved for backward compatibility
 """
 
 import json
@@ -11,6 +16,22 @@ import re
 from typing import Dict, List, Any, Optional, Tuple
 import logging
 from datetime import datetime
+
+# Import new risk dimensions framework
+from osfi_e23_risk_dimensions import (
+    RISK_DIMENSIONS,
+    DIMENSION_ORDER,
+    RiskLevel,
+    FactorType,
+    get_dimension,
+    get_all_dimensions,
+    get_dimension_factors,
+    get_quantitative_factors,
+    get_qualitative_factors,
+    create_empty_assessment,
+    risk_level_to_score,
+    score_to_risk_level
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1307,6 +1328,246 @@ class OSFIE23Processor:
                 "automated_shutoff": "Automatic model deactivation on critical alerts",
                 "escalation_procedures": "Immediate senior management notification"
             })
-        
+
         return base_framework
-    
+
+    # =========================================================================
+    # NEW: DIMENSION-BASED RISK ASSESSMENT (v3.0)
+    # =========================================================================
+
+    def get_risk_dimensions(self) -> Dict[str, Any]:
+        """
+        Get the risk dimension framework structure.
+
+        Returns:
+            Dict containing all 6 risk dimensions and their factors
+        """
+        return get_all_dimensions()
+
+    def get_dimension_info(self, dimension_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get information about a specific risk dimension.
+
+        Args:
+            dimension_id: The dimension identifier
+
+        Returns:
+            Dimension definition or None if not found
+        """
+        return get_dimension(dimension_id)
+
+    def create_dimension_assessment(self) -> Dict[str, Any]:
+        """
+        Create an empty dimension-based assessment structure.
+
+        Returns:
+            Empty assessment structure ready to be populated
+        """
+        return create_empty_assessment()
+
+    def assess_dimension(self, dimension_id: str, factor_values: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Assess a single dimension based on provided factor values.
+
+        This method is designed to work with intelligent factor value detection
+        (to be implemented - currently a placeholder for the detection logic).
+
+        Args:
+            dimension_id: The dimension to assess
+            factor_values: Dict mapping factor_id to detected values
+                          For quantitative: numeric value
+                          For qualitative: one of low/medium/high/critical
+
+        Returns:
+            Dimension assessment with factor-level and dimension-level risk
+        """
+        dimension = get_dimension(dimension_id)
+        if not dimension:
+            return {"error": f"Unknown dimension: {dimension_id}"}
+
+        factors = get_dimension_factors(dimension_id)
+        factor_assessments = {}
+        factor_scores = []
+
+        for factor in factors:
+            factor_id = factor["id"]
+            value = factor_values.get(factor_id)
+
+            if value is None:
+                factor_assessments[factor_id] = {
+                    "name": factor["name"],
+                    "type": factor["type"],
+                    "value": None,
+                    "risk_level": "not_assessed",
+                    "risk_score": 0
+                }
+                continue
+
+            # Determine risk level based on factor type
+            if factor["type"] == FactorType.QUANTITATIVE.value:
+                risk_level = self._assess_quantitative_factor(factor, value)
+            else:
+                risk_level = self._assess_qualitative_factor(factor, value)
+
+            risk_score = risk_level_to_score(risk_level)
+            factor_scores.append(risk_score)
+
+            factor_assessments[factor_id] = {
+                "name": factor["name"],
+                "type": factor["type"],
+                "value": value,
+                "risk_level": risk_level,
+                "risk_score": risk_score
+            }
+
+        # Calculate dimension-level risk (highest factor by default)
+        # TODO: This aggregation logic can be customized
+        if factor_scores:
+            dimension_score = max(factor_scores)  # Conservative: highest risk factor
+            dimension_level = score_to_risk_level(dimension_score)
+        else:
+            dimension_score = 0
+            dimension_level = "not_assessed"
+
+        return {
+            "dimension_id": dimension_id,
+            "dimension_name": dimension["name"],
+            "core_question": dimension["core_question"],
+            "risk_level": dimension_level,
+            "risk_score": dimension_score,
+            "factors": factor_assessments,
+            "factors_assessed": len([s for s in factor_scores if s > 0]),
+            "factors_total": len(factors)
+        }
+
+    def _assess_quantitative_factor(self, factor: Dict[str, Any], value: float) -> str:
+        """
+        Assess a quantitative factor against its thresholds.
+
+        Args:
+            factor: Factor definition with thresholds
+            value: Numeric value to assess
+
+        Returns:
+            Risk level string
+        """
+        thresholds = factor.get("thresholds", {})
+        invert_scale = factor.get("invert_scale", False)
+
+        # Check each level in order
+        for level in ["low", "medium", "high", "critical"]:
+            level_config = thresholds.get(level, {})
+            min_val = level_config.get("min", float("-inf"))
+            max_val = level_config.get("max", float("inf"))
+
+            if invert_scale:
+                # For inverted scales (like consistency where higher is better)
+                if min_val <= value <= max_val:
+                    return level
+            else:
+                # For normal scales (like error rate where higher is worse)
+                if min_val <= value <= max_val:
+                    return level
+
+        # Default to medium if no match
+        return "medium"
+
+    def _assess_qualitative_factor(self, factor: Dict[str, Any], value: str) -> str:
+        """
+        Assess a qualitative factor based on level matching.
+
+        Args:
+            factor: Factor definition with levels
+            value: Level string or description to match
+
+        Returns:
+            Risk level string
+        """
+        levels = factor.get("levels", {})
+        value_lower = value.lower().strip()
+
+        # Direct level match
+        if value_lower in ["low", "medium", "high", "critical"]:
+            return value_lower
+
+        # Match against level descriptions
+        for level, description in levels.items():
+            if value_lower == description.lower() or value_lower in description.lower():
+                return level
+
+        # Default to medium if no match
+        return "medium"
+
+    def calculate_overall_risk(self, dimension_assessments: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Calculate overall risk from dimension assessments.
+
+        Args:
+            dimension_assessments: Dict mapping dimension_id to assessment results
+
+        Returns:
+            Overall risk calculation with breakdown
+        """
+        dimension_scores = []
+        dimension_summary = {}
+
+        for dim_id in DIMENSION_ORDER:
+            assessment = dimension_assessments.get(dim_id, {})
+            score = assessment.get("risk_score", 0)
+            level = assessment.get("risk_level", "not_assessed")
+
+            dimension_scores.append(score)
+            dimension_summary[dim_id] = {
+                "name": RISK_DIMENSIONS[dim_id]["name"],
+                "short_name": RISK_DIMENSIONS[dim_id]["short_name"],
+                "risk_level": level,
+                "risk_score": score
+            }
+
+        # Calculate overall score
+        # TODO: This aggregation can be customized (max, average, weighted, etc.)
+        if dimension_scores:
+            # Current: Maximum across dimensions (conservative)
+            overall_score = max(dimension_scores)
+            # Alternative: Weighted average
+            # overall_score = sum(dimension_scores) / len(dimension_scores)
+        else:
+            overall_score = 0
+
+        overall_level = score_to_risk_level(overall_score)
+
+        return {
+            "overall_risk_level": overall_level,
+            "overall_risk_score": overall_score,
+            "dimensions": dimension_summary,
+            "aggregation_method": "maximum",  # Document the method used
+            "assessment_complete": all(s > 0 for s in dimension_scores)
+        }
+
+    def get_dimension_lifecycle_requirements(self, dimension_id: str, stage: str) -> Dict[str, Any]:
+        """
+        Get lifecycle requirements for a dimension at a specific stage.
+
+        Args:
+            dimension_id: The risk dimension
+            stage: The lifecycle stage
+
+        Returns:
+            Requirements for that dimension/stage combination
+        """
+        from osfi_e23_structure import get_dimension_requirements_for_stage
+        return get_dimension_requirements_for_stage(dimension_id, stage)
+
+    def get_all_lifecycle_requirements_for_stage(self, stage: str) -> Dict[str, Dict[str, Any]]:
+        """
+        Get all dimension requirements for a lifecycle stage.
+
+        Args:
+            stage: The lifecycle stage
+
+        Returns:
+            Requirements organized by dimension
+        """
+        from osfi_e23_structure import get_all_requirements_for_stage
+        return get_all_requirements_for_stage(stage)
+

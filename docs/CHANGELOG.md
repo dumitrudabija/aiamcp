@@ -2,6 +2,272 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [3.3.0] - 2025-12-06
+
+### 📊 Enhanced Report Transparency & Bug Fixes
+
+This release fixes critical bugs in dimension data flow and adds Annex A for full factor-level transparency in OSFI E-23 reports.
+
+#### Bug Fixes
+
+1. **Dimension Assessment Data Flow** - Fixed key mismatch preventing dimension risk levels from appearing in reports
+   - Changed `dimension_assessment` → `dimension_assessments` in server.py
+   - Flattened nested structure so dimension scores are directly accessible
+   - Section 2 now shows actual risk levels (Low/Medium/High/Critical) instead of "Not Assessed"
+
+2. **Added `validated_extraction` to assessment results** - Evidence data now passed to report generator for Annex A
+
+#### New Report Structure
+
+**Annex A: Detailed Factor Assessment** (NEW)
+- One table per dimension (6 tables total, covering all 31 factors)
+- Columns: Factor | Scoring Matrix | Determined Value | Evidence
+- Scoring Matrix shows Low/Medium/High/Critical thresholds for each factor
+- Determined Value shows extracted value with risk level (e.g., "500000 (Low)")
+- Evidence shows quote from project description supporting the determination
+- NOT_STATED factors show "NOT_STATED (Medium - default)" with empty evidence
+
+**Annex B: OSFI E-23 Principles** (renamed from "ANNEX")
+- Contains all OSFI Principles 1.1-3.6 organized by Outcome
+
+#### Workflow Streamlining
+
+- Removed user confirmation step from extraction workflow
+- Claude now extracts factors and immediately proceeds to Phase 2 scoring
+- Transparency achieved through Annex A in final report, not mid-workflow interruption
+
+#### Files Modified
+
+- **server.py**: Fixed `dimension_assessments` key, added `validated_extraction`, streamlined extraction instructions
+- **osfi_e23_report_generators.py**: Added `_add_annex_factor_assessment()`, renamed principles annex to Annex B
+
+---
+
+## [3.2.0] - 2025-12-06
+
+### ⚙️ Configurable Extraction Prompt Templates
+
+This release introduces external configuration for OSFI E-23 risk factor extraction prompts, allowing non-developers to tune Claude's extraction behavior without modifying Python code.
+
+#### New Configuration File: `config/extraction_prompts.yaml`
+
+A YAML configuration file that controls all aspects of the extraction prompt sent to Claude:
+
+- **Prompt Templates**: Header, instructions, output format, important notes
+- **Factor Templates**: How quantitative and qualitative factors are presented
+- **Behavioral Instructions**: Allow inferences vs strict extraction only
+- **NOT_STATED Handling**: Default values and explanations for missing information
+- **Tool Response Instructions**: Instructions included in MCP tool responses
+
+#### Key Features
+
+1. **Non-Developer Tuning**: Edit YAML to change Claude's extraction behavior - no Python required
+2. **Hot Reload Support**: Call `reload_prompt_config()` to apply changes without server restart
+3. **Graceful Fallbacks**: Falls back to built-in defaults if config is missing or malformed
+4. **Well-Documented**: Extensive comments explaining each section and placeholder variables
+
+#### Configuration Sections
+
+| Section | Purpose |
+|---------|---------|
+| `extraction_prompt.header` | Opening task description |
+| `extraction_prompt.instructions` | How Claude should extract values |
+| `extraction_prompt.important_notes` | Final reminders/constraints |
+| `factor_templates.quantitative` | Numeric factor presentation |
+| `factor_templates.qualitative` | Categorical factor presentation |
+| `behavioral_instructions` | Strict vs flexible extraction |
+| `not_stated_handling` | Missing information defaults |
+| `tool_response_instructions` | MCP response instructions |
+
+#### Placeholder Variables
+
+- `{project_description}` - User's project description text
+- `{factor_sections}` - Auto-generated list of factors to extract
+- `{json_template}` - Auto-generated JSON response template
+- `{NOT_STATED}` - Constant for missing values
+
+#### New Functions in `risk_dimension_extraction.py`
+
+- `reload_prompt_config()` - Hot reload configuration from disk
+- `get_prompt_config()` - Get current configuration dict
+- `_get_template(key)` - Get template with fallback to defaults
+
+#### Files Added/Modified
+
+- **New**: `config/extraction_prompts.yaml` - Tunable prompt templates
+- **Modified**: `risk_dimension_extraction.py` - Config loading and template usage
+- **Modified**: `requirements.txt` - Added `pyyaml` dependency
+- **Modified**: `CLAUDE.md` - Documentation for new config file
+
+---
+
+## [3.1.0] - 2025-12-06
+
+### 🧠 AI-Assisted Contextual Fact Extraction
+
+This release introduces a two-phase extraction workflow for the OSFI E-23 risk assessment, replacing crude keyword matching with AI-assisted contextual understanding while keeping all scoring deterministic.
+
+#### Two-Phase assess_model_risk Workflow
+
+**Phase 1 - Extraction Prompt:**
+When `assess_model_risk` is called without `extracted_factors`:
+- Returns structured extraction prompt for Claude to analyze the project description
+- Prompt covers all 31 factors across 6 Risk Dimensions
+- Instructions for Claude to extract values and present to user for confirmation
+
+**Phase 2 - Deterministic Scoring:**
+When `assess_model_risk` is called with `extracted_factors` (JSON from Claude's extraction):
+- Validates extracted JSON against the dimension schema
+- Scores each factor deterministically using threshold/level mapping
+- Aggregates to dimension scores and overall risk level
+- Tracks NOT_STATED factors (default to Medium, flagged in report)
+
+#### New Module: `risk_dimension_extraction.py`
+
+Key functions:
+- `generate_extraction_prompt(description)` - Creates structured prompt for each factor
+- `validate_extraction_response(response)` - Validates JSON against schema
+- `score_factor()` - Deterministic threshold/level scoring
+- `score_dimension()` - Aggregate factor scores
+- `calculate_overall_risk()` - Final risk rating
+- `format_not_stated_for_report()` - Report section for missing information
+
+#### NOT_STATED Handling
+
+When a factor value cannot be determined from the description:
+- Value recorded as `NOT_STATED`
+- Defaults to Medium risk (score = 2)
+- Tracked separately for reporting transparency
+- Report includes section listing all NOT_STATED factors with recommendation to clarify
+
+#### Key Design Principles
+
+1. **AI extracts facts, Python scores** - Clear separation of concerns
+2. **User confirmation required** - Claude presents extraction for user approval before scoring
+3. **Deterministic reproducibility** - Same extraction JSON always produces same risk score
+4. **Transparent defaults** - Missing information clearly tracked and documented
+
+#### Updated Tool Schema
+
+`assess_model_risk` now accepts optional `extracted_factors` parameter:
+```json
+{
+  "projectName": "...",
+  "projectDescription": "...",
+  "currentStage": "design",
+  "extracted_factors": {  // Phase 2 only
+    "dimensions": {
+      "dimension_id": {
+        "factor_id": {
+          "value": "<number|string|NOT_STATED>",
+          "evidence": "<quote or null>"
+        }
+      }
+    }
+  }
+}
+```
+
+#### New Test: `test_extraction_integration.py`
+
+Comprehensive tests for:
+1. Phase 1 extraction prompt generation
+2. Phase 2 deterministic scoring
+3. NOT_STATED handling
+4. Validation issue reporting
+5. Full MCP server integration
+
+---
+
+## [3.0.0] - 2025-12-06
+
+### 🎯 Major: 6 Risk Dimensions Framework & Streamlined 3-Step Workflow
+
+This release introduces a complete redesign of the OSFI E-23 risk assessment methodology, replacing the previous 13 binary indicators with a comprehensive 6 Risk Dimensions framework.
+
+#### OSFI E-23 Workflow Simplified (5 steps → 3 steps)
+
+**BEFORE (v2.x):**
+1. validate_project_description
+2. assess_model_risk
+3. evaluate_lifecycle_compliance ❌ REMOVED
+4. create_compliance_framework ❌ REMOVED
+5. export_e23_report
+
+**AFTER (v3.0):**
+1. validate_project_description
+2. assess_model_risk (user confirms lifecycle stage here)
+3. export_e23_report
+
+**Rationale:** Steps 3 and 4 were just lookups that are now done at report generation time. Lifecycle governance requirements are derived from the combination of risk level + lifecycle stage.
+
+#### New 6 Risk Dimensions Framework
+
+Replaced 13 binary indicators (5 quantitative + 8 qualitative) with 6 comprehensive Risk Dimensions containing 31 factors with 4-level scales (Low/Medium/High/Critical):
+
+| Dimension | Factors | Core Question |
+|-----------|---------|---------------|
+| Misuse & Unintended Harm | 4 | Can the model cause harm beyond its intended purpose? |
+| Output Reliability & Integrity | 5 | How trustworthy and consistent are outputs? |
+| Fairness & Customer Impact | 6 | Does the model produce equitable outcomes? |
+| Operational & Security Risk | 6 | What are infrastructure and security risks? |
+| Model Complexity & Opacity | 5 | How complex is the model? |
+| Governance & Oversight | 5 | How robust are controls? |
+
+#### Risk-Scaled Lifecycle Requirements
+
+New `LIFECYCLE_REQUIREMENTS_BY_RISK` structure provides governance requirements that scale with risk level for each lifecycle stage:
+
+- **Design**: documentation_depth, data_quality_assessment, bias_fairness_analysis, approval_authority
+- **Review**: validation_independence, testing_scope, challenger_model, explainability_review
+- **Deployment**: pre_deployment_checklist, parallel_run_period, rollback_capability, human_override
+- **Monitoring**: performance_review_frequency, drift_monitoring, fairness_monitoring, revalidation_trigger
+- **Decommission**: retention_period, documentation_to_retain, stakeholder_notification
+
+Each requirement has 4 levels (Low → Critical) with progressively more rigorous governance.
+
+#### Streamlined Report Structure
+
+**BEFORE (v2.x) - 7 chapters:**
+1. Executive Summary
+2. Risk Rating Methodology
+3. Current Stage Requirements Coverage
+4. Stage-Specific Compliance Checklist
+5. Governance Structure
+6. Monitoring Framework
+7. Annex: OSFI Principles
+
+**AFTER (v3.0) - 4 sections:**
+1. Executive Summary (risk level, governance intensity, current stage)
+2. Risk Assessment by Dimension (6 dimensions table with core questions)
+3. [STAGE] Stage Requirements (lifecycle requirements with 1-2 checklist items each)
+4. Annex: OSFI E-23 Principles
+
+#### New Files
+- `osfi_e23_risk_dimensions.py` - 6 Risk Dimensions with 31 factors
+
+#### Modified Files
+- `osfi_e23_structure.py` - Added LIFECYCLE_REQUIREMENTS_BY_RISK, removed DIMENSION_LIFECYCLE_REQUIREMENTS
+- `osfi_e23_processor.py` - Added v3.0 dimension assessment methods
+- `osfi_e23_report_generators.py` - Complete rewrite for new structure
+- `config/tool_registry.py` - Removed 2 tools, updated descriptions to "STEP X OF 3"
+- `workflow_engine.py` - Updated OSFI workflow to 3 steps
+- `introduction_builder.py` - Updated workflow sequences
+- `server.py` - Removed old tool handlers
+
+#### Archived Documentation
+Moved to `docs/archive/v2_obsolete/`:
+- OSFI_E23_TUNABLE_PARAMETERS.md (references old 13 indicators)
+- OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md
+- CALCULATION_FIX_SUMMARY.md
+- REFACTORING_SAFETY_PLAN.md
+- TECHNICAL_DEBT_REPORT.md
+- JIRA_INTEGRATION_OPTIONS.md
+- JIRA_MCP_INTEGRATION_PATTERN.md
+- VIDEO_SCRIPT_NARRATIVE.md
+
+---
+
 ## [2.2.11] - 2025-11-21
 
 ### 📝 Clarity: Step 3 Renamed to "Current Stage Requirements Coverage"

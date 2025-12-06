@@ -3,7 +3,7 @@
 Test script to verify get_server_introduction provides complete workflow guidance.
 
 This test verifies:
-1. get_server_introduction includes OSFI E-23 6-step workflow
+1. get_server_introduction includes OSFI E-23 3-step workflow (v3.0)
 2. get_server_introduction includes AIA 5-step workflow
 3. Tool descriptions include step numbers
 4. Introduction includes behavioral directives to present first
@@ -47,18 +47,16 @@ def test_introduction_workflow_guidance():
     assert "sequence" in osfi_workflow, "Missing OSFI workflow sequence"
 
     osfi_steps = osfi_workflow["sequence"]
-    assert len(osfi_steps) == 5, f"Expected 5 OSFI steps, got {len(osfi_steps)}"
+    assert len(osfi_steps) == 3, f"Expected 3 OSFI steps (v3.0), got {len(osfi_steps)}"
 
-    print(f"✅ OSFI E-23 workflow has {len(osfi_steps)} steps:")
+    print(f"✅ OSFI E-23 workflow has {len(osfi_steps)} steps (v3.0):")
     for step in osfi_steps:
         print(f"   Step {step['step']}: {step['tool']} - {step['purpose']}")
 
-    # Verify step sequence (v2.0.0 merged generate_risk_rating into assess_model_risk)
+    # Verify step sequence (v3.0 simplified to 3 steps)
     expected_tools = [
         "validate_project_description",
         "assess_model_risk",
-        "evaluate_lifecycle_compliance",
-        "create_compliance_framework",
         "export_e23_report"
     ]
 
@@ -66,7 +64,7 @@ def test_introduction_workflow_guidance():
         assert step["step"] == i, f"Step number mismatch: expected {i}, got {step['step']}"
         assert expected_tool in step["tool"], f"Step {i}: expected {expected_tool}, got {step['tool']}"
 
-    print("✅ OSFI E-23 workflow sequence is correct")
+    print("✅ OSFI E-23 workflow sequence is correct (v3.0: 3 steps)")
 
     # Check for AIA workflow
     print("\n4. Checking AIA Workflow Sequence...")
@@ -103,11 +101,9 @@ def test_introduction_workflow_guidance():
     tools = tools_response["result"]["tools"]
 
     tool_checks = {
-        "validate_project_description": "STEP 1",
-        "assess_model_risk": "STEP 2 OF 5",
-        "evaluate_lifecycle_compliance": "STEP 3 OF 5",
-        "create_compliance_framework": "STEP 4 OF 5",
-        "export_e23_report": "STEP 5 OF 5"
+        "validate_project_description": "STEP 1 OF 3",
+        "assess_model_risk": "STEP 2 OF 3",
+        "export_e23_report": "STEP 3 OF 3"
     }
 
     for tool in tools:
@@ -121,7 +117,7 @@ def test_introduction_workflow_guidance():
     print("ALL TESTS PASSED!")
     print("=" * 80)
     print("\n✅ get_server_introduction now provides:")
-    print("   - Complete 6-step OSFI E-23 workflow sequence")
+    print("   - Complete 3-step OSFI E-23 workflow sequence (v3.0)")
     print("   - Complete 5-step AIA workflow sequence")
     print("   - Explicit behavioral directive to present introduction first")
     print("   - 4 clear framework options for user selection")

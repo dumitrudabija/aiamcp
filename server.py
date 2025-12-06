@@ -60,7 +60,7 @@ class MCPServer:
         self.aia_report_generator = AIAReportGenerator(self.aia_data_extractor)
         self.server_info = {
             "name": "aia-assessment-server",
-            "version": "1.15.0"
+            "version": "3.2.0"
         }
 
         # Session state for workflow enforcement
@@ -284,9 +284,8 @@ class MCPServer:
         tool_name = params.get("name")
         arguments = params.get("arguments", {})
 
-        # Auto-session management for OSFI E-23 tools
-        osfi_tools = ["assess_model_risk", "evaluate_lifecycle_compliance",
-                      "create_compliance_framework", "export_e23_report"]
+        # Auto-session management for OSFI E-23 tools (v3.0: 3-step workflow)
+        osfi_tools = ["assess_model_risk", "export_e23_report"]
 
         session_id = None
         if tool_name in osfi_tools:
@@ -319,10 +318,6 @@ class MCPServer:
                 result = self._export_assessment_report(arguments)
             elif tool_name == "assess_model_risk":
                 result = self._assess_model_risk(arguments)
-            elif tool_name == "evaluate_lifecycle_compliance":
-                result = self._evaluate_lifecycle_compliance(arguments)
-            elif tool_name == "create_compliance_framework":
-                result = self._create_compliance_framework(arguments)
             elif tool_name == "export_e23_report":
                 # Auto-inject assessment_results from session if not provided
                 if session_id:
@@ -334,13 +329,13 @@ class MCPServer:
                             arguments["assessment_results"] = framework_results
                             logger.info(f"Auto-injected assessment_results from session {session_id}")
 
-                    # Auto-inject lifecycle_stage from Step 3 if available (ensures consistency)
+                    # Auto-inject current_stage from assess_model_risk if available
                     session = self.workflow_engine.get_session(session_id)
-                    if session and "tool_results" in session and "evaluate_lifecycle_compliance" in session["tool_results"]:
-                        step3_result = session["tool_results"]["evaluate_lifecycle_compliance"].get("result", {})
-                        if "current_stage" in step3_result:
-                            arguments["lifecycle_stage"] = step3_result["current_stage"]
-                            logger.info(f"Auto-injected lifecycle_stage '{step3_result['current_stage']}' from Step 3 session data")
+                    if session and "tool_results" in session and "assess_model_risk" in session["tool_results"]:
+                        step2_result = session["tool_results"]["assess_model_risk"].get("result", {})
+                        if "current_stage" in step2_result:
+                            arguments["current_stage"] = step2_result["current_stage"]
+                            logger.info(f"Auto-injected current_stage '{step2_result['current_stage']}' from Step 2 session data")
 
                 result = self._export_e23_report(arguments)
             else:
@@ -555,10 +550,6 @@ class MCPServer:
                 tool_result = self._export_assessment_report(tool_arguments)
             elif tool_name == "export_e23_report":
                 tool_result = self._export_e23_report(tool_arguments)
-            elif tool_name == "evaluate_lifecycle_compliance":
-                tool_result = self._evaluate_lifecycle_compliance(tool_arguments)
-            elif tool_name == "create_compliance_framework":
-                tool_result = self._create_compliance_framework(tool_arguments)
             else:
                 return {"error": f"Tool '{tool_name}' not supported in workflow execution"}
 
@@ -1178,7 +1169,13 @@ class MCPServer:
     # OSFI E-23 Tool Handlers
     
     def _assess_model_risk(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle OSFI E-23 model risk assessment requests."""
+        """
+        Handle OSFI E-23 model risk assessment requests.
+
+        Two-phase workflow:
+        1. Phase 1 (no extracted_factors): Returns extraction prompt for Claude
+        2. Phase 2 (with extracted_factors): Validates and scores deterministically
+        """
         # WORKFLOW ENFORCEMENT: Check if introduction has been shown
         intro_check = self._check_introduction_requirement()
         if intro_check:
@@ -1186,6 +1183,7 @@ class MCPServer:
 
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
+        extracted_factors = arguments.get("extracted_factors")  # Phase 2: validated JSON from Claude
 
         logger.info(f"OSFI E-23 model risk assessment for: {project_name}")
 
@@ -1193,108 +1191,216 @@ class MCPServer:
         validation_result = self.description_validator.validate_description(project_description)
         osfi_ready = validation_result["framework_readiness"].get("osfi_e23_framework", False)
 
-        # Use the OSFI E-23 processor to perform assessment
-        result = self.osfi_e23_processor.assess_model_risk(
-            project_name=project_name,
-            project_description=project_description
+        # PHASE 2: If extracted factors provided, validate and score deterministically
+        if extracted_factors:
+            return self._assess_with_extracted_factors(
+                project_name, project_description, extracted_factors, validation_result, osfi_ready
+            )
+
+        # PHASE 1: Generate extraction prompt for Claude to process
+        return self._generate_extraction_phase(
+            project_name, project_description, validation_result, osfi_ready
         )
 
-        # Add validation warnings if description has issues
+    def _generate_extraction_phase(
+        self, project_name: str, project_description: str,
+        validation_result: Dict[str, Any], osfi_ready: bool
+    ) -> Dict[str, Any]:
+        """
+        Phase 1: Generate extraction prompt for Claude to extract risk factors.
+
+        Returns the prompt and instructions for Claude Desktop to perform
+        contextual fact extraction from the project description.
+        """
+        from risk_dimension_extraction import (
+            generate_extraction_prompt,
+            get_extraction_prompt_for_description
+        )
+
+        logger.info(f"Phase 1: Generating extraction prompt for: {project_name}")
+
+        # Get the structured extraction prompt
+        extraction_data = get_extraction_prompt_for_description(project_description)
+
+        result = {
+            "phase": "extraction",
+            "project_name": project_name,
+            "framework": "OSFI Guideline E-23 Model Risk Management",
+            "assessment_date": datetime.now().isoformat(),
+
+            # Extraction prompt for Claude
+            "extraction_request": {
+                "status": "awaiting_extraction",
+                "message": "🔍 RISK FACTOR EXTRACTION REQUIRED",
+                "instructions": (
+                    "Claude: Analyze the project description and extract values for each risk factor. "
+                    "Then immediately call assess_model_risk again with the extracted_factors parameter."
+                ),
+                "extraction_prompt": extraction_data["extraction_prompt"],
+                "output_format": "JSON as specified in the prompt",
+                "handling_missing": "Use 'NOT_STATED' for any values not found in the description"
+            },
+
+            # Next step guidance
+            "next_step": {
+                "action": "Immediately call assess_model_risk with extracted factors",
+                "required_parameter": "extracted_factors (the JSON response from extraction)",
+                "example": {
+                    "tool": "assess_model_risk",
+                    "arguments": {
+                        "projectName": project_name,
+                        "projectDescription": project_description,
+                        "extracted_factors": "<JSON from extraction>"
+                    }
+                }
+            },
+
+            # Risk dimensions being assessed
+            "risk_dimensions": {
+                "count": 6,
+                "dimensions": [
+                    "Misuse & Unintended Harm Potential",
+                    "Output Reliability & Integrity",
+                    "Fairness & Customer Impact",
+                    "Operational & Security Risk",
+                    "Model Complexity & Opacity",
+                    "Governance & Oversight"
+                ],
+                "total_factors": 31
+            },
+
+            # Validation status
+            "description_validation": self._format_validation_status(validation_result, osfi_ready)
+        }
+
+        return result
+
+    def _assess_with_extracted_factors(
+        self, project_name: str, project_description: str,
+        extracted_factors: Dict[str, Any], validation_result: Dict[str, Any], osfi_ready: bool
+    ) -> Dict[str, Any]:
+        """
+        Phase 2: Validate extracted factors and score deterministically.
+
+        Uses rule-based scoring after Claude has extracted factual values
+        from the project description.
+        """
+        from risk_dimension_extraction import (
+            process_extraction_response,
+            format_not_stated_for_report
+        )
+
+        logger.info(f"Phase 2: Processing extracted factors for: {project_name}")
+
+        # Process the extraction through validation and scoring
+        assessment_result = process_extraction_response(extracted_factors)
+
+        # Extract key results
+        overall = assessment_result["overall_assessment"]
+        dimension_scores = assessment_result["dimension_scores"]
+        not_stated = assessment_result["not_stated_summary"]
+
+        # Map numeric risk level to string for compatibility
+        risk_level = overall["overall_risk_level"].title()  # low -> Low
+        risk_score = int(overall["overall_numeric_score"] * 25)  # 1-4 scale to 0-100
+
+        # Generate governance requirements based on risk level
+        governance = self.osfi_e23_processor._generate_governance_requirements(
+            risk_level, {"quantitative_indicators": {}, "qualitative_indicators": {}}
+        )
+
+        # Generate recommendations
+        recommendations = self.osfi_e23_processor._generate_compliance_recommendations(
+            risk_level, {"quantitative_indicators": {}, "qualitative_indicators": {}}
+        )
+
+        result = {
+            "phase": "assessment_complete",
+            "project_name": project_name,
+            "project_description": project_description,
+            "assessment_date": datetime.now().isoformat(),
+            "framework": "OSFI Guideline E-23 Model Risk Management",
+
+            # Overall risk assessment
+            "risk_score": risk_score,
+            "risk_level": risk_level,
+            "risk_description": self._get_risk_description(risk_level),
+
+            # Dimension-level breakdown (used by report generator)
+            "dimension_assessments": dimension_scores,
+
+            # Dimension metadata
+            "dimension_metadata": {
+                "aggregation_method": overall.get("scoring_method", "dimension_average"),
+                "dimensions_assessed": overall.get("dimensions_assessed", 0)
+            },
+
+            # Factor-level details (used by Annex A in report)
+            "factor_scores": assessment_result["factor_scores"],
+
+            # Validated extraction with evidence (used by Annex A in report)
+            "validated_extraction": assessment_result.get("validated_extraction", {}),
+
+            # NOT_STATED handling
+            "not_stated_factors": {
+                "count": not_stated["count"],
+                "factors": not_stated["factors"],
+                "impact": "These factors defaulted to Medium risk",
+                "recommendation": "Consider clarifying these in project documentation",
+                "report_section": format_not_stated_for_report(not_stated)
+            },
+
+            # Governance requirements
+            "governance_requirements": governance,
+            "recommendations": recommendations,
+
+            # Validation issues from extraction
+            "extraction_validation": {
+                "issues": assessment_result.get("validation_issues", []),
+                "metadata": assessment_result.get("metadata", {})
+            },
+
+            # Description validation
+            "description_validation": self._format_validation_status(validation_result, osfi_ready),
+
+            # Compliance notice
+            "compliance_status": "Assessment Complete - Implementation Required",
+            "compliance_warning": (
+                "⚠️ CRITICAL COMPLIANCE NOTICE: This assessment uses AI-assisted fact extraction "
+                "validated by user confirmation. All results must be reviewed by qualified model "
+                "risk professionals. Risk scores use deterministic calculation but extraction "
+                "quality depends on project description completeness. See OSFI E-23 Guideline "
+                "for official requirements."
+            )
+        }
+
+        return result
+
+    def _format_validation_status(self, validation_result: Dict[str, Any], osfi_ready: bool) -> Dict[str, Any]:
+        """Format validation status for response."""
         if not osfi_ready:
-            # Add validation warnings to the result (non-blocking)
-            result["description_validation"] = {
+            return {
                 "validation_status": "warning",
                 "message": "⚠️ Project description may not meet all recommended requirements for OSFI E-23 framework",
                 "total_words": validation_result["total_words"],
                 "areas_covered": validation_result["areas_covered"],
                 "areas_missing": validation_result["areas_missing"],
-                "recommendation": "For more comprehensive results, consider using 'validate_project_description' tool to check detailed requirements and improve description coverage."
+                "recommendation": "For more comprehensive results, consider using 'validate_project_description' tool."
             }
-            logger.warning(f"Description validation warning for {project_name}: {validation_result['areas_missing']} areas may need more detail")
-        else:
-            # Add confirmation that description is adequate
-            result["description_validation"] = {
-                "validation_status": "passed",
-                "message": "✅ Project description meets OSFI E-23 framework requirements"
-            }
+        return {
+            "validation_status": "passed",
+            "message": "✅ Project description meets OSFI E-23 framework requirements"
+        }
 
-        return result
-    
-    def _evaluate_lifecycle_compliance(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle OSFI E-23 lifecycle compliance evaluation requests."""
-        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
-        intro_check = self._check_introduction_requirement()
-        if intro_check:
-            return intro_check
-
-        project_name = arguments.get("projectName", "")
-        project_description = arguments.get("projectDescription", "")
-        provided_stage = arguments.get("currentStage")
-
-        logger.info(f"OSFI E-23 lifecycle compliance evaluation for: {project_name}")
-
-        # Get session ID for stage management
-        session_id = self._get_or_create_auto_session(project_name, "osfi_e23")
-
-        # Get or set lifecycle stage (priority: provided > session > default)
-        current_stage = self._get_or_set_lifecycle_stage(session_id, provided_stage, project_description)
-
-        # Use the OSFI E-23 processor with determined stage
-        result = self.osfi_e23_processor.evaluate_lifecycle_compliance(
-            project_name=project_name,
-            project_description=project_description,
-            current_stage=current_stage
-        )
-
-        # Store result in session
-        self._store_tool_result_in_session(session_id, "evaluate_lifecycle_compliance", result)
-
-        return result
-    
-    def _create_compliance_framework(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle OSFI E-23 compliance framework creation requests."""
-        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
-        intro_check = self._check_introduction_requirement()
-        if intro_check:
-            return intro_check
-
-        project_name = arguments.get("projectName", "")
-        project_description = arguments.get("projectDescription", "")
-        provided_stage = arguments.get("currentStage")
-        risk_level = arguments.get("riskLevel")
-
-        logger.info(f"OSFI E-23 compliance framework creation for: {project_name}")
-
-        # Get session ID for stage management
-        session_id = self._get_or_create_auto_session(project_name, "osfi_e23")
-
-        # Get or set lifecycle stage (priority: provided > session > default)
-        current_stage = self._get_or_set_lifecycle_stage(session_id, provided_stage, project_description)
-
-        # If risk_level is provided, create a mock risk assessment
-        risk_assessment = None
-        if risk_level:
-            risk_assessment = {
-                "risk_level": risk_level,
-                "risk_score": {"Low": 20, "Medium": 40, "High": 65, "Critical": 85}.get(risk_level, 40),
-                "risk_analysis": {
-                    "quantitative_indicators": {},
-                    "qualitative_indicators": {}
-                }
-            }
-
-        # Use the OSFI E-23 processor
-        result = self.osfi_e23_processor.create_compliance_framework(
-            project_name=project_name,
-            project_description=project_description,
-            current_stage=current_stage,
-            risk_assessment=risk_assessment
-        )
-
-        # Store result in session
-        self._store_tool_result_in_session(session_id, "create_compliance_framework", result)
-
-        return result
+    def _get_risk_description(self, risk_level: str) -> str:
+        """Get description for risk level."""
+        descriptions = {
+            "Low": "Minimal governance requirements",
+            "Medium": "Standard governance requirements",
+            "High": "Enhanced governance requirements",
+            "Critical": "Maximum governance requirements"
+        }
+        return descriptions.get(risk_level, "Standard governance requirements")
 
     def _export_e23_report(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Export OSFI E-23 assessment results to a Microsoft Word document."""
@@ -1302,7 +1408,7 @@ class MCPServer:
         project_description = arguments.get("project_description", "")
         assessment_results = arguments.get("assessment_results", {})
         custom_filename = arguments.get("custom_filename")
-        provided_stage = arguments.get("lifecycle_stage")  # Explicit stage if provided
+        provided_stage = arguments.get("current_stage") or arguments.get("lifecycle_stage")  # Support both names
 
         logger.info(f"Exporting OSFI E-23 report for project: {project_name}")
 
@@ -1362,38 +1468,14 @@ class MCPServer:
             # This ensures consistency with Steps 3 and 4
             current_stage = self._get_or_set_lifecycle_stage(session_id, provided_stage, project_description)
 
-            # Get Step 3 lifecycle compliance data with the detected stage (optional - enhances report)
-            lifecycle_compliance = None
-            try:
-                lifecycle_compliance = self.osfi_e23_processor.evaluate_lifecycle_compliance(
-                    project_name=project_name,
-                    project_description=project_description,
-                    current_stage=current_stage  # Pass the detected stage to ensure consistency
-                )
-            except Exception as e:
-                logger.warning(f"Could not get lifecycle compliance data: {e}")
-
-            # Get Step 5 compliance framework data (optional - enhances report)
-            compliance_framework = None
-            try:
-                compliance_framework = self.osfi_e23_processor.create_compliance_framework(
-                    project_name=project_name,
-                    project_description=project_description,
-                    current_stage=current_stage,
-                    risk_assessment=assessment_results
-                )
-            except Exception as e:
-                logger.warning(f"Could not get compliance framework data: {e}")
-
-            # Generate the OSFI E-23 stage-specific report
+            # Generate the OSFI E-23 report using v3.0 Risk Dimensions framework
+            # Report uses assessment_results for dimensions and LIFECYCLE_REQUIREMENTS_BY_RISK for checklists
             doc = generate_osfi_e23_report(
                 project_name=project_name,
                 project_description=project_description,
                 assessment_results=assessment_results,
                 doc=doc,
-                current_stage=current_stage,
-                lifecycle_compliance=lifecycle_compliance,
-                compliance_framework=compliance_framework
+                current_stage=current_stage
             )
 
             # Save document

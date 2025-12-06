@@ -8,10 +8,25 @@ financial institutions (FRFIs).
 Reference: OSFI Guideline E-23 – Model Risk Management (2027)
 Effective Date: May 1, 2027
 URL: https://www.osfi-bsif.gc.ca/en/guidance/guidance-library/guideline-e-23-model-risk-management-2027
+
+Risk Assessment Framework (v3.0):
+- 6 Risk Dimensions for model risk rating (see osfi_e23_risk_dimensions.py)
+- 5 Lifecycle Stages with stage-specific governance requirements
+- Risk-based intensity: governance requirements scale with risk level
 """
 
 from typing import Dict, List, Any
 import logging
+
+# Import new risk dimensions framework
+from osfi_e23_risk_dimensions import (
+    RISK_DIMENSIONS,
+    DIMENSION_ORDER,
+    RiskLevel,
+    get_dimension,
+    get_all_dimensions,
+    get_dimension_factors
+)
 
 logger = logging.getLogger(__name__)
 
@@ -523,3 +538,225 @@ def is_ai_ml_model(project_description: str) -> bool:
         "random forest", "gradient boost", "decision tree", "regression"
     ]
     return any(indicator in description_lower for indicator in ai_ml_indicators)
+
+
+# ============================================================================
+# RISK-LEVEL-BASED LIFECYCLE REQUIREMENTS
+# ============================================================================
+# These requirements scale with model risk level (Low/Medium/High/Critical)
+# as mandated by OSFI E-23 Principle 2.3: Risk Management Intensity
+#
+# NOTE: DIMENSION_LIFECYCLE_REQUIREMENTS was removed in v3.0.
+# The 6 Risk Dimensions are used purely for risk assessment.
+# Lifecycle governance requirements come from LIFECYCLE_REQUIREMENTS_BY_RISK.
+
+LIFECYCLE_REQUIREMENTS_BY_RISK = {
+    "design": {
+        "documentation_depth": {
+            "low": "Basic rationale",
+            "medium": "Detailed rationale + alternatives considered",
+            "high": "Comprehensive design doc + risk analysis",
+            "critical": "Full design doc + board-level summary"
+        },
+        "data_quality_assessment": {
+            "low": "Checklist",
+            "medium": "Documented review",
+            "high": "Independent data review",
+            "critical": "Third-party data audit"
+        },
+        "bias_fairness_analysis": {
+            "low": "Not required",
+            "medium": "Initial screening",
+            "high": "Comprehensive analysis",
+            "critical": "Pre-build fairness audit"
+        },
+        "approval_authority": {
+            "low": "Model owner",
+            "medium": "Model owner + risk",
+            "high": "Senior risk committee",
+            "critical": "Executive/board"
+        }
+    },
+
+    "review": {
+        "validation_independence": {
+            "low": "Self-review acceptable",
+            "medium": "Different team",
+            "high": "Independent validation function",
+            "critical": "External third-party"
+        },
+        "testing_scope": {
+            "low": "Functional testing",
+            "medium": "Functional + performance",
+            "high": "Full validation suite",
+            "critical": "Extended testing + stress scenarios"
+        },
+        "challenger_model": {
+            "low": "Not required",
+            "medium": "Recommended",
+            "high": "Required",
+            "critical": "Required + sensitivity analysis"
+        },
+        "explainability_review": {
+            "low": "Basic",
+            "medium": "Documented",
+            "high": "Demonstrated to stakeholders",
+            "critical": "Regulatory-ready"
+        },
+        "approval_authority": {
+            "low": "Model owner",
+            "medium": "Validation + risk",
+            "high": "Senior risk committee",
+            "critical": "Executive/board"
+        }
+    },
+
+    "deployment": {
+        "pre_deployment_checklist": {
+            "low": "Basic",
+            "medium": "Standard",
+            "high": "Enhanced",
+            "critical": "Comprehensive"
+        },
+        "parallel_run_period": {
+            "low": "Not required",
+            "medium": "2 weeks",
+            "high": "4 weeks",
+            "critical": "8+ weeks"
+        },
+        "rollback_capability": {
+            "low": "Documented",
+            "medium": "Tested",
+            "high": "Tested + drill",
+            "critical": "Tested + real-time capability"
+        },
+        "human_override_controls": {
+            "low": "Optional",
+            "medium": "Available",
+            "high": "Required + logged",
+            "critical": "Required + escalation path"
+        },
+        "go_live_approval": {
+            "low": "Model owner",
+            "medium": "Risk sign-off",
+            "high": "Risk committee",
+            "critical": "Executive/board"
+        }
+    },
+
+    "monitoring": {
+        "performance_review_frequency": {
+            "low": "Annual",
+            "medium": "Quarterly",
+            "high": "Monthly",
+            "critical": "Continuous + weekly review"
+        },
+        "drift_monitoring": {
+            "low": "Manual/periodic",
+            "medium": "Automated alerts",
+            "high": "Real-time dashboards",
+            "critical": "Real-time + auto-throttle"
+        },
+        "fairness_monitoring": {
+            "low": "Annual",
+            "medium": "Quarterly",
+            "high": "Monthly",
+            "critical": "Continuous"
+        },
+        "incident_escalation_time": {
+            "low": "5 business days",
+            "medium": "2 business days",
+            "high": "24 hours",
+            "critical": "Immediate"
+        },
+        "revalidation_trigger": {
+            "low": "Major changes only",
+            "medium": "Material changes",
+            "high": "Threshold breach",
+            "critical": "Any deviation"
+        }
+    },
+
+    "decommission": {
+        "retention_period": {
+            "low": "1 year",
+            "medium": "3 years",
+            "high": "5 years",
+            "critical": "7+ years"
+        },
+        "documentation_to_retain": {
+            "low": "Model summary",
+            "medium": "Full documentation",
+            "high": "Full + validation",
+            "critical": "Full + audit trail"
+        },
+        "stakeholder_notification": {
+            "low": "Model users",
+            "medium": "+ Risk function",
+            "high": "+ Senior management",
+            "critical": "+ Regulators (if applicable)"
+        },
+        "downstream_impact_review": {
+            "low": "Checklist",
+            "medium": "Documented review",
+            "high": "Formal assessment",
+            "critical": "Independent review"
+        }
+    }
+}
+
+
+def get_lifecycle_requirements_for_risk_level(stage: str, risk_level: str) -> Dict[str, str]:
+    """
+    Get all requirements for a lifecycle stage at a specific risk level.
+
+    Args:
+        stage: The lifecycle stage (design/review/deployment/monitoring/decommission)
+        risk_level: The risk level (low/medium/high/critical)
+
+    Returns:
+        Dict mapping requirement name to requirement value for that risk level
+    """
+    stage_reqs = LIFECYCLE_REQUIREMENTS_BY_RISK.get(stage, {})
+    risk_level_lower = risk_level.lower()
+
+    result = {}
+    for req_name, levels in stage_reqs.items():
+        result[req_name] = levels.get(risk_level_lower, levels.get("medium", "Not specified"))
+
+    return result
+
+
+def get_requirement_for_risk_level(stage: str, requirement: str, risk_level: str) -> str:
+    """
+    Get a specific requirement value for a stage and risk level.
+
+    Args:
+        stage: The lifecycle stage
+        requirement: The requirement name (e.g., "approval_authority")
+        risk_level: The risk level
+
+    Returns:
+        The requirement value for that risk level
+    """
+    stage_reqs = LIFECYCLE_REQUIREMENTS_BY_RISK.get(stage, {})
+    req_levels = stage_reqs.get(requirement, {})
+    return req_levels.get(risk_level.lower(), "Not specified")
+
+
+def get_all_lifecycle_stages() -> List[str]:
+    """Get list of all lifecycle stages in order."""
+    return ["design", "review", "deployment", "monitoring", "decommission"]
+
+
+def get_lifecycle_requirements_comparison(stage: str) -> Dict[str, Dict[str, str]]:
+    """
+    Get a comparison table of all requirements across risk levels for a stage.
+
+    Args:
+        stage: The lifecycle stage
+
+    Returns:
+        Dict mapping requirement name to dict of risk level -> value
+    """
+    return LIFECYCLE_REQUIREMENTS_BY_RISK.get(stage, {})

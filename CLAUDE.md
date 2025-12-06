@@ -24,7 +24,9 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **aia_report_generator.py**: Professional Word document generation for AIA compliance (277 lines)
 
 **OSFI E-23 Modules**
-- **osfi_e23_structure.py**: Official OSFI Principles and lifecycle definitions
+- **osfi_e23_risk_dimensions.py**: 6 Risk Dimensions framework with 31 factors (v3.0)
+- **risk_dimension_extraction.py**: AI-assisted contextual extraction with deterministic scoring (v3.1)
+- **osfi_e23_structure.py**: Official OSFI Principles, lifecycle definitions, and dimension-to-lifecycle mapping
 - **osfi_e23_report_generators.py**: Stage-specific report generation
 
 **Shared Modules** (v2.0.0)
@@ -42,8 +44,8 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **Delegation Pattern (v2.0.0)**: Server.py orchestrates through dependency injection to specialized modules
 - **Official Framework Compliance**: Strict adherence to Canada's official AIA (104 questions) and OSFI E-23 frameworks
 - **Introduction Workflow Enforcement**: Mandatory get_server_introduction call before any assessment tools, ensuring users understand frameworks and data sources
-- **Explicit Workflow Sequences (v1.15.0, streamlined in v2.0.0)**: Complete 5-step OSFI E-23 and 5-step AIA workflows embedded in get_server_introduction response with step-by-step guidance
-- **Step-Numbered Tool Descriptions (v1.15.0)**: All OSFI E-23 tools labeled with their position (STEP X OF 5) and full workflow context
+- **Explicit Workflow Sequences (v3.0)**: 3-step OSFI E-23 workflow (validate → assess → export) and 5-step AIA workflow in get_server_introduction response
+- **Step-Numbered Tool Descriptions**: All OSFI E-23 tools labeled with their position (STEP X OF 3) and full workflow context
 - **Behavioral Directives (v1.15.0)**: Strong instructions to present introduction first, show all workflow steps, and wait for user choice before proceeding
 - **Streamlined Risk-Adaptive Reports (v2.0)**: OSFI E-23 exports generate concise ~4 page documents with standardized structure (Executive Summary, Risk Methodology, Compliance Checklist, Annex)
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
@@ -100,6 +102,9 @@ python test_streamlined_e23_report.py
 
 # Test workflow guidance (v1.15.0)
 python test_workflow_guidance.py
+
+# Test extraction integration (v3.1.0)
+python test_extraction_integration.py
 ```
 
 ### Running the Server
@@ -135,12 +140,12 @@ pip install -r requirements.txt
 ### Transparency Tool
 - **get_server_introduction**: CRITICAL first-call tool that MUST be called at the START of assessment conversations
 - **Mandatory triggers**: User mentions assessment, AIA, OSFI, compliance, or provides project description for evaluation; especially "run through OSFI/AIA framework"
-- **Complete Workflow Sequences (v1.15.0, streamlined in v2.0.0)**: Response includes explicit 5-step OSFI E-23 workflow and 5-step AIA workflow with detailed purpose/output for each step
+- **Complete Workflow Sequences (v3.0)**: Response includes explicit 3-step OSFI E-23 workflow and 5-step AIA workflow with detailed purpose/output for each step
 - **Behavioral instructions**: Tool description includes "CALL THIS ALONE" warning to prevent calling other tools simultaneously
 - **Enhanced Directives (v1.15.0)**: Response includes "STOP AND PRESENT THIS INTRODUCTION FIRST" to ensure workflow visibility before assessment execution
 - **Anti-invention directive**: Tool response includes assistant_directive preventing Claude from adding time estimates or invented content
 - **Framework selection guidance**: After calling, present 4 clear options (AIA, OSFI E-23, Workflow Mode, Combined) and WAIT for user to choose before proceeding
-- **Step Context**: All tools show their position in the workflow (e.g., "STEP 2 OF 5") for better navigation
+- **Step Context**: All tools show their position in the workflow (e.g., "STEP 2 OF 3") for better navigation
 
 ## Workflow Management
 
@@ -179,13 +184,17 @@ pip install -r requirements.txt
 - **Official Question IDs**: Preserve question IDs matching Canada.ca Tables 3 & 4
 
 ### OSFI E-23 Framework Requirements
-- **Complete 5-Step Workflow (v2.0.0)**: (1) validate_project_description, (2) assess_model_risk, (3) evaluate_lifecycle_compliance, (4) create_compliance_framework, (5) export_e23_report
-- **Risk Rating Methodology**: Quantitative and qualitative risk factors with amplification logic (integrated into assess_model_risk in v2.0.0)
+- **Complete 3-Step Workflow (v3.0)**: (1) validate_project_description, (2) assess_model_risk (user confirms lifecycle stage), (3) export_e23_report
+- **Two-Phase Extraction Workflow (v3.3)**: assess_model_risk uses AI-assisted extraction:
+  - **Phase 1**: MCP returns extraction prompt → Claude analyzes and extracts 31 factor values
+  - **Phase 2**: Claude immediately calls assess_model_risk with `extracted_factors` → MCP validates and scores deterministically
+  - **No user confirmation step** - transparency achieved through Annex A in final report
+- **6 Risk Dimensions (v3.0)**: Risk assessment uses 6 dimensions with 31 factors (15 quantitative, 16 qualitative)
+- **NOT_STATED Handling**: Missing factors default to Medium risk (score=2), tracked for transparency in Annex A
 - **Lifecycle Management**: 5-stage model lifecycle (Design, Review, Deployment, Monitoring, Decommission)
 - **Governance Framework**: Risk-based approval authorities and oversight requirements
 - **Professional Compliance**: Built-in warnings about regulatory validation requirements
-- **Report Structure**: Simplified Chapter 1 with executive summary, detailed calculations in Annex A for improved readability
-- **Minimum Viable Assessment**: Steps 1, 2, and 6 provide basic compliance; all 6 steps provide comprehensive coverage
+- **Report Structure (v3.3)**: Sections 1-3 + Annex A (Factor Details) + Annex B (OSFI Principles)
 
 ## Critical Compliance Notes
 
@@ -207,7 +216,16 @@ pip install -r requirements.txt
 - **aia_report_generator.py**: AIA document generation - changes affect compliance report format
 
 **OSFI E-23 Modules**
+- **osfi_e23_risk_dimensions.py**: 6 Risk Dimensions with 31 factors - core risk framework definition
+- **risk_dimension_extraction.py**: AI-assisted extraction module - generates prompts and scores deterministically
 - **osfi_e23_report_generators.py**: Stage-specific report generation - changes affect regulatory document output
+
+**Configurable Prompt Templates (v3.2.0)**
+- **config/extraction_prompts.yaml**: Tunable extraction prompt templates for OSFI E-23 risk factor extraction
+  - Edit this YAML file to tune Claude's extraction behavior without changing Python code
+  - Supports: header text, instructions, factor templates, JSON output format, behavioral instructions
+  - Changes take effect on server restart (or call `reload_prompt_config()` for hot reload)
+  - Falls back to built-in defaults if config is missing or malformed
 
 **Shared Modules (v2.0.0)**
 - **utils/data_extractors.py**: Data extraction patterns for both frameworks - changes affect both AIA and OSFI tools
@@ -220,9 +238,10 @@ pip install -r requirements.txt
 - **workflow_engine.py**: Workflow management and state - changes affect automated assessment progression
 - **description_validator.py**: Validation logic - changes affect quality gates
 
-**Data & Configuration (Official Sources - Do Not Modify)**
-- **data/survey-enfr.json**: Official government AIA questionnaire - should NEVER be modified
-- **config.json**: Scoring thresholds matching official frameworks - validate any changes against official sources
+**Data & Configuration**
+- **data/survey-enfr.json**: Official government AIA questionnaire - should NEVER be modified (official source)
+- **config/config.json**: Scoring thresholds matching official frameworks - validate any changes against official sources
+- **config/extraction_prompts.yaml**: Tunable prompt templates - safe to modify for institutional customization (v3.2.0)
 
 ### Testing Requirements (v2.0.0 Updated)
 - **Always run validate_functionality.py** after any module modifications - comprehensive 8/8 validation suite
@@ -244,7 +263,7 @@ pip install -r requirements.txt
 - **Workflow Management**: create_workflow, execute_workflow_step, get_workflow_status, auto_execute_workflow
 - **Validation Tools**: validate_project_description
 - **AIA Tools**: analyze_project_description, get_questions, assess_project, functional_preview, export_assessment_report
-- **OSFI E-23 Tools**: assess_model_risk, evaluate_lifecycle_compliance (Step 3: keyword matching for requirements coverage), create_compliance_framework, export_e23_report
+- **OSFI E-23 Tools**: assess_model_risk (6 Risk Dimensions + lifecycle stage), export_e23_report (stage-specific requirements + checklists)
 
 ## Key Architectural Decisions
 
@@ -258,21 +277,19 @@ pip install -r requirements.txt
 - **Transparent Methodology**: All scoring calculations are deterministic and auditable
 - **No AI Risk Interpretation**: Server provides structure, Claude Desktop provides reasoning
 
-### OSFI E-23 Report Structure (v2.2.11)
-- **Standardized 7-Chapter Format**: Executive Summary, Risk Rating Methodology, Current Stage Requirements Coverage, Stage-Specific Compliance Checklist, Governance Structure, Monitoring Framework, Annex (OSFI Principles)
-- **Chapter 1: Executive Summary**: Single paragraph (150-200 words) in plain English explaining risk level, key drivers, and governance requirements
-- **Chapter 2: Risk Rating Methodology**: Complete transparency with detailed tables showing all quantitative/qualitative factors, weights, detection status, and amplification calculations
-- **Chapter 3: Current Stage Requirements Coverage**: Coverage percentage (0/33/67/100%) from Step 3 keyword matching showing which requirements are mentioned in project description - NOT compliance verification
-- **Chapter 4: Stage-Specific Compliance Checklist**: Actionable checkboxes for current lifecycle stage deliverables organized by OSFI Principles - title dynamically changes (e.g., "DESIGN STAGE COMPLIANCE CHECKLIST", "MONITORING STAGE COMPLIANCE CHECKLIST")
-- **Chapter 5: Governance Structure** (v2.2.9 expanded):
-  - **5.1 Governance Roles and Responsibilities**: Table showing Role | Responsibility | OSFI Required | Source with legend
-  - **5.2 Documentation Requirements**: Progressive list by risk level (Low/Medium/High/Critical) of required documentation types (from Step 4)
-  - **5.3 Review and Approval Procedures**: Risk-appropriate approval authorities and review procedures (from Step 2)
-- **Chapter 6: Monitoring Framework**: Ongoing monitoring requirements (if applicable, from Step 4)
-- **Chapter 7: Annex - OSFI E-23 Principles**: Complete OSFI Principle mapping
-- **Target Length**: Approximately 4-6 pages with professional formatting, tables, and clear visual hierarchy
+### OSFI E-23 Report Structure (v3.3.0)
+- **Streamlined Format**: Executive Summary, Risk Assessment by Dimension, Stage Requirements, Annex A (Factor Details), Annex B (OSFI Principles)
+- **Section 1: Executive Summary**: Risk level, governance requirements, key risk drivers from dimension assessment
+- **Section 2: Risk Assessment by Dimension**: Summary table showing 6 dimensions with risk level (Low/Medium/High/Critical) and core question
+- **Section 3: [STAGE] Stage Requirements**: Lifecycle-specific checklist items scaled to risk level per OSFI Principle 2.3
+- **Annex A: Detailed Factor Assessment** (v3.3.0 NEW): Full transparency with 6 tables (one per dimension) showing:
+  - Factor name
+  - Scoring Matrix (Low/Medium/High/Critical thresholds)
+  - Determined Value with risk level (e.g., "500000 (Low)" or "NOT_STATED (Medium - default)")
+  - Evidence quote from project description (empty for NOT_STATED)
+- **Annex B: OSFI E-23 Principles**: All Principles 1.1-3.6 organized by Outcome
+- **Target Length**: Approximately 6-8 pages with professional formatting
 - **Customizable Weights**: Explicit note that scoring weights are exemplification - can be tuned to institutional specifications
-- **Implementation Documentation**: See `OSFI_E23_TUNABLE_PARAMETERS.md` for all customizable parameters and `OSFI_E23_RISK_METHODOLOGY_IMPLEMENTATION_ANALYSIS.md` for distinction between OSFI requirements and implementation choices
 
 ### Error Handling
 - **Graceful Degradation**: Missing data files trigger default framework creation

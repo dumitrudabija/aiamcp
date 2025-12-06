@@ -59,8 +59,6 @@ class WorkflowEngine:
             AssessmentType.OSFI_E23: [
                 "validate_project_description",
                 "assess_model_risk",
-                "evaluate_lifecycle_compliance",
-                "create_compliance_framework",
                 "export_e23_report"
             ],
             AssessmentType.COMBINED: [
@@ -79,9 +77,7 @@ class WorkflowEngine:
             "assess_model_risk": ["validate_project_description"],
             "functional_preview": ["validate_project_description"],
             "export_assessment_report": [],  # Special handling - can export after functional_preview OR assess_project
-            "export_e23_report": ["assess_model_risk"],
-            "evaluate_lifecycle_compliance": ["assess_model_risk"],
-            "create_compliance_framework": ["assess_model_risk"]
+            "export_e23_report": ["assess_model_risk"]
         }
 
     def create_session(self, project_name: str, project_description: str,
@@ -528,11 +524,9 @@ class WorkflowEngine:
             "functional_preview": "⚡ Get early functional risk assessment (AIA preview mode)",
             "get_questions": "❓ Retrieve framework questions for manual assessment",
             "assess_project": "🎯 Calculate official AIA risk score using actual responses",
-            "assess_model_risk": "🏦 Conduct OSFI E-23 model risk assessment",
-            "evaluate_lifecycle_compliance": "📊 Evaluate model lifecycle compliance (OSFI E-23)",
-            "create_compliance_framework": "📋 Create comprehensive compliance framework (OSFI E-23)",
+            "assess_model_risk": "🏦 Conduct OSFI E-23 model risk assessment (6 Risk Dimensions)",
             "export_assessment_report": "📄 Generate comprehensive AIA assessment report",
-            "export_e23_report": "📄 Generate comprehensive OSFI E-23 assessment report"
+            "export_e23_report": "📄 Generate stage-specific OSFI E-23 compliance report"
         }
         return descriptions.get(tool_name, "🔧 Execute framework tool")
 

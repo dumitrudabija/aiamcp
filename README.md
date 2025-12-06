@@ -73,21 +73,21 @@ It enables AI assistants to help users evaluate risk levels and compliance requi
    }
    ```
 
-## MCP Tools (16 Tools Total)
+## MCP Tools (13 Tools Total)
 
 ### Transparency & Information Tools
 
-#### 1. `get_server_introduction` (v2.2.10 Enhanced)
-**TRANSPARENCY & CAPABILITIES**: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework structures (AIA questions, OSFI principles) vs proof of concept implementation logic (scoring, calculations) vs AI-generated interpretations (Claude). **NOW INCLUDES**: Complete 5-step OSFI E-23 workflow sequence and 5-step AIA workflow sequence with step-by-step guidance.
+#### 1. `get_server_introduction` (v3.0 Enhanced)
+**TRANSPARENCY & CAPABILITIES**: Provides comprehensive introduction to MCP server capabilities, tool categories, workflow guidance, and critical distinction between official framework structures (AIA questions, OSFI principles) vs proof of concept implementation logic (scoring, calculations) vs AI-generated interpretations (Claude). **NOW INCLUDES**: Complete 3-step OSFI E-23 workflow sequence and 5-step AIA workflow sequence with step-by-step guidance.
 
 **Parameters:**
 - None required
 
 **Returns:**
 - Complete server capabilities overview
-- **NEW**: Complete 5-step OSFI E-23 workflow sequence (validate → assess → evaluate → create → export)
-- **NEW**: Complete 5-step AIA workflow sequence
-- **NEW**: 4 framework selection options with user choice prompting
+- **v3.0**: Complete 3-step OSFI E-23 workflow sequence (validate → assess → export)
+- Complete 5-step AIA workflow sequence
+- 4 framework selection options with user choice prompting
 - Tool categories and descriptions
 - Workflow guidance (recommended vs manual approaches)
 - Critical distinction: Official framework structures vs Proof of concept implementation vs AI analysis
@@ -221,103 +221,79 @@ Export AIA assessment results to a Microsoft Word document.
 - `assessment_results`: Assessment results object from previous assessment
 - `custom_filename` (optional): Custom filename (without extension)
 
-### OSFI E-23 Framework Tools
+### OSFI E-23 Framework Tools (v3.1 - 3-Step Workflow with AI-Assisted Extraction)
+
+The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extraction and deterministic scoring:
+
+**Complete Workflow:** (1) validate_project_description → (2) assess_model_risk → (3) export_e23_report
 
 #### 12. `assess_model_risk`
-🏦 **OSFI E-23 STEP 2 OF 5 - MODEL RISK ASSESSMENT**: Comprehensive model risk assessment with detailed scoring breakdown using Canada's OSFI Guideline E-23 framework. This is STEP 2 in the complete OSFI E-23 workflow: (1) validate → **(2) assess_model_risk** → (3) evaluate_lifecycle → (4) create_compliance_framework → (5) export_e23_report.
+🏦 **OSFI E-23 STEP 2 OF 3 - MODEL RISK ASSESSMENT**: Comprehensive model risk assessment using 6 Risk Dimensions (31 factors) with a two-phase extraction workflow.
 
-**NEW (v2.2.0):**
-- ✅ Merged Step 4 (generate_risk_rating) into Step 2 for streamlined workflow
-- ✅ Now includes detailed `risk_scores` breakdown (quantitative, qualitative, base, amplification factor)
-- ✅ Now includes `risk_factor_analysis` with high/medium risk factors and interactions
-- ✅ Single comprehensive risk assessment - no duplicate analysis needed
+**v3.3 Two-Phase Extraction Workflow:**
+
+| Phase | What Happens |
+|-------|--------------|
+| **Phase 1** | MCP returns extraction prompt → Claude analyzes description and extracts 31 factor values |
+| **Phase 2** | Claude immediately calls assess_model_risk with `extracted_factors` → MCP validates and scores deterministically → Risk rating produced |
+
+**Key Benefits:**
+- ✅ **Contextual Understanding** - AI analyzes description (not crude keyword matching)
+- ✅ **Streamlined Flow** - No mid-workflow interruption; transparency in final report
+- ✅ **Deterministic Scoring** - Same values always produce same risk score
+- ✅ **Transparent Defaults** - Missing info defaults to Medium and shown in Annex A
+
+**6 Risk Dimensions (31 Factors):**
+| Dimension | Factors | Core Question |
+|-----------|---------|---------------|
+| Misuse & Unintended Harm | 4 | Can the model cause harm beyond its intended purpose? |
+| Output Reliability & Integrity | 5 | How trustworthy are the model's outputs? |
+| Fairness & Customer Impact | 6 | Does the model produce equitable outcomes? |
+| Operational & Security Risk | 6 | What are infrastructure and security risks? |
+| Model Complexity & Opacity | 5 | How complex is the model? |
+| Governance & Oversight | 5 | How robust are controls and accountability? |
+
+**NOT_STATED Handling:**
+- Factors not found in description default to Medium risk (score = 2)
+- All NOT_STATED factors tracked and listed in report
+- Recommendations provided to clarify missing information
 
 ⚠️ **COMPLIANCE WARNING**: Requires professional validation.
 
 **Parameters:**
 - `projectName`: Name of the model being assessed
 - `projectDescription`: **CRITICAL**: Factual, detailed description with specific technical architecture, documented data sources/volumes, explicit business use cases
+- `currentStage`: Current lifecycle stage (design, review, deployment, monitoring, decommission)
+- `extracted_factors` (Phase 2 only): JSON object with extracted factor values from Phase 1
 
-#### 13. `evaluate_lifecycle_compliance`
-🏦 **OSFI E-23 STEP 3 OF 5 - CURRENT STAGE REQUIREMENTS**: Check which OSFI E-23 requirements for the current lifecycle stage are mentioned in your project description using keyword matching. Returns coverage percentage (0%, 33%, 67%, 100%) based on which keywords are found.
+#### 13. `export_e23_report`
+🏦 **OSFI E-23 STEP 3 OF 3 - REPORT GENERATION**: Generates stage-specific OSFI E-23 compliance report as a Microsoft Word document with risk-scaled lifecycle requirements and checklists.
 
-⚠️ **NOTE**: This is basic keyword matching - NOT compliance verification. Use results to identify gaps in your project description.
-
-**NEW (v2.1.0):**
-- ✅ 3 coverage indicators per stage (Design has 3 official OSFI Principles 3.2-3.4; other stages use our implementation interpretation)
-- ✅ Terminology changed from "compliance" to "coverage" for accuracy
-- ✅ Coverage percentages: 0/33/67/100% (based on 3 elements detected)
-
-**Parameters:**
-- `projectName`: Name of the model being evaluated
-- `projectDescription`: Detailed description of the model and its current lifecycle stage
-- `currentStage` (optional): Current lifecycle stage (Design, Review, Deployment, Monitoring, Decommission)
-
-**Returns:**
-- Coverage percentage and elements detected
-- Gap analysis with missing elements
-- OSFI subcomponents for current stage
-
-#### 14. `create_compliance_framework`
-🏦 **OSFI E-23 STEP 4 OF 5 - COMPLIANCE FRAMEWORK**: Create stage-specific compliance framework with governance structure, organized by 3 subcomponents per stage, monitoring framework, and documentation requirements.
-
-**NEW (v2.1.0):**
-- ✅ Stage-specific (shows only current stage requirements, not all 5 stages)
-- ✅ osfi_elements structure with 3 subcomponents per stage (Design uses official OSFI Principles 3.2-3.4; other stages use our implementation interpretation based on OSFI guidance)
-- ✅ Each element includes: requirements, deliverables, checklist_items
-- ✅ Governance structure with osfi_required/osfi_implied/source fields
-- ✅ Complete checklists for monitoring and decommission stages
-- ✅ Risk-level specific requirements clearly marked
-
-**Parameters:**
-- `projectName`: Name of the model requiring compliance framework
-- `projectDescription`: Detailed description of the model, its business purpose, and organizational context
-- `currentStage`: Current lifecycle stage (required for stage-specific framework)
-- `riskLevel` (optional): Pre-determined risk level (Low, Medium, High, Critical)
-
-**Returns:**
-- Governance structure (roles with OSFI-mandated vs choice clarity)
-- osfi_elements (3 subcomponents per stage with requirements/deliverables/checklists)
-- Monitoring framework (frequency, metrics, thresholds)
-- Documentation requirements (risk-based)
-
-**Note:** Design stage subcomponents are official OSFI Principles 3.2-3.4; other stages reflect our implementation interpretation of OSFI requirements.
-
-#### 15. `export_e23_report`
-🏦 **OSFI E-23 STEP 5 OF 5 - REPORT GENERATION**: Export stage-specific OSFI E-23 compliance report to Microsoft Word document with comprehensive sections leveraging data from Steps 2, 3, and 4.
-
-**NEW (v2.2.11):**
-- ✅ Stage-specific reports (Design/Review/Deployment/Monitoring/Decommission)
-- ✅ Chapter 3: Current Stage Requirements Coverage (Step 3 keyword matching with color-coded percentages)
-- ✅ Chapter 4: Stage-Specific Compliance Checklist (Step 4 osfi_elements, title dynamically changes by stage)
-- ✅ Chapter 5: Governance Structure (v2.2.9 expanded with 3 subsections):
-  - 5.1 Governance Roles and Responsibilities (with OSFI-mandated vs choice clarity)
-  - 5.2 Documentation Requirements (progressive by risk level from Step 4)
-  - 5.3 Review and Approval Procedures (risk-appropriate authorities from Step 2)
-- ✅ Chapter 6: Monitoring Framework (frequency, metrics, thresholds)
-- ✅ Auto-detects lifecycle stage from project description
-- ✅ Compact size (~4-6 pages) by showing only current stage requirements
-- ✅ All professional validation warnings preserved
+**v3.3 Features:**
+- ✅ 6 Risk Dimensions summary table with actual risk levels
+- ✅ Lifecycle requirements scaled by risk level per OSFI Principle 2.3
+- ✅ 1-2 checklist items per requirement area
+- ✅ **Annex A: Detailed Factor Assessment** - Full transparency with 31 factors, scoring matrices, and evidence
+- ✅ Stage-specific (shows only current stage requirements)
 
 ⚠️ **COMPLIANCE WARNING**: Requires professional validation.
 
 **Parameters:**
 - `project_name`: Name of the model being assessed
 - `project_description`: Description of the model and its business application
-- `assessment_results`: Assessment results object from Step 2 (assess_model_risk)
+- `assessment_results`: Assessment results from Step 2 (assess_model_risk)
+- `current_stage`: Current lifecycle stage (from Step 2)
 - `custom_filename` (optional): Custom filename (without extension)
 
-**Report Structure (7 chapters):**
-1. Executive Summary
-2. Risk Rating Methodology
-3. Current Stage Requirements Coverage (from Step 3 keyword matching)
-4. Stage-Specific Compliance Checklist (from Step 4, title dynamically changes by stage)
-5. Governance Structure (v2.2.9 expanded):
-   - 5.1 Governance Roles and Responsibilities
-   - 5.2 Documentation Requirements
-   - 5.3 Review and Approval Procedures
-6. Monitoring Framework (from Step 4)
-7. Annex: OSFI E-23 Principles
+**Report Structure (v3.3):**
+1. **Executive Summary** - Risk level, governance intensity, key risk drivers
+2. **Risk Assessment by Dimension** - 6 dimensions with assessed levels (Low/Medium/High/Critical)
+3. **[STAGE] Stage Requirements** - Lifecycle requirements with checklists
+4. **Annex A: Detailed Factor Assessment** - 6 tables showing all 31 factors with:
+   - Scoring Matrix (Low/Medium/High/Critical thresholds)
+   - Determined Value with risk level
+   - Evidence from project description (empty for NOT_STATED)
+5. **Annex B: OSFI E-23 Principles** - All Principles 1.1-3.6 by Outcome
 
 ## Risk Assessment Frameworks
 
@@ -336,26 +312,34 @@ Export AIA assessment results to a Microsoft Word document.
 - **Design phase filtering** for mitigation questions only
 - **Automated calculation** based on official Treasury Board methodology
 
-### OSFI E-23 Framework (Model Risk Management)
+### OSFI E-23 Framework (Model Risk Management) - v3.0
 
 #### Risk Rating Levels
-- **Low (0-25 points)**: Minimal governance requirements - Basic documentation and annual reviews
-- **Medium (26-50 points)**: Standard governance requirements - Regular monitoring and semi-annual reviews
-- **High (51-75 points)**: Enhanced governance requirements - Comprehensive oversight and quarterly reviews
-- **Critical (76-100 points)**: Maximum governance requirements - Continuous monitoring and monthly reviews
+- **Low**: Minimal governance - Basic documentation, annual reviews
+- **Medium**: Standard governance - Regular monitoring, semi-annual reviews
+- **High**: Enhanced governance - Comprehensive oversight, quarterly reviews
+- **Critical**: Maximum governance - Continuous monitoring, monthly reviews
 
-#### Risk Assessment Methodology
-- **Quantitative Risk Factors**: Portfolio size, financial impact, operational criticality, customer base, transaction volume
-- **Qualitative Risk Factors**: Model complexity, autonomy level, explainability, AI/ML usage, third-party dependencies
-- **Risk Amplification**: Applied for dangerous combinations (e.g., AI/ML in financial decisions)
-- **Governance Requirements**: Risk-based approach with appropriate approval authorities
+#### Risk Assessment Methodology (v3.0 - 6 Risk Dimensions)
+31 factors across 6 dimensions, each with 4-level scales (Low/Medium/High/Critical):
+
+| Dimension | Factors | Core Question |
+|-----------|---------|---------------|
+| **Misuse & Unintended Harm** | 4 | Can the model cause harm beyond its intended purpose? |
+| **Output Reliability & Integrity** | 5 | How trustworthy and consistent are the outputs? |
+| **Fairness & Customer Impact** | 6 | Does the model produce equitable outcomes? |
+| **Operational & Security Risk** | 6 | What are infrastructure, availability, and security risks? |
+| **Model Complexity & Opacity** | 5 | How complex is the model and how well can it be understood? |
+| **Governance & Oversight** | 5 | How robust are controls and accountability structures? |
 
 #### Model Lifecycle Management
-1. **Design**: Clear rationale, data governance, methodology documentation
-2. **Review**: Independent validation, performance evaluation, risk rating confirmation
-3. **Deployment**: Quality control, production testing, monitoring setup
-4. **Monitoring**: Performance tracking, drift detection, escalation procedures
-5. **Decommission**: Formal retirement, documentation retention, impact assessment
+5 stages with risk-scaled governance requirements:
+
+1. **Design**: Documentation depth, data quality assessment, bias/fairness analysis, approval authority
+2. **Review**: Validation independence, testing scope, challenger model, explainability review
+3. **Deployment**: Pre-deployment checklist, parallel run period, rollback capability, human override
+4. **Monitoring**: Performance review frequency, drift monitoring, fairness monitoring, revalidation triggers
+5. **Decommission**: Retention period, documentation to retain, stakeholder notification
 
 ### Official Framework Compliance Methodology
 
@@ -662,6 +646,8 @@ aiamcp/
 │
 ├── OSFI E-23 Modules
 │   ├── osfi_e23_structure.py           # OSFI Principles & lifecycle
+│   ├── osfi_e23_risk_dimensions.py     # 6 Risk Dimensions with 31 factors (v3.0)
+│   ├── risk_dimension_extraction.py    # AI-assisted extraction module (v3.1)
 │   └── osfi_e23_report_generators.py   # Stage-specific report generation
 │
 ├── Shared Modules (v2.0.0)
