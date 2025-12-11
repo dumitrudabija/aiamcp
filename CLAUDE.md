@@ -161,6 +161,8 @@ pip install -r requirements.txt
 - **In-memory state storage** with automatic cleanup
 - **Progress tracking** across all tool executions
 - **Dependency validation** prevents out-of-order execution
+- **Smart Auto-Injection (v3.3.1)**: Export tools check for required keys (`factor_scores`, `dimension_assessments`) and auto-inject from session if data is partial or missing
+- **Defensive JSON Handling (v3.3.1)**: Extraction validation accepts JSON with or without `dimensions` wrapper for robustness
 
 ### Auto-Detection Features
 - **Assessment type detection** based on project description keywords
@@ -295,3 +297,4 @@ pip install -r requirements.txt
 - **Graceful Degradation**: Missing data files trigger default framework creation
 - **Comprehensive Validation**: Question IDs and choice values validated before scoring
 - **Detailed Logging**: All operations logged for troubleshooting and audit trails
+- **Diagnostic Logging (v3.3.1)**: Export and report generation include detailed data flow logging to help troubleshoot issues with missing or partial data

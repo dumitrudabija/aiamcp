@@ -559,7 +559,7 @@ LIFECYCLE_REQUIREMENTS_BY_RISK = {
             "critical": "Full design doc + board-level summary"
         },
         "data_quality_assessment": {
-            "low": "Checklist",
+            "low": "Self-assessment sign-off",
             "medium": "Documented review",
             "high": "Independent data review",
             "critical": "Third-party data audit"
@@ -598,7 +598,7 @@ LIFECYCLE_REQUIREMENTS_BY_RISK = {
             "critical": "Required + sensitivity analysis"
         },
         "explainability_review": {
-            "low": "Basic",
+            "low": "Output-level explanation",
             "medium": "Documented",
             "high": "Demonstrated to stakeholders",
             "critical": "Regulatory-ready"
@@ -612,11 +612,11 @@ LIFECYCLE_REQUIREMENTS_BY_RISK = {
     },
 
     "deployment": {
-        "pre_deployment_checklist": {
-            "low": "Basic",
-            "medium": "Standard",
-            "high": "Enhanced",
-            "critical": "Comprehensive"
+        "environment_verification": {
+            "low": "Configuration sign-off",
+            "medium": "Documented verification",
+            "high": "Independent verification",
+            "critical": "Third-party audit"
         },
         "parallel_run_period": {
             "low": "Not required",
@@ -697,7 +697,7 @@ LIFECYCLE_REQUIREMENTS_BY_RISK = {
             "critical": "+ Regulators (if applicable)"
         },
         "downstream_impact_review": {
-            "low": "Checklist",
+            "low": "Self-assessment",
             "medium": "Documented review",
             "high": "Formal assessment",
             "critical": "Independent review"

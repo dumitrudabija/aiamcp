@@ -386,7 +386,16 @@ def validate_extraction_response(response: Dict[str, Any]) -> Tuple[Dict[str, An
         "extraction_metadata": response.get("extraction_metadata", {})
     }
 
+    # DEFENSIVE: Accept both structures:
+    # 1. Correct: {"dimensions": {"misuse_unintended_harm": {...}}}
+    # 2. Unwrapped: {"misuse_unintended_harm": {...}}
     response_dimensions = response.get("dimensions", {})
+
+    # If "dimensions" key is missing but dimension IDs exist at top level, use response directly
+    if not response_dimensions and any(dim_id in response for dim_id in DIMENSION_ORDER):
+        logger.warning("Extraction response missing 'dimensions' wrapper - using top-level keys")
+        response_dimensions = {k: v for k, v in response.items()
+                              if k in DIMENSION_ORDER or k not in ["extraction_metadata", "confidence_notes"]}
 
     for dim_id in DIMENSION_ORDER:
         dim = get_dimension(dim_id)

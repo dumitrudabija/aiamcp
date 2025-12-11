@@ -2,6 +2,63 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [3.3.1] - 2025-12-11
+
+### 🐛 Critical Bug Fix: Annex A "Not Assessed" Issue
+
+This release fixes a critical bug where Annex A in OSFI E-23 reports showed "Not Assessed" for all 31 factors even when extraction completed successfully.
+
+#### Root Cause
+
+When Claude calls `export_e23_report`, it may pass **partial** `assessment_results` (e.g., only `risk_level` and `risk_score`) instead of the complete assessment data. The auto-injection logic only triggered if `assessment_results` was completely empty:
+
+```python
+# OLD (buggy)
+if not assessment_results or len(assessment_results) == 0:
+    # Auto-inject from session
+```
+
+Since partial data has `len() > 0`, auto-injection was skipped and the report generator received incomplete data (missing `factor_scores`), causing "Not Assessed" for all factors.
+
+#### Fixes Applied
+
+1. **server.py:325-334** - Changed auto-injection to check for **required keys**, not just empty:
+   ```python
+   required_keys = ["factor_scores", "dimension_assessments"]
+   has_required_keys = all(key in assessment_results for key in required_keys)
+   if not assessment_results or not has_required_keys:
+       # Auto-inject from session
+   ```
+
+2. **risk_dimension_extraction.py:389-398** - Added defensive handling to accept extraction JSON with or without `dimensions` wrapper:
+   ```python
+   # Accepts both: {"dimensions": {...}} and {"misuse_unintended_harm": {...}}
+   if not response_dimensions and any(dim_id in response for dim_id in DIMENSION_ORDER):
+       response_dimensions = {k: v for k, v in response.items() if k in DIMENSION_ORDER}
+   ```
+
+3. **test_extraction_integration.py:134** - Fixed test typo: `dimension_assessment` → `dimension_assessments`
+
+4. **Added diagnostic logging** in server.py and osfi_e23_report_generators.py to help troubleshoot future data flow issues
+
+#### Files Modified
+
+- **server.py**: Enhanced auto-injection logic, added diagnostic logging
+- **risk_dimension_extraction.py**: Defensive JSON structure handling
+- **osfi_e23_report_generators.py**: Added Annex A diagnostic logging
+- **test_extraction_integration.py**: Fixed test assertion typo
+
+#### Testing
+
+All 5 extraction integration tests now pass:
+- Phase 1 extraction prompt generation ✅
+- Phase 2 deterministic scoring ✅
+- NOT_STATED handling ✅
+- Validation issues reporting ✅
+- Full MCP server integration ✅
+
+---
+
 ## [3.3.0] - 2025-12-06
 
 ### 📊 Enhanced Report Transparency & Bug Fixes

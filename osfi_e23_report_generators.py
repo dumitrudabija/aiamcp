@@ -379,9 +379,9 @@ def _get_checklist_items_for_stage(stage: str) -> Dict[str, List[str]]:
             ]
         },
         "deployment": {
-            "pre_deployment_checklist": [
-                "Complete deployment readiness checklist",
-                "Verify production environment setup"
+            "environment_verification": [
+                "Verify production environment configuration",
+                "Confirm integration points tested"
             ],
             "parallel_run_period": [
                 "Execute parallel run (if required)",
@@ -525,6 +525,12 @@ def _add_annex_factor_assessment(doc: Document, dimension_assessments: Dict[str,
         # Get extracted values for this dimension
         dim_extracted = extracted_dims.get(dim_id, {})
 
+        # DIAGNOSTIC: Log factor scores for this dimension
+        logger.info(f"Annex A - {dim_id}: dim_factor_scores has {len(dim_factor_scores)} items")
+        if dim_factor_scores:
+            factor_ids_in_scores = [fs.get("factor_id") for fs in dim_factor_scores]
+            logger.info(f"  Factor IDs in scores: {factor_ids_in_scores}")
+
         # Create factor table
         # Columns: Factor | Scoring Matrix | Determined Value | Evidence
         table = doc.add_table(rows=len(factors) + 1, cols=4)
@@ -574,20 +580,28 @@ def _add_annex_factor_assessment(doc: Document, dimension_assessments: Dict[str,
                     break
 
             if factor_score_data:
-                extracted_value = factor_score_data.get("extracted_value", "NOT_STATED")
+                # Note: factor_score_data uses "value" key (not "extracted_value")
+                extracted_value = factor_score_data.get("value")
+                is_not_stated = factor_score_data.get("is_not_stated", False)
                 risk_level = factor_score_data.get("risk_level", "medium")
-                if extracted_value == "NOT_STATED":
+
+                if is_not_stated or extracted_value is None:
                     determined_value = "NOT_STATED\n(Medium - default)"
                 else:
                     determined_value = f"{extracted_value}\n({risk_level.title()})"
+
+                # Evidence is stored directly in factor_score_data (added during scoring)
+                evidence = factor_score_data.get("evidence", "")
             else:
                 determined_value = "Not Assessed"
+                evidence = ""
 
-            # Get evidence from validated extraction
-            factor_extracted = dim_extracted.get(factor_id, {})
-            evidence = factor_extracted.get("evidence", "")
-            if not evidence and factor_extracted.get("value") == "NOT_STATED":
-                evidence = ""  # Empty for NOT_STATED as per design
+            # Fallback: also check validated_extraction if evidence not in factor_score
+            if not evidence:
+                # validated_extraction has structure: dimensions[dim_id].factors[factor_id]
+                dim_factors = dim_extracted.get("factors", {})
+                factor_extracted = dim_factors.get(factor_id, {})
+                evidence = factor_extracted.get("evidence", "")
 
             # Populate row
             row_cells = table.rows[idx].cells

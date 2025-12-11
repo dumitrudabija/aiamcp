@@ -131,7 +131,7 @@ def test_phase2_with_extracted_factors():
     assert result.get("phase") == "assessment_complete", f"Expected phase='assessment_complete', got {result.get('phase')}"
     assert "risk_score" in result, "Missing risk_score"
     assert "risk_level" in result, "Missing risk_level"
-    assert "dimension_assessment" in result, "Missing dimension_assessment"
+    assert "dimension_assessments" in result, "Missing dimension_assessments"  # Note: plural
     assert "factor_scores" in result, "Missing factor_scores"
     assert "not_stated_factors" in result, "Missing not_stated_factors"
     assert "governance_requirements" in result, "Missing governance_requirements"

@@ -319,15 +319,19 @@ class MCPServer:
             elif tool_name == "assess_model_risk":
                 result = self._assess_model_risk(arguments)
             elif tool_name == "export_e23_report":
-                # Auto-inject assessment_results from session if not provided
+                # Auto-inject assessment_results from session if not provided or incomplete
                 if session_id:
                     assessment_results = arguments.get("assessment_results", {})
-                    if not assessment_results or len(assessment_results) == 0:
+                    # Check for REQUIRED keys, not just empty - Claude might pass partial data
+                    required_keys = ["factor_scores", "dimension_assessments"]
+                    has_required_keys = all(key in assessment_results for key in required_keys)
+
+                    if not assessment_results or not has_required_keys:
                         # Try to get from session
                         framework_results = self._get_assessment_results_for_export_from_session(session_id, "osfi_e23")
                         if framework_results:
                             arguments["assessment_results"] = framework_results
-                            logger.info(f"Auto-injected assessment_results from session {session_id}")
+                            logger.info(f"Auto-injected assessment_results from session {session_id} (partial data detected: missing {[k for k in required_keys if k not in assessment_results]})")
 
                     # Auto-inject current_stage from assess_model_risk if available
                     session = self.workflow_engine.get_session(session_id)
@@ -1470,6 +1474,18 @@ class MCPServer:
 
             # Generate the OSFI E-23 report using v3.0 Risk Dimensions framework
             # Report uses assessment_results for dimensions and LIFECYCLE_REQUIREMENTS_BY_RISK for checklists
+
+            # DIAGNOSTIC: Log what's being passed to report generator
+            logger.info(f"Report generator receiving assessment_results keys: {list(assessment_results.keys())}")
+            factor_scores = assessment_results.get("factor_scores", {})
+            logger.info(f"factor_scores type: {type(factor_scores)}, keys: {list(factor_scores.keys()) if isinstance(factor_scores, dict) else 'N/A'}")
+            if factor_scores:
+                first_dim = list(factor_scores.keys())[0] if factor_scores else None
+                if first_dim:
+                    logger.info(f"factor_scores[{first_dim}] has {len(factor_scores[first_dim])} items")
+                    if factor_scores[first_dim]:
+                        logger.info(f"Sample factor: {factor_scores[first_dim][0]}")
+
             doc = generate_osfi_e23_report(
                 project_name=project_name,
                 project_description=project_description,
