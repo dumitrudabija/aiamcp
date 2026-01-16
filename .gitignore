@@ -110,3 +110,6 @@ mcp-debug.log
 ~$*
 *.tmp
 AIA_Assessments/
+OSFI_E23_Assessments/
+backup*/
+tests/archive*/

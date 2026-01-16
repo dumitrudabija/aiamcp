@@ -1,7 +1,7 @@
 # Developer Guide
 
-**Version**: 2.0.0
-**Last Updated**: November 16, 2025
+**Version**: 3.3.1
+**Last Updated**: December 11, 2025
 **For**: Contributors and developers extending the AIA Assessment MCP Server
 
 ---
