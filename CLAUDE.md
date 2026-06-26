@@ -11,7 +11,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 ### Main Components (v2.0.0 Modular Structure)
 
 **Core Server**
-- **server.py**: Main MCP server handling JSON-RPC over stdio (1,305 lines - 73% reduced from v1.x)
+- **server.py**: Main MCP server handling JSON-RPC over stdio
 - **workflow_engine.py**: Workflow management, state persistence, and smart routing
 
 **Framework Processors**
@@ -20,8 +20,8 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **description_validator.py**: Project description validation for framework readiness
 
 **AIA Modules** (v2.0.0)
-- **aia_analysis.py**: Centralized AIA intelligence, question handling, and scoring (1,027 lines)
-- **aia_report_generator.py**: Professional Word document generation for AIA compliance (277 lines)
+- **aia_analysis.py**: Centralized AIA intelligence, question handling, and scoring
+- **aia_report_generator.py**: Professional Word document generation for AIA compliance
 
 **OSFI E-23 Modules**
 - **osfi_e23_risk_dimensions.py**: 6 Risk Dimensions framework with 31 factors (v3.0)
@@ -30,24 +30,24 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **osfi_e23_report_generators.py**: Stage-specific report generation
 
 **Shared Modules** (v2.0.0)
-- **utils/data_extractors.py**: Unified data extraction for AIA and OSFI assessments (1,047 lines)
-- **introduction_builder.py**: Framework-specific workflow guidance and introductions (364 lines)
-- **utils/framework_detection.py**: Smart context detection for AIA/OSFI/Combined (108 lines)
-- **config/tool_registry.py**: Tool metadata and MCP protocol registration (365 lines)
+- **utils/data_extractors.py**: Unified data extraction for AIA and OSFI assessments
+- **introduction_builder.py**: Framework-specific workflow guidance and introductions
+- **utils/framework_detection.py**: Smart context detection for AIA/OSFI/Combined
+- **config/tool_registry.py**: Tool metadata and MCP protocol registration
 
 **Data Files**
 - **data/survey-enfr.json**: Official bilingual AIA questionnaire data
-- **config.json**: Framework configuration and scoring thresholds
+- **config/config.json**: Framework configuration and scoring thresholds
 
 ### Key Design Patterns
-- **Modular Architecture (v2.0.0)**: Clean separation of concerns with 6 specialized modules, reducing server.py complexity by 73%
+- **Modular Architecture (v2.0.0)**: Clean separation of concerns with specialized modules; server.py is a thin orchestration layer
 - **Delegation Pattern (v2.0.0)**: Server.py orchestrates through dependency injection to specialized modules
+- **Lazy Processor Loading**: All heavy processors initialize on first tool call (not at startup) via `_load_processors()`, keeping server startup fast
 - **Official Framework Compliance**: Strict adherence to Canada's official AIA (104 questions) and OSFI E-23 frameworks
 - **Introduction Workflow Enforcement**: Mandatory get_server_introduction call before any assessment tools, ensuring users understand frameworks and data sources
 - **Explicit Workflow Sequences (v3.0)**: 3-step OSFI E-23 workflow (validate → assess → export) and 5-step AIA workflow in get_server_introduction response
-- **Step-Numbered Tool Descriptions**: All OSFI E-23 tools labeled with their position (STEP X OF 3) and full workflow context
-- **Behavioral Directives (v1.15.0)**: Strong instructions to present introduction first, show all workflow steps, and wait for user choice before proceeding
-- **Streamlined Risk-Adaptive Reports (v2.0)**: OSFI E-23 exports generate concise ~4 page documents with standardized structure (Executive Summary, Risk Methodology, Compliance Checklist, Annex)
+- **Behavioral Directives (v1.15.0)**: Strong instructions embedded in tool responses (via introduction_builder.py) to present introduction first, show all workflow steps, and wait for user choice before proceeding
+- **Streamlined Risk-Adaptive Reports**: OSFI E-23 exports generate ~6-8 page documents with standardized structure (Executive Summary, Risk by Dimension, Stage Requirements, Annex A Factor Details, Annex B Principles)
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Enhanced Workflow Visibility**: Complete workflow roadmap with numbered steps, descriptions, and progress tracking
 - **Flexible Dependency Resolution**: Export tools can work with either preview or full assessments
@@ -69,38 +69,35 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 ### Testing
 ```bash
 # Validate MCP server installation
-python validate_mcp.py
+python scripts/validate_mcp.py
 
-# Run comprehensive test suite
-python test_mcp_comprehensive.py
+# Run comprehensive integration test suite
+python tests/integration/test_mcp_comprehensive.py
 
 # Test specific components
-python test_mcp_server.py
-python test_functional_preview.py
-python test_design_phase_filtering.py
+python tests/integration/test_mcp_server.py
+python tests/functional/test_functional_preview.py
+python tests/unit/test_design_phase_filtering.py
 
 # Test description validation
-python test_description_validation.py
+python tests/unit/test_description_validation.py
 
 # Test workflow enhancements
-python test_workflow_enhancements.py
+python tests/functional/test_workflow_enhancements.py
 
 # Test transparency features
-python test_transparency_features.py
+python tests/functional/test_transparency_features.py
 
-# Test validation enforcement (critical bug fix)
+# Test validation enforcement
 python test_validation_enforcement.py
 
-# Test export validation (critical bug fix)
+# Test export validation
 python test_export_validation.py
 
 # Test introduction workflow enforcement
 python test_introduction_enforcement.py
 
-# Test streamlined E-23 report generation
-python test_streamlined_e23_report.py
-
-# Test workflow guidance (v1.15.0)
+# Test workflow guidance
 python test_workflow_guidance.py
 
 # Test extraction integration (v3.1.0)
@@ -141,11 +138,10 @@ pip install -r requirements.txt
 - **get_server_introduction**: CRITICAL first-call tool that MUST be called at the START of assessment conversations
 - **Mandatory triggers**: User mentions assessment, AIA, OSFI, compliance, or provides project description for evaluation; especially "run through OSFI/AIA framework"
 - **Complete Workflow Sequences (v3.0)**: Response includes explicit 3-step OSFI E-23 workflow and 5-step AIA workflow with detailed purpose/output for each step
-- **Behavioral instructions**: Tool description includes "CALL THIS ALONE" warning to prevent calling other tools simultaneously
-- **Enhanced Directives (v1.15.0)**: Response includes "STOP AND PRESENT THIS INTRODUCTION FIRST" to ensure workflow visibility before assessment execution
+- **Behavioral instructions**: Tool response (from introduction_builder.py) includes "STOP AND PRESENT THIS INTRODUCTION FIRST" directive to ensure workflow visibility before assessment execution
 - **Anti-invention directive**: Tool response includes assistant_directive preventing Claude from adding time estimates or invented content
-- **Framework selection guidance**: After calling, present 4 clear options (AIA, OSFI E-23, Workflow Mode, Combined) and WAIT for user to choose before proceeding
-- **Step Context**: All tools show their position in the workflow (e.g., "STEP 2 OF 3") for better navigation
+- **Framework selection guidance**: After calling, present options (AIA, OSFI E-23, or both) and WAIT for user to choose before proceeding
+- **Smart detection**: Pass `user_context` to auto-detect relevant framework from user's message
 
 ## Workflow Management
 
@@ -247,9 +243,9 @@ pip install -r requirements.txt
 
 ### Testing Requirements (v2.0.0 Updated)
 - **Always run validate_functionality.py** after any module modifications - comprehensive 8/8 validation suite
-- **Run validate_mcp.py** to verify MCP server installation and configuration
-- **Test scoring accuracy** with test_design_phase_filtering.py for AIA changes
-- **Verify MCP protocol compliance** with test_mcp_server.py
+- **Run scripts/validate_mcp.py** to verify MCP server installation and configuration
+- **Test scoring accuracy** with `tests/unit/test_design_phase_filtering.py` for AIA changes
+- **Verify MCP protocol compliance** with `tests/integration/test_mcp_server.py`
 - **Module-specific tests**: Changes to individual modules should maintain all validation tests passing
 
 ## MCP Integration
@@ -265,7 +261,7 @@ pip install -r requirements.txt
 - **Workflow Management**: create_workflow, execute_workflow_step, get_workflow_status, auto_execute_workflow
 - **Validation Tools**: validate_project_description
 - **AIA Tools**: analyze_project_description, get_questions, assess_project, functional_preview, export_assessment_report
-- **OSFI E-23 Tools**: assess_model_risk (6 Risk Dimensions + lifecycle stage), export_e23_report (stage-specific requirements + checklists)
+- **OSFI E-23 Tools**: assess_model_risk (6 Risk Dimensions + lifecycle stage), export_e23_report (stage-specific requirements + checklists; assessment data retrieved automatically from server-side session — do NOT pass assessment_results)
 
 ## Key Architectural Decisions
 
@@ -280,6 +276,7 @@ pip install -r requirements.txt
 - **No AI Risk Interpretation**: Server provides structure, Claude Desktop provides reasoning
 
 ### OSFI E-23 Report Structure (v3.3.0)
+- **Session-Based Data Retrieval**: `export_e23_report` does NOT accept `assessment_results` as a parameter — the server retrieves assessment data automatically from server-side session state populated by `assess_model_risk`. Do not pass assessment data in the tool call.
 - **Streamlined Format**: Executive Summary, Risk Assessment by Dimension, Stage Requirements, Annex A (Factor Details), Annex B (OSFI Principles)
 - **Section 1: Executive Summary**: Risk level, governance requirements, key risk drivers from dimension assessment
 - **Section 2: Risk Assessment by Dimension**: Summary table showing 6 dimensions with risk level (Low/Medium/High/Critical) and core question
@@ -298,3 +295,4 @@ pip install -r requirements.txt
 - **Comprehensive Validation**: Question IDs and choice values validated before scoring
 - **Detailed Logging**: All operations logged for troubleshooting and audit trails
 - **Diagnostic Logging (v3.3.1)**: Export and report generation include detailed data flow logging to help troubleshoot issues with missing or partial data
+- **MCP-Compliant Errors**: Tool errors return MCP result objects with `isError: True` (not JSON-RPC error codes), ensuring Claude Desktop surfaces error messages correctly

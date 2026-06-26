@@ -27,303 +27,330 @@ class ToolRegistry:
         return [
             {
                 "name": "get_server_introduction",
-                "description": "🚨 CRITICAL FIRST CALL - CALL THIS ALONE: This tool MUST be called BY ITSELF at the START of any assessment conversation.\n\n⚠️ CALL THIS TOOL ALONE - Do NOT call other tools in the same response!\n\n✨ NEW: SMART FRAMEWORK DETECTION - This tool now automatically detects which framework the user needs based on context, showing only the relevant workflow to reduce confusion.\n\nWHEN TO CALL THIS TOOL:\nCall IMMEDIATELY when a user:\n- Says 'run through OSFI framework' or 'run through AIA'\n- Wants to assess, evaluate, or analyze a project/system/model\n- Mentions AIA, OSFI, or compliance/regulatory requirements\n- Provides a project description asking for assessment\n- Asks about which framework to use or available workflows\n- Says they're starting a new assessment or compliance process\n- Any variation of 'help me with [AI/model/system] compliance'\n\nHOW IT WORKS:\n- If user mentions 'OSFI', 'bank', 'financial institution' → Shows ONLY OSFI E-23 workflow\n- If user mentions 'AIA', 'government', 'federal' → Shows ONLY AIA workflow\n- If context is unclear → Shows BOTH workflows and asks user to choose\n- You can pass the user's message as 'user_context' for better detection\n\nWHAT THIS TOOL PROVIDES:\n- Framework-specific or combined introduction based on context\n- Complete workflow sequences (5 steps for OSFI E-23, 5 steps for AIA)\n- Framework selection guidance if context unclear\n- Critical data source distinctions (MCP official data vs AI interpretation)\n\nWHAT TO DO AFTER CALLING THIS TOOL:\n1. PRESENT the introduction (either AIA-only, OSFI-only, or both)\n2. If only one framework shown: Proceed with Step 1 unless user wants options\n3. If both frameworks shown: ASK which one applies and WAIT for response\n4. THEN follow the appropriate workflow sequence step-by-step\n\nEXAMPLES:\n\nScenario 1 - Clear OSFI Context:\nUser: 'Run through OSFI framework for my credit model'\nClaude: [Calls get_server_introduction with user_context='Run through OSFI framework for my credit model']\nClaude: [Shows ONLY OSFI E-23 5-step workflow]\nClaude: 'I'll guide you through OSFI E-23 compliance. Let's start with Step 1...'\n\nScenario 2 - Clear AIA Context:\nUser: 'I need an AIA for my benefits system'\nClaude: [Calls get_server_introduction with user_context='I need an AIA for my benefits system']\nClaude: [Shows ONLY AIA 5-step workflow]\nClaude: 'I'll help with the Algorithmic Impact Assessment. Let's start with Step 1...'\n\nScenario 3 - Unclear Context:\nUser: 'Help me assess my AI system'\nClaude: [Calls get_server_introduction with user_context='Help me assess my AI system']\nClaude: [Shows BOTH workflows]\nClaude: 'Which framework applies? OSFI E-23 for financial institutions, or AIA for government?'",
+                "description": (
+                    "Get an introduction to the available regulatory assessment frameworks "
+                    "(Canada's AIA and OSFI E-23) with step-by-step workflow guidance. "
+                    "Call this at the start of an assessment conversation to understand "
+                    "which tools to use and in what order. Automatically detects whether "
+                    "the user needs AIA (government automated decisions) or OSFI E-23 "
+                    "(financial institution model risk) based on context."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "user_context": {
                             "type": "string",
-                            "description": "Optional: The user's message or project context for framework detection. Include this to enable smart framework detection (e.g., user mentions 'OSFI' → show only OSFI workflow, user mentions 'AIA' → show only AIA workflow). If omitted, shows both frameworks by default."
+                            "description": "The user's message or project context to detect which framework applies."
                         },
                         "session_id": {
                             "type": "string",
-                            "description": "Optional: Session ID for context detection from existing workflow"
+                            "description": "Optional session ID from an existing workflow."
                         }
-                    },
-                    "additionalProperties": False
+                    }
                 }
             },
             {
                 "name": "validate_project_description",
-                "description": "🔍 STEP 1 OF 3 - FRAMEWORK READINESS VALIDATOR: Validate project descriptions for adequacy before conducting AIA or OSFI E-23 assessments. OSFI E-23 WORKFLOW: (1) validate_project_description [YOU ARE HERE] → (2) assess_model_risk → (3) export_e23_report. Ensures descriptions contain sufficient information across key areas required by both frameworks.",
+                "description": (
+                    "Validate that a project description contains enough information to run "
+                    "an AIA or OSFI E-23 assessment. Checks coverage across 6 content areas "
+                    "(system/technology, business purpose, data sources, impact scope, "
+                    "decision process, technical architecture). Call this before starting "
+                    "any framework assessment. Returns pass/fail with specific feedback on "
+                    "what information is missing."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "projectName": {
                             "type": "string",
-                            "description": "Name of the project being validated"
+                            "description": "Name of the project being validated."
                         },
                         "projectDescription": {
                             "type": "string",
-                            "description": "Project description to validate for framework assessment readiness"
+                            "description": "Full project description to validate."
                         }
                     },
-                    "required": ["projectName", "projectDescription"],
-                    "additionalProperties": False
+                    "required": ["projectName", "projectDescription"]
                 }
             },
             {
                 "name": "create_workflow",
-                "description": "🔄 WORKFLOW MANAGEMENT: Create and manage assessment workflows with automatic sequencing, state persistence, and smart routing. Provides guided assessment processes for AIA and OSFI E-23 frameworks.",
+                "description": (
+                    "Create a managed assessment workflow session for AIA or OSFI E-23. "
+                    "Returns a session ID used to track progress through the multi-step "
+                    "assessment. Assessment type is auto-detected from the description if "
+                    "not specified."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "projectName": {
                             "type": "string",
-                            "description": "Name of the project for workflow management"
+                            "description": "Name of the project."
                         },
                         "projectDescription": {
                             "type": "string",
-                            "description": "Project description for workflow creation"
+                            "description": "Project description."
                         },
                         "assessmentType": {
                             "type": "string",
-                            "description": "Type of assessment workflow (aia_full, aia_preview, osfi_e23, combined)",
+                            "description": "Type of assessment: aia_full, aia_preview, osfi_e23, or combined.",
                             "enum": ["aia_full", "aia_preview", "osfi_e23", "combined"]
                         }
                     },
-                    "required": ["projectName", "projectDescription"],
-                    "additionalProperties": False
+                    "required": ["projectName", "projectDescription"]
                 }
             },
             {
                 "name": "execute_workflow_step",
-                "description": "🎯 WORKFLOW EXECUTION: Execute specific tools within a managed workflow with automatic state tracking, dependency validation, and smart next-step recommendations.",
+                "description": (
+                    "Execute a specific step within an active workflow session. "
+                    "Handles state tracking and dependency validation automatically."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "sessionId": {
                             "type": "string",
-                            "description": "Workflow session ID from create_workflow"
+                            "description": "Workflow session ID from create_workflow."
                         },
                         "toolName": {
                             "type": "string",
-                            "description": "Name of the tool to execute within the workflow"
+                            "description": "Name of the tool to execute."
                         },
                         "toolArguments": {
                             "type": "object",
-                            "description": "Arguments for the tool being executed"
+                            "description": "Arguments for the tool."
                         }
                     },
-                    "required": ["sessionId", "toolName", "toolArguments"],
-                    "additionalProperties": False
+                    "required": ["sessionId", "toolName", "toolArguments"]
                 }
             },
             {
                 "name": "get_workflow_status",
-                "description": "📊 WORKFLOW STATUS: Get comprehensive workflow status including progress, next steps, smart routing recommendations, and session management.",
+                "description": "Get the current progress and next recommended steps for an active workflow session.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "sessionId": {
                             "type": "string",
-                            "description": "Workflow session ID"
+                            "description": "Workflow session ID."
                         }
                     },
-                    "required": ["sessionId"],
-                    "additionalProperties": False
+                    "required": ["sessionId"]
                 }
             },
             {
                 "name": "auto_execute_workflow",
-                "description": "⚡ AUTO-EXECUTION: Automatically execute multiple workflow steps where possible, with intelligent dependency management and manual intervention detection.",
+                "description": "Automatically execute the next available steps in a workflow session, up to a specified number of steps.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "sessionId": {
                             "type": "string",
-                            "description": "Workflow session ID"
+                            "description": "Workflow session ID."
                         },
                         "stepsToExecute": {
                             "type": "number",
-                            "description": "Number of steps to auto-execute (default: 1)",
+                            "description": "Number of steps to auto-execute (default: 1, max: 5).",
                             "minimum": 1,
                             "maximum": 5
                         }
                     },
-                    "required": ["sessionId"],
-                    "additionalProperties": False
+                    "required": ["sessionId"]
                 }
             },
             {
                 "name": "assess_project",
-                "description": "CANADA'S ALGORITHMIC IMPACT ASSESSMENT (AIA) - FINAL STEP: Calculate official AIA risk score using actual question responses. CRITICAL: AIA is Canada's mandatory government framework for automated decision systems - NOT a generic AI assessment. Only use this tool with actual user responses to specific AIA questions. Do NOT make assumptions or interpretations about risk levels - only the calculated score from actual responses is valid for Canadian federal compliance.",
+                "description": (
+                    "Calculate the official AIA (Algorithmic Impact Assessment) risk score "
+                    "from actual user responses to AIA questionnaire questions. Returns a "
+                    "risk level (I–IV) and score out of 224. Requires the user to have "
+                    "answered the AIA questions — do not fabricate responses."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "projectName": {
                             "type": "string",
-                            "description": "Name of the project being assessed"
+                            "description": "Name of the project."
                         },
                         "projectDescription": {
                             "type": "string",
-                            "description": "Detailed description of the project and its automated decision-making components"
+                            "description": "Project description."
                         },
                         "responses": {
                             "type": "array",
-                            "description": "REQUIRED: Array of actual question responses with questionId and selectedOption. Without responses, this tool will only return questions to answer, not a risk assessment.",
+                            "description": "Array of question responses with questionId and selectedOption (numeric index).",
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "questionId": {
-                                        "type": "string"
-                                    },
-                                    "selectedOption": {
-                                        "type": "number"
-                                    }
+                                    "questionId": {"type": "string"},
+                                    "selectedOption": {"type": "number"}
                                 },
-                                "required": ["questionId", "selectedOption"],
-                                "additionalProperties": False
+                                "required": ["questionId", "selectedOption"]
                             }
                         }
                     },
-                    "required": ["projectName", "projectDescription"],
-                    "additionalProperties": False
+                    "required": ["projectName", "projectDescription"]
                 }
             },
             {
                 "name": "analyze_project_description",
-                "description": "CANADA'S AIA FRAMEWORK: Intelligently analyze a project description to automatically answer Canada's Algorithmic Impact Assessment questions where possible and identify questions requiring manual input. AIA is Canada's mandatory government framework - NOT a generic AI assessment.",
+                "description": (
+                    "Analyze a project description against Canada's AIA framework questions. "
+                    "Automatically answers questions where the description provides enough "
+                    "information and flags questions that require manual input from the user."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "projectName": {
                             "type": "string",
-                            "description": "Name of the project being analyzed"
+                            "description": "Name of the project."
                         },
                         "projectDescription": {
                             "type": "string",
-                            "description": "Detailed description of the project and its automated decision-making components"
+                            "description": "Detailed project description."
                         }
                     },
-                    "required": ["projectName", "projectDescription"],
-                    "additionalProperties": False
+                    "required": ["projectName", "projectDescription"]
                 }
             },
             {
                 "name": "get_questions",
-                "description": "CANADA'S AIA FRAMEWORK: Get Canada's Algorithmic Impact Assessment questions by category or type. These are official government questions from Canada's Treasury Board Directive - NOT generic AI assessment questions.",
+                "description": (
+                    "Get Canada's official AIA questionnaire questions. "
+                    "Optionally filter by category or type (risk/mitigation)."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "category": {
                             "type": "string",
-                            "description": "Filter by category (Project, System, Algorithm, Decision, Impact, Data, Consultations, De-risking)",
+                            "description": "Filter by category.",
                             "enum": ["Project", "System", "Algorithm", "Decision", "Impact", "Data", "Consultations", "De-risking"]
                         },
                         "type": {
                             "type": "string",
-                            "description": "Filter by question type",
+                            "description": "Filter by question type.",
                             "enum": ["risk", "mitigation"]
                         }
-                    },
-                    "additionalProperties": False
+                    }
                 }
             },
             {
                 "name": "functional_preview",
-                "description": "CANADA'S AIA FRAMEWORK: Early functional risk assessment for AI projects using Canada's Algorithmic Impact Assessment framework. Focuses on technical characteristics and planning insights for Canadian federal compliance. Provides actionable AIA compliance planning guidance without requiring administrative details.",
+                "description": (
+                    "Run a quick AIA functional risk preview from the project description alone, "
+                    "without requiring answers to the full questionnaire. Useful for early-stage "
+                    "planning and compliance scoping."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "projectName": {
                             "type": "string",
-                            "description": "Name of the AI project being assessed"
+                            "description": "Name of the project."
                         },
                         "projectDescription": {
                             "type": "string",
-                            "description": "Detailed description of the AI system's technical capabilities, data usage, decision-making scope, and affected populations"
+                            "description": "Detailed description of the AI system."
                         }
                     },
-                    "required": ["projectName", "projectDescription"],
-                    "additionalProperties": False
+                    "required": ["projectName", "projectDescription"]
                 }
             },
             {
                 "name": "export_assessment_report",
-                "description": "CANADA'S AIA FRAMEWORK: Generates and saves a COMPLETE AIA compliance report as a Microsoft Word document. The MCP server creates the entire professional document with executive summary, key findings, recommendations, and all required sections based on Canada's official framework. The document is immediately ready for professional review.",
+                "description": "Export AIA assessment results as a Microsoft Word document (.docx) saved to the local filesystem.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "project_name": {
                             "type": "string",
-                            "description": "Name of the project being assessed"
+                            "description": "Name of the project."
                         },
                         "project_description": {
                             "type": "string",
-                            "description": "Description of the project and its automated decision-making components"
+                            "description": "Project description."
                         },
                         "assessment_results": {
                             "type": "object",
-                            "description": "Assessment results object from previous assessment (functional_preview, analyze_project_description, or assess_project)"
+                            "description": "Assessment results from functional_preview, analyze_project_description, or assess_project."
                         },
                         "custom_filename": {
                             "type": "string",
-                            "description": "Optional custom filename (without extension). If not provided, will use AIA_Report_[ProjectName]_[YYYY-MM-DD].docx format"
+                            "description": "Optional custom filename without extension."
                         }
                     },
-                    "required": ["project_name", "project_description", "assessment_results"],
-                    "additionalProperties": False
+                    "required": ["project_name", "project_description", "assessment_results"]
                 }
             },
             {
                 "name": "assess_model_risk",
-                "description": "🏦 OSFI E-23 STEP 2 OF 3 - MODEL RISK ASSESSMENT: Comprehensive model risk assessment using 6 Risk Dimensions (31 factors) under Canada's OSFI Guideline E-23 framework. TWO-PHASE WORKFLOW: (1) First call returns extraction prompt for Claude to analyze description and extract risk factor values; (2) Second call with extracted_factors performs deterministic scoring. User must confirm lifecycle stage before proceeding. COMPLETE OSFI WORKFLOW: (1) validate_project_description → (2) assess_model_risk [YOU ARE HERE] → (3) export_e23_report. ⚠️ COMPLIANCE WARNING: All results must be validated by qualified model risk professionals.",
+                "description": (
+                    "Run an OSFI E-23 model risk assessment using 6 Risk Dimensions and 31 factors. "
+                    "Two-phase workflow: the first call (without extracted_factors) returns an "
+                    "extraction prompt; the second call (with extracted_factors) performs "
+                    "deterministic scoring and returns the risk rating. "
+                    "Requires projectName, projectDescription, and currentStage."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "projectName": {
                             "type": "string",
-                            "description": "Name of the model being assessed"
+                            "description": "Name of the model being assessed."
                         },
                         "projectDescription": {
                             "type": "string",
-                            "description": "CRITICAL: Provide factual, detailed description including specific technical architecture, documented data sources/volumes, explicit business use cases, defined decision-making processes, and measurable performance criteria."
+                            "description": "Detailed description including technical architecture, data sources, business use case, and decision process."
                         },
                         "currentStage": {
                             "type": "string",
-                            "description": "Current lifecycle stage of the model. User should confirm this before proceeding.",
+                            "description": "Current model lifecycle stage.",
                             "enum": ["design", "review", "deployment", "monitoring", "decommission"]
                         },
                         "extracted_factors": {
                             "type": "object",
-                            "description": "PHASE 2 ONLY: JSON object containing extracted risk factor values from Claude's analysis of the project description. Required structure: { 'dimensions': { 'dimension_id': { 'factor_id': { 'value': <number|string|NOT_STATED>, 'evidence': <string|null> } } } }. If not provided, returns extraction prompt for Phase 1."
+                            "description": "Phase 2 only: extracted risk factor values from the first call's extraction prompt."
                         }
                     },
-                    "required": ["projectName", "projectDescription", "currentStage"],
-                    "additionalProperties": False
+                    "required": ["projectName", "projectDescription", "currentStage"]
                 }
             },
             {
                 "name": "export_e23_report",
-                "description": "🏦 OSFI E-23 STEP 3 OF 3 - REPORT GENERATION: Generates a stage-specific OSFI E-23 compliance report as a Microsoft Word document. COMPLETE OSFI WORKFLOW: (1) validate_project_description → (2) assess_model_risk → (3) export_e23_report [YOU ARE HERE]. Report includes executive summary, 6 Risk Dimensions assessment, lifecycle requirements scaled by risk level, and OSFI principles annex. ⚠️ COMPLIANCE WARNING: Generated reports require professional validation before regulatory use.",
+                "description": (
+                    "Generate an OSFI E-23 compliance report as a Microsoft Word document. "
+                    "Assessment data is retrieved automatically from the session — do not "
+                    "pass assessment_results. Requires project_name, project_description, "
+                    "and current_stage."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "project_name": {
                             "type": "string",
-                            "description": "Name of the model being assessed"
+                            "description": "Name of the model."
                         },
                         "project_description": {
                             "type": "string",
-                            "description": "Description of the model and its business application"
-                        },
-                        "assessment_results": {
-                            "type": "object",
-                            "description": "OPTIONAL: Assessment results from Step 2 (assess_model_risk). If not provided, will retrieve from session state."
+                            "description": "Description of the model and its business application."
                         },
                         "current_stage": {
                             "type": "string",
-                            "description": "Current lifecycle stage (from Step 2). Required for generating stage-specific requirements.",
+                            "description": "Current lifecycle stage.",
                             "enum": ["design", "review", "deployment", "monitoring", "decommission"]
                         },
                         "custom_filename": {
                             "type": "string",
-                            "description": "Optional custom filename (without extension). Default: OSFI_E23_Report_[ProjectName]_[YYYY-MM-DD].docx"
+                            "description": "Optional custom filename without extension."
                         }
                     },
-                    "required": ["project_name", "project_description"],
-                    "additionalProperties": False
+                    "required": ["project_name", "project_description"]
                 }
             }
         ]

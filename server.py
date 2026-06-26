@@ -41,13 +41,37 @@ logger = logging.getLogger(__name__)
 
 class MCPServer:
     """Simple MCP server implementation using JSON-RPC over stdio."""
-    
+
     def __init__(self):
         # Change to the script's directory to ensure data files are found
         script_dir = os.path.dirname(os.path.abspath(__file__))
         os.chdir(script_dir)
         print(f"DEBUG: Changed working directory to: {script_dir}", file=sys.stderr)
-        
+
+        self.server_info = {
+            "name": "aia-assessment-server",
+            "version": "3.3.1"
+        }
+        self.introduction_shown = False
+
+        # Heavy processors loaded lazily on first tool call
+        self._processors_loaded = False
+        self.aia_processor = None
+        self.osfi_e23_processor = None
+        self.description_validator = None
+        self.workflow_engine = None
+        self.framework_detector = None
+        self.aia_data_extractor = None
+        self.osfi_data_extractor = None
+        self.aia_analyzer = None
+        self.introduction_builder = None
+        self.aia_report_generator = None
+
+    def _load_processors(self):
+        """Load heavy processors on first tool call rather than at startup."""
+        if self._processors_loaded:
+            return
+        print("DEBUG: Loading processors...", file=sys.stderr)
         self.aia_processor = AIAProcessor()
         self.osfi_e23_processor = OSFIE23Processor()
         self.description_validator = ProjectDescriptionValidator()
@@ -58,13 +82,8 @@ class MCPServer:
         self.aia_analyzer = AIAAnalyzer(self.aia_processor)
         self.introduction_builder = IntroductionBuilder(self.framework_detector)
         self.aia_report_generator = AIAReportGenerator(self.aia_data_extractor)
-        self.server_info = {
-            "name": "aia-assessment-server",
-            "version": "3.2.0"
-        }
-
-        # Session state for workflow enforcement
-        self.introduction_shown = False  # Tracks if get_server_introduction has been called
+        self._processors_loaded = True
+        print("DEBUG: Processors loaded.", file=sys.stderr)
         
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle incoming MCP requests."""
@@ -81,9 +100,14 @@ class MCPServer:
                 return self._list_tools(request_id)
             elif method == "tools/call":
                 return self._call_tool(request_id, params)
+            elif method == "ping":
+                return {"jsonrpc": "2.0", "id": request_id, "result": {}}
             elif method == "notifications/initialized":
                 # Handle notification - no response needed
                 print(f"Received notification: {method}", file=sys.stderr)
+                return None
+            elif method.startswith("notifications/"):
+                # Ignore all other notifications silently
                 return None
             elif method in ["prompts/list", "resources/list"]:
                 # Handle unsupported methods gracefully
@@ -129,16 +153,23 @@ class MCPServer:
             
             # Accept the client's protocol version
             client_protocol_version = params.get("protocolVersion", "2024-11-05")
-            
+
             result = {
                 "jsonrpc": "2.0",
                 "id": request_id,
                 "result": {
                     "protocolVersion": client_protocol_version,
                     "capabilities": {
-                        "tools": {}
+                        "tools": {"listChanged": False}
                     },
-                    "serverInfo": self.server_info
+                    "serverInfo": self.server_info,
+                    "instructions": (
+                        "Use these tools when users ask about regulatory compliance, risk assessment, "
+                        "or need to run an AIA (Algorithmic Impact Assessment) or OSFI E-23 (Model Risk Management) "
+                        "assessment. Start with get_server_introduction at the beginning of any assessment conversation. "
+                        "AIA applies to Canadian government automated decision systems. "
+                        "OSFI E-23 applies to federally regulated financial institutions."
+                    )
                 }
             }
             
@@ -281,6 +312,7 @@ class MCPServer:
 
     def _call_tool(self, request_id: Any, params: Dict[str, Any]) -> Dict[str, Any]:
         """Call a specific tool."""
+        self._load_processors()
         tool_name = params.get("name")
         arguments = params.get("arguments", {})
 
@@ -356,6 +388,13 @@ class MCPServer:
             if session_id and tool_name in osfi_tools and tool_name != "export_e23_report":
                 self._store_tool_result_in_session(session_id, tool_name, result)
 
+            # Convert result to text — avoid double-encoding by serializing
+            # dicts/lists directly; pass strings through unchanged
+            if isinstance(result, str):
+                result_text = result
+            else:
+                result_text = json.dumps(result, indent=2)
+
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -363,20 +402,28 @@ class MCPServer:
                     "content": [
                         {
                             "type": "text",
-                            "text": json.dumps(result, indent=2)
+                            "text": result_text
                         }
-                    ]
+                    ],
+                    "isError": False
                 }
             }
-            
+
         except Exception as e:
             logger.error(f"Error in tool {tool_name}: {str(e)}")
+            import traceback
+            print(f"Tool error traceback: {traceback.format_exc()}", file=sys.stderr)
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
-                "error": {
-                    "code": -32603,
-                    "message": f"Tool execution failed: {str(e)}"
+                "result": {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Tool execution failed: {str(e)}"
+                        }
+                    ],
+                    "isError": True
                 }
             }
 
@@ -1556,10 +1603,8 @@ class MCPServer:
     def run(self):
         """Run the MCP server."""
         print("DEBUG: Starting AIA Assessment MCP Server...", file=sys.stderr)
-        logger.info("Starting AIA Assessment MCP Server...")
-        logger.info(f"Loaded {len(self.aia_processor.scorable_questions)} questions")
-        logger.info(f"Question categories: {len(self.aia_processor.question_categories['technical'])} technical, {len(self.aia_processor.question_categories['impact_risk'])} impact/risk, {len(self.aia_processor.question_categories['manual'])} manual")
-        
+        logger.info("Starting AIA Assessment MCP Server (processors load on first tool call)...")
+
         print("DEBUG: Server initialized, waiting for requests...", file=sys.stderr)
         
         try:
