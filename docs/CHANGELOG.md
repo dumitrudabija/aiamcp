@@ -2,6 +2,35 @@
 
 All notable changes to the comprehensive regulatory assessment MCP Server project are documented in this file.
 
+## [3.4.0] - 2026-07-06
+
+### 🎯 Risk Engine Expansion: 8 Risk Dimensions (47 Factors) + Dead Code Removal
+
+This release extends the OSFI E-23 risk engine with two new dimensions and nine new factors covering GenAI-specific risk, data/supply-chain provenance, and systemic/concentration risk, and removes the dead pre-extraction-pipeline scoring code from `osfi_e23_processor.py`.
+
+#### New Dimensions
+- **Data Provenance & Supply Chain Risk** (4 factors): training data documentation, PII in training/context data, third-party/OSS component integrity, synthetic data quality
+- **Systemic & Concentration Risk** (3 factors): infrastructure concentration, foundation model/vendor concentration, portfolio-level AI estate concentration
+
+#### New Factors in Existing Dimensions
+Nine new factors added across the original six dimensions: confabulation/false-authority risk (GenAI), GenAI output quality benchmark, pre-deployment fairness/bias testing, adversarial robustness/prompt-injection testing, AI system classification (routing gate), GenAI scope constraint, automation bias/cognitive dependency, AI-specific incident response, kill switch/circuit breaker.
+
+Total: **47 factors across 8 dimensions** (was 31 factors across 6 dimensions).
+
+#### New Sentinel Values
+- `NOT_APPLICABLE` - factors that opt in via `allow_na` (e.g. synthetic data quality, GenAI-conditional factors) can be explicitly marked not applicable; scores as Low, distinct from `NOT_STATED`
+- `PORTFOLIO_REVIEW_REQUIRED` - the portfolio-level AI estate concentration factor is excluded from its dimension's average when institution-wide inventory data is unavailable, and surfaced in a new `follow_up_actions` list, rather than defaulting to Medium
+
+#### Dead Code Removal
+Removed the entire pre-v3.1 direct-factor-value API from `osfi_e23_processor.py` (`assess_dimension()`, `.calculate_overall_risk()`, the original keyword-indicator-based `.assess_model_risk()`, `evaluate_lifecycle_compliance()`, `create_compliance_framework()`, and their exclusive helper methods) - confirmed to have zero callers from the live MCP tool dispatch path, which has used the two-phase extraction pipeline in `risk_dimension_extraction.py` since v3.1. `osfi_e23_processor.py` now contains only `_generate_governance_requirements()` and `_generate_compliance_recommendations()`, reduced from ~1,574 to ~280 lines.
+
+#### Modified Files
+- `osfi_e23_risk_dimensions.py` - new dimensions/factors, `allow_na`/`allow_review_required` factor flags
+- `risk_dimension_extraction.py` - sentinel value handling, `follow_up_actions` in `process_extraction_response()`
+- `server.py` - `follow_up_actions` threaded into session storage; dimension/factor counts now computed dynamically instead of hardcoded
+- `osfi_e23_report_generators.py` - dynamic dimension table sizing; Annex A renders N/A and Portfolio Review Required rows
+- `osfi_e23_processor.py` - trimmed to live governance/recommendation generation only
+
 ## [3.3.1] - 2025-12-11
 
 ### 🐛 Critical Bug Fix: Annex A "Not Assessed" Issue

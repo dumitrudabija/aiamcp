@@ -524,7 +524,7 @@ class WorkflowEngine:
             "functional_preview": "⚡ Get early functional risk assessment (AIA preview mode)",
             "get_questions": "❓ Retrieve framework questions for manual assessment",
             "assess_project": "🎯 Calculate official AIA risk score using actual responses",
-            "assess_model_risk": "🏦 Conduct OSFI E-23 model risk assessment (6 Risk Dimensions)",
+            "assess_model_risk": "🏦 Conduct OSFI E-23 model risk assessment (8 Risk Dimensions)",
             "export_assessment_report": "📄 Generate comprehensive AIA assessment report",
             "export_e23_report": "📄 Generate stage-specific OSFI E-23 compliance report"
         }

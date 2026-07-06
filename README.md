@@ -228,13 +228,13 @@ The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extract
 **Complete Workflow:** (1) validate_project_description → (2) assess_model_risk → (3) export_e23_report
 
 #### 12. `assess_model_risk`
-🏦 **OSFI E-23 STEP 2 OF 3 - MODEL RISK ASSESSMENT**: Comprehensive model risk assessment using 6 Risk Dimensions (31 factors) with a two-phase extraction workflow.
+🏦 **OSFI E-23 STEP 2 OF 3 - MODEL RISK ASSESSMENT**: Comprehensive model risk assessment using 8 Risk Dimensions (47 factors) with a two-phase extraction workflow.
 
 **v3.3 Two-Phase Extraction Workflow:**
 
 | Phase | What Happens |
 |-------|--------------|
-| **Phase 1** | MCP returns extraction prompt → Claude analyzes description and extracts 31 factor values |
+| **Phase 1** | MCP returns extraction prompt → Claude analyzes description and extracts 47 factor values |
 | **Phase 2** | Claude immediately calls assess_model_risk with `extracted_factors` → MCP validates and scores deterministically → Risk rating produced |
 
 **Key Benefits:**
@@ -243,20 +243,26 @@ The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extract
 - ✅ **Deterministic Scoring** - Same values always produce same risk score
 - ✅ **Transparent Defaults** - Missing info defaults to Medium and shown in Annex A
 
-**6 Risk Dimensions (31 Factors):**
+**8 Risk Dimensions (47 Factors):**
 | Dimension | Factors | Core Question |
 |-----------|---------|---------------|
-| Misuse & Unintended Harm | 4 | Can the model cause harm beyond its intended purpose? |
-| Output Reliability & Integrity | 5 | How trustworthy are the model's outputs? |
-| Fairness & Customer Impact | 6 | Does the model produce equitable outcomes? |
-| Operational & Security Risk | 6 | What are infrastructure and security risks? |
-| Model Complexity & Opacity | 5 | How complex is the model? |
-| Governance & Oversight | 5 | How robust are controls and accountability? |
+| Misuse & Unintended Harm | 5 | Can the model cause harm beyond its intended purpose? |
+| Output Reliability & Integrity | 6 | How trustworthy are the model's outputs? |
+| Fairness & Customer Impact | 7 | Does the model produce equitable outcomes? |
+| Operational & Security Risk | 7 | What are infrastructure and security risks? |
+| Model Complexity & Opacity | 8 | How complex is the model? |
+| Governance & Oversight | 7 | How robust are controls and accountability? |
+| Data Provenance & Supply Chain Risk | 4 | Are the model's data and third-party components understood, approved, and traceable? |
+| Systemic & Concentration Risk | 3 | Do risks exist from shared dependency on a single cloud/vendor/foundation model across the AI estate? |
 
 **NOT_STATED Handling:**
 - Factors not found in description default to Medium risk (score = 2)
 - All NOT_STATED factors tracked and listed in report
 - Recommendations provided to clarify missing information
+
+**NOT_APPLICABLE / PORTFOLIO_REVIEW_REQUIRED Handling (v3.4):**
+- Factors that support it (e.g. synthetic data quality, GenAI-conditional factors) accept an explicit NOT_APPLICABLE value, scored as Low - distinct from a missing/NOT_STATED value
+- The portfolio-level AI estate concentration factor is excluded from its dimension's average when institution-wide inventory data is unavailable, and tracked in a `follow_up_actions` list instead of defaulting to Medium
 
 ⚠️ **COMPLIANCE WARNING**: Requires professional validation.
 
@@ -270,10 +276,10 @@ The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extract
 🏦 **OSFI E-23 STEP 3 OF 3 - REPORT GENERATION**: Generates stage-specific OSFI E-23 compliance report as a Microsoft Word document with risk-scaled lifecycle requirements and checklists.
 
 **v3.3 Features:**
-- ✅ 6 Risk Dimensions summary table with actual risk levels
+- ✅ 8 Risk Dimensions summary table with actual risk levels
 - ✅ Lifecycle requirements scaled by risk level per OSFI Principle 2.3
 - ✅ 1-2 checklist items per requirement area
-- ✅ **Annex A: Detailed Factor Assessment** - Full transparency with 31 factors, scoring matrices, and evidence
+- ✅ **Annex A: Detailed Factor Assessment** - Full transparency with 47 factors, scoring matrices, and evidence
 - ✅ Stage-specific (shows only current stage requirements)
 
 ⚠️ **COMPLIANCE WARNING**: Requires professional validation.
@@ -287,11 +293,11 @@ The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extract
 
 **Report Structure (v3.3):**
 1. **Executive Summary** - Risk level, governance intensity, key risk drivers
-2. **Risk Assessment by Dimension** - 6 dimensions with assessed levels (Low/Medium/High/Critical)
+2. **Risk Assessment by Dimension** - 8 dimensions with assessed levels (Low/Medium/High/Critical)
 3. **[STAGE] Stage Requirements** - Lifecycle requirements with checklists
-4. **Annex A: Detailed Factor Assessment** - 6 tables showing all 31 factors with:
+4. **Annex A: Detailed Factor Assessment** - 8 tables showing all 47 factors with:
    - Scoring Matrix (Low/Medium/High/Critical thresholds)
-   - Determined Value with risk level
+   - Determined Value with risk level (or N/A / Portfolio Review Required for factors using those sentinels)
    - Evidence from project description (empty for NOT_STATED)
 5. **Annex B: OSFI E-23 Principles** - All Principles 1.1-3.6 by Outcome
 
@@ -320,17 +326,19 @@ The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extract
 - **High**: Enhanced governance - Comprehensive oversight, quarterly reviews
 - **Critical**: Maximum governance - Continuous monitoring, monthly reviews
 
-#### Risk Assessment Methodology (v3.0 - 6 Risk Dimensions)
-31 factors across 6 dimensions, each with 4-level scales (Low/Medium/High/Critical):
+#### Risk Assessment Methodology (v3.4 - 8 Risk Dimensions)
+47 factors across 8 dimensions, each with 4-level scales (Low/Medium/High/Critical):
 
 | Dimension | Factors | Core Question |
 |-----------|---------|---------------|
-| **Misuse & Unintended Harm** | 4 | Can the model cause harm beyond its intended purpose? |
-| **Output Reliability & Integrity** | 5 | How trustworthy and consistent are the outputs? |
-| **Fairness & Customer Impact** | 6 | Does the model produce equitable outcomes? |
-| **Operational & Security Risk** | 6 | What are infrastructure, availability, and security risks? |
-| **Model Complexity & Opacity** | 5 | How complex is the model and how well can it be understood? |
-| **Governance & Oversight** | 5 | How robust are controls and accountability structures? |
+| **Misuse & Unintended Harm** | 5 | Can the model cause harm beyond its intended purpose? |
+| **Output Reliability & Integrity** | 6 | How trustworthy and consistent are the outputs? |
+| **Fairness & Customer Impact** | 7 | Does the model produce equitable outcomes? |
+| **Operational & Security Risk** | 7 | What are infrastructure, availability, and security risks? |
+| **Model Complexity & Opacity** | 8 | How complex is the model and how well can it be understood? |
+| **Governance & Oversight** | 7 | How robust are controls and accountability structures? |
+| **Data Provenance & Supply Chain Risk** | 4 | Are the model's data and third-party components understood, approved, and traceable? |
+| **Systemic & Concentration Risk** | 3 | Do risks exist from shared dependency on a single cloud/vendor/foundation model across the AI estate? |
 
 #### Model Lifecycle Management
 5 stages with risk-scaled governance requirements:
@@ -646,7 +654,7 @@ aiamcp/
 │
 ├── OSFI E-23 Modules
 │   ├── osfi_e23_structure.py           # OSFI Principles & lifecycle
-│   ├── osfi_e23_risk_dimensions.py     # 6 Risk Dimensions with 31 factors (v3.0)
+│   ├── osfi_e23_risk_dimensions.py     # 8 Risk Dimensions with 47 factors (v3.4)
 │   ├── risk_dimension_extraction.py    # AI-assisted extraction module (v3.1)
 │   └── osfi_e23_report_generators.py   # Stage-specific report generation
 │

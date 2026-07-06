@@ -1,7 +1,7 @@
 """
 OSFI E-23 Risk Dimensions Framework
 
-This module defines the 6 Risk Dimensions used for model risk assessment
+This module defines the 8 Risk Dimensions used for model risk assessment
 under OSFI Guideline E-23 Model Risk Management.
 
 Risk Dimensions (constant across all models):
@@ -11,6 +11,8 @@ Risk Dimensions (constant across all models):
 4. Operational & Security Risk
 5. Model Complexity & Opacity
 6. Governance & Oversight
+7. Data Provenance & Supply Chain Risk
+8. Systemic & Concentration Risk
 
 Each dimension contains multiple factors (quantitative and qualitative)
 that are assessed on a 4-level scale: Low, Medium, High, Critical.
@@ -100,6 +102,18 @@ RISK_DIMENSIONS = {
                     "high": "Difficult to reverse",
                     "critical": "Irreversible"
                 }
+            },
+            {
+                "id": "confabulation_false_authority",
+                "name": "Confabulation / false-authority risk (GenAI)",
+                "type": FactorType.QUALITATIVE.value,
+                "allow_na": True,
+                "levels": {
+                    "low": "Outputs are grounded/cited or model is non-generative; confabulation rare",
+                    "medium": "Occasional unsupported claims; users advised to verify",
+                    "high": "Frequent confident but unverifiable outputs; limited grounding controls",
+                    "critical": "High-stakes confabulation risk with no fact-checking or human review"
+                }
             }
         ]
     },
@@ -170,6 +184,18 @@ RISK_DIMENSIONS = {
                     "medium": "Most identified",
                     "high": "Some gaps",
                     "critical": "Significant unknowns"
+                }
+            },
+            {
+                "id": "genai_output_quality_benchmark",
+                "name": "GenAI output quality benchmark",
+                "type": FactorType.QUALITATIVE.value,
+                "allow_na": True,
+                "levels": {
+                    "low": "Benchmarked against validation set/human evaluation with documented results, or non-generative",
+                    "medium": "Some benchmarking performed but not comprehensive or independently reviewed",
+                    "high": "Limited or informal benchmarking; no systematic quality evaluation",
+                    "critical": "No output quality benchmarking performed for a generative model in production use"
                 }
             }
         ]
@@ -253,6 +279,17 @@ RISK_DIMENSIONS = {
                     "high": "Moderate",
                     "critical": "Significant"
                 }
+            },
+            {
+                "id": "predeployment_fairness_testing",
+                "name": "Pre-deployment fairness / bias testing",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "Comprehensive pre-deployment fairness testing completed and documented across protected groups",
+                    "medium": "Some fairness testing performed but not comprehensive across all relevant groups",
+                    "high": "Limited or ad hoc fairness testing; gaps in protected-group coverage",
+                    "critical": "No pre-deployment fairness/bias testing conducted"
+                }
             }
         ]
     },
@@ -335,6 +372,18 @@ RISK_DIMENSIONS = {
                     "high": "Limited backup",
                     "critical": "No backup"
                 }
+            },
+            {
+                "id": "adversarial_robustness_testing",
+                "name": "Adversarial robustness / prompt-injection testing",
+                "type": FactorType.QUALITATIVE.value,
+                "allow_na": True,
+                "levels": {
+                    "low": "Adversarial/prompt-injection testing completed with documented mitigations, or not applicable",
+                    "medium": "Some adversarial testing performed but not comprehensive",
+                    "high": "Limited adversarial testing; known gaps in defenses",
+                    "critical": "No adversarial robustness or prompt-injection testing conducted for an exposed system"
+                }
             }
         ]
     },
@@ -403,6 +452,40 @@ RISK_DIMENSIONS = {
                     "medium": "Periodic retrain",
                     "high": "Continuous learning",
                     "critical": "Autonomous adaptation"
+                }
+            },
+            {
+                "id": "ai_system_classification",
+                "name": "AI system classification (routing gate)",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "Traditional ML / rules-based / statistical model, non-generative",
+                    "medium": "Narrow-purpose generative AI with constrained outputs",
+                    "high": "General-purpose generative AI with broad output range",
+                    "critical": "Autonomous/agentic AI system operating with minimal human oversight"
+                }
+            },
+            {
+                "id": "genai_scope_constraint",
+                "name": "GenAI scope constraint",
+                "type": FactorType.QUALITATIVE.value,
+                "allow_na": True,
+                "levels": {
+                    "low": "Outputs tightly scope-constrained (system prompts, grounding, output filters), or non-generative",
+                    "medium": "Some scope constraints in place but with known gaps",
+                    "high": "Limited scope constraints; outputs are largely open-ended",
+                    "critical": "No scope constraints; fully open-ended generative outputs"
+                }
+            },
+            {
+                "id": "automation_bias_dependency",
+                "name": "Automation bias / cognitive dependency",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "Users critically evaluate outputs; low reliance on model recommendations",
+                    "medium": "Some reliance on model outputs; periodic independent judgment applied",
+                    "high": "Significant reliance on model outputs with limited independent verification",
+                    "critical": "Users routinely defer to model outputs without independent verification"
                 }
             }
         ]
@@ -474,6 +557,127 @@ RISK_DIMENSIONS = {
                     "high": "Unclear",
                     "critical": "None assigned"
                 }
+            },
+            {
+                "id": "ai_incident_response",
+                "name": "AI-specific incident response",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "Documented AI-specific incident response plan, tested and current",
+                    "medium": "Incident response plan exists but not AI-specific or not recently tested",
+                    "high": "Incident response plan is informal or incomplete",
+                    "critical": "No incident response plan for AI-related failures or misuse"
+                }
+            },
+            {
+                "id": "kill_switch_circuit_breaker",
+                "name": "Kill switch / circuit breaker",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "Tested kill-switch/circuit-breaker capability to halt or roll back the model exists",
+                    "medium": "Kill-switch capability exists but is untested or only partial",
+                    "high": "Limited ability to halt or roll back the model quickly",
+                    "critical": "No capability to halt, disable, or roll back the model if needed"
+                }
+            }
+        ]
+    },
+
+    "data_provenance_supply_chain": {
+        "id": "data_provenance_supply_chain",
+        "name": "Data Provenance & Supply Chain Risk",
+        "short_name": "Data Provenance & Supply Chain",
+        "core_question": "Are the model's data, training inputs, fine-tuning data, validation data, RAG grounding sources, third-party components, and synthetic data understood, approved, traceable, and controlled?",
+        "osfi_principles": ["3.2", "3.5"],
+        "factors": [
+            {
+                "id": "training_data_documentation",
+                "name": "Training data documentation",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "Data provenance is fully documented for all material datasets, including source, owner, permitted use, lineage, and known limitations.",
+                    "medium": "Most material data sources are documented, but some metadata is incomplete.",
+                    "high": "Data provenance is partially documented, but key sources, ownership, lineage, or permitted use are unclear.",
+                    "critical": "Training, fine-tuning, validation, or grounding data is undocumented, unknown, unapproved, or untraceable."
+                }
+            },
+            {
+                "id": "pii_training_context_data",
+                "name": "PII in training or context data",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "PII/confidential data exposure is documented, minimized, controlled, and tested for leakage in outputs.",
+                    "medium": "PII/confidential exposure is documented and controlled, but leakage testing or retention evidence is incomplete.",
+                    "high": "PII/confidential data may be present, but controls, retention rules, or leakage testing are incomplete or unverified.",
+                    "critical": "Sensitive data exposure is known or likely, with no documented controls, retention safeguards, or leakage testing."
+                }
+            },
+            {
+                "id": "third_party_oss_component_integrity",
+                "name": "Third-party / open-source component integrity",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "All material third-party/open-source components are approved, versioned, monitored, and covered by security/vendor review.",
+                    "medium": "Most components are approved and monitored, but some non-critical dependencies lack complete evidence.",
+                    "high": "Material dependencies exist with incomplete approval, versioning, vulnerability monitoring, or vendor due diligence.",
+                    "critical": "Critical components are unapproved, unverified, unsupported, unmonitored, or cannot be replaced."
+                }
+            },
+            {
+                "id": "synthetic_data_quality",
+                "name": "Synthetic data quality",
+                "type": FactorType.QUALITATIVE.value,
+                "allow_na": True,
+                "levels": {
+                    "low": "No synthetic data is used, or synthetic data is fully documented and validated for representativeness, leakage, distortion, and bias.",
+                    "medium": "Synthetic data is used and partially validated, but some validation dimensions are incomplete.",
+                    "high": "Synthetic data is used materially, but validation is weak, incomplete, or not independently reviewed.",
+                    "critical": "Synthetic data materially affects training/testing/monitoring with no validation or known distortion/leakage issues."
+                }
+            }
+        ]
+    },
+
+    "systemic_concentration_risk": {
+        "id": "systemic_concentration_risk",
+        "name": "Systemic & Concentration Risk",
+        "short_name": "Systemic & Concentration",
+        "core_question": "Do risks exist that are not fully visible when assessing one model in isolation, because many models, processes, or controls depend on the same cloud provider, AI platform, foundation model, data provider, or vendor?",
+        "osfi_principles": ["2.1", "2.2"],
+        "factors": [
+            {
+                "id": "infrastructure_concentration",
+                "name": "Infrastructure concentration",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "Infrastructure is resilient, substitutable, tested, and not dependent on a single irreplaceable provider/component.",
+                    "medium": "Some concentration exists, but there is a documented recovery, failover, or substitution plan.",
+                    "high": "The model depends on a single provider/component and substitution is difficult, untested, or undocumented.",
+                    "critical": "The model depends on a non-substitutable provider/component whose outage would stop a critical business process."
+                }
+            },
+            {
+                "id": "foundation_model_vendor_concentration",
+                "name": "Foundation model / vendor concentration",
+                "type": FactorType.QUALITATIVE.value,
+                "levels": {
+                    "low": "Model/vendor dependency is documented, version-controlled, monitored, and substitutable.",
+                    "medium": "Dependency is documented and monitored, but substitution or vendor change controls are incomplete.",
+                    "high": "The model depends on a common vendor/foundation model with weak substitution, weak update controls, or limited transparency.",
+                    "critical": "Critical function depends on a single foundation model/vendor with no substitution plan, version control, or vendor-change testing."
+                }
+            },
+            {
+                "id": "portfolio_level_ai_estate_concentration",
+                "name": "Portfolio-level AI estate concentration",
+                "type": FactorType.QUALITATIVE.value,
+                "allow_review_required": True,
+                "levels": {
+                    "low": "No single provider supports a material share of critical AI functions, or concentration is actively mitigated.",
+                    "medium": "Some concentration exists, but it is documented, monitored, and covered by contingency planning.",
+                    "high": "A single provider/model/platform supports a material share of important functions with incomplete mitigation.",
+                    "critical": "A single provider/model/platform supports a material share of critical functions with no effective substitution or contingency plan."
+                }
             }
         ]
     }
@@ -490,7 +694,9 @@ DIMENSION_ORDER = [
     "fairness_customer_impact",
     "operational_security",
     "complexity_opacity",
-    "governance_oversight"
+    "governance_oversight",
+    "data_provenance_supply_chain",
+    "systemic_concentration_risk"
 ]
 
 

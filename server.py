@@ -50,7 +50,7 @@ class MCPServer:
 
         self.server_info = {
             "name": "aia-assessment-server",
-            "version": "3.3.1"
+            "version": "3.4.0"
         }
         self.introduction_shown = False
 
@@ -1267,6 +1267,11 @@ class MCPServer:
             generate_extraction_prompt,
             get_extraction_prompt_for_description
         )
+        from osfi_e23_risk_dimensions import (
+            DIMENSION_ORDER,
+            get_dimension_names,
+            get_total_factor_count
+        )
 
         logger.info(f"Phase 1: Generating extraction prompt for: {project_name}")
 
@@ -1308,16 +1313,9 @@ class MCPServer:
 
             # Risk dimensions being assessed
             "risk_dimensions": {
-                "count": 6,
-                "dimensions": [
-                    "Misuse & Unintended Harm Potential",
-                    "Output Reliability & Integrity",
-                    "Fairness & Customer Impact",
-                    "Operational & Security Risk",
-                    "Model Complexity & Opacity",
-                    "Governance & Oversight"
-                ],
-                "total_factors": 31
+                "count": len(DIMENSION_ORDER),
+                "dimensions": get_dimension_names(),
+                "total_factors": get_total_factor_count()
             },
 
             # Validation status
@@ -1400,6 +1398,9 @@ class MCPServer:
                 "recommendation": "Consider clarifying these in project documentation",
                 "report_section": format_not_stated_for_report(not_stated)
             },
+
+            # Factors flagged for follow-up (e.g. portfolio-level review) rather than scored
+            "follow_up_actions": assessment_result.get("follow_up_actions", []),
 
             # Governance requirements
             "governance_requirements": governance,

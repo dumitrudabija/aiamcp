@@ -113,6 +113,11 @@ def _get_not_stated_constant() -> str:
 NOT_STATED = _get_not_stated_constant()
 VALID_RISK_LEVELS = ["low", "medium", "high", "critical", NOT_STATED]
 
+# Sentinels for qualitative factors that opt in via "allow_na"/"allow_review_required"
+# in their factor definition (osfi_e23_risk_dimensions.py). Not valid on other factors.
+NOT_APPLICABLE = "NOT_APPLICABLE"
+PORTFOLIO_REVIEW_REQUIRED = "PORTFOLIO_REVIEW_REQUIRED"
+
 
 # =============================================================================
 # DEFAULT PROMPT TEMPLATES (used when config not found or missing keys)
@@ -273,6 +278,18 @@ def generate_extraction_prompt(project_description: str) -> str:
                     NOT_STATED=NOT_STATED
                 )
 
+            if factor.get("allow_na"):
+                question += (
+                    f'\n      Note: If this factor genuinely does not apply to this system, '
+                    f'answer "{NOT_APPLICABLE}" (scored as Low).'
+                )
+            if factor.get("allow_review_required"):
+                question += (
+                    f'\n      Note: If portfolio/inventory data is unavailable to answer this, '
+                    f'answer "{PORTFOLIO_REVIEW_REQUIRED}" rather than guessing - this will be '
+                    f'flagged for follow-up review instead of being scored or defaulted to Medium.'
+                )
+
             factor_questions.append(question)
 
         section = dimension_template.format(
@@ -292,6 +309,13 @@ def generate_extraction_prompt(project_description: str) -> str:
         json_template=_generate_json_template()
     )
     important_notes = _get_template("important_notes").format(NOT_STATED=NOT_STATED)
+    important_notes += (
+        f'\n- Some qualitative factors also accept "{NOT_APPLICABLE}" (see factor-specific notes above) '
+        f'when the factor genuinely does not apply; this scores as Low risk.'
+        f'\n- Factor "portfolio_level_ai_estate_concentration" accepts "{PORTFOLIO_REVIEW_REQUIRED}" when '
+        f'portfolio/inventory data is unavailable; this is excluded from scoring and flagged for follow-up '
+        f'rather than defaulted to Medium.'
+    )
 
     # Assemble the full prompt
     prompt = f"""{header}
@@ -348,7 +372,13 @@ def _generate_json_template() -> str:
             if factor_type == FactorType.QUANTITATIVE.value:
                 value_example = f'"<number or {NOT_STATED}>"'
             else:
-                value_example = f'"<low|medium|high|critical|{NOT_STATED}>"'
+                options = "low|medium|high|critical"
+                if factor.get("allow_na"):
+                    options += f"|{NOT_APPLICABLE}"
+                if factor.get("allow_review_required"):
+                    options += f"|{PORTFOLIO_REVIEW_REQUIRED}"
+                options += f"|{NOT_STATED}"
+                value_example = f'"<{options}>"'
 
             comma = "," if j < len(factors) - 1 else ""
             factor_lines.append(
@@ -458,6 +488,18 @@ def _validate_factor_value(
         Tuple of (validated_value, is_not_stated, list_of_issues)
     """
     issues = []
+    raw_str = str(raw_value).strip().upper() if raw_value is not None else None
+
+    # Portfolio-review-required sentinel: only for factors that opt in via allow_review_required.
+    # Missing/NOT_STATED input on such a factor means "flag for follow-up", not "default to Medium".
+    if factor_def.get("allow_review_required") and (
+        raw_value is None or raw_str in (NOT_STATED, PORTFOLIO_REVIEW_REQUIRED, "")
+    ):
+        return PORTFOLIO_REVIEW_REQUIRED, False, issues
+
+    # Not-applicable sentinel: only recognized for factors that opt in via allow_na.
+    if factor_def.get("allow_na") and raw_str == NOT_APPLICABLE:
+        return NOT_APPLICABLE, False, issues
 
     # Handle NOT_STATED or missing values
     if raw_value is None or raw_value == NOT_STATED or str(raw_value).upper() == NOT_STATED:
@@ -527,7 +569,10 @@ def score_factor(
         "is_not_stated": is_not_stated,
         "risk_level": "medium",  # Default
         "numeric_score": 2,  # Medium = 2
-        "scoring_notes": ""
+        "scoring_notes": "",
+        "is_not_applicable": False,
+        "is_portfolio_review_required": False,
+        "excluded_from_dimension_average": False
     }
 
     if is_not_stated:
@@ -590,6 +635,25 @@ def _score_qualitative(
     result: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Score a qualitative factor based on level mapping."""
+    if value == NOT_APPLICABLE:
+        risk_level = factor_def.get("na_risk_level", "low")
+        result["is_not_applicable"] = True
+        result["risk_level"] = risk_level
+        result["numeric_score"] = RISK_LEVEL_SCORES.get(risk_level, 1)
+        result["scoring_notes"] = f"Not Applicable - scored as {risk_level.title()} per factor definition"
+        return result
+
+    if value == PORTFOLIO_REVIEW_REQUIRED:
+        result["is_portfolio_review_required"] = True
+        result["excluded_from_dimension_average"] = True
+        result["risk_level"] = "not_assessed"
+        result["numeric_score"] = 0
+        result["scoring_notes"] = (
+            "Portfolio/inventory data unavailable - flagged for follow-up review; "
+            "excluded from dimension average (not defaulted to Medium)"
+        )
+        return result
+
     # Qualitative levels map directly to risk levels
     risk_level = value.lower() if isinstance(value, str) else "medium"
 
@@ -633,12 +697,32 @@ def score_dimension(
             "numeric_score": 0,
             "factor_count": 0,
             "not_stated_count": 0,
+            "excluded_factor_count": 0,
+            "excluded_factor_ids": [],
             "scoring_method": "none"
         }
 
-    total_score = sum(f["numeric_score"] for f in factor_scores)
-    not_stated_count = sum(1 for f in factor_scores if f["is_not_stated"])
-    avg_score = total_score / len(factor_scores)
+    # Factors flagged as excluded (e.g. portfolio-review-required) are tracked for
+    # transparency but do not count toward the dimension average - unlike NOT_STATED,
+    # which defaults to Medium and does count.
+    usable = [f for f in factor_scores if not f.get("excluded_from_dimension_average")]
+    excluded = [f for f in factor_scores if f.get("excluded_from_dimension_average")]
+
+    if not usable:
+        return {
+            "dimension_id": dim_id,
+            "risk_level": "not_assessed",
+            "numeric_score": 0,
+            "factor_count": 0,
+            "not_stated_count": 0,
+            "excluded_factor_count": len(excluded),
+            "excluded_factor_ids": [f["factor_id"] for f in excluded],
+            "scoring_method": "none"
+        }
+
+    total_score = sum(f["numeric_score"] for f in usable)
+    not_stated_count = sum(1 for f in usable if f["is_not_stated"])
+    avg_score = total_score / len(usable)
 
     # Map average to risk level
     if avg_score < 1.5:
@@ -654,8 +738,10 @@ def score_dimension(
         "dimension_id": dim_id,
         "risk_level": risk_level,
         "numeric_score": round(avg_score, 2),
-        "factor_count": len(factor_scores),
+        "factor_count": len(usable),
         "not_stated_count": not_stated_count,
+        "excluded_factor_count": len(excluded),
+        "excluded_factor_ids": [f["factor_id"] for f in excluded],
         "scoring_method": "simple_average",
         "scoring_note": "Weighting can be customized per institutional requirements"
     }
@@ -786,6 +872,31 @@ def process_extraction_response(
         if dim:
             dimension_scores[dim_id]["dimension_name"] = dim["name"]
 
+    # Step 3.5: Build follow-up actions from any factors flagged for portfolio review
+    follow_up_actions = []
+    for dim_id, scores in factor_scores.items():
+        dim = get_dimension(dim_id)
+        for fs in scores:
+            if fs.get("is_portfolio_review_required"):
+                factor_name = fs["factor_id"]
+                if dim:
+                    factor_name = next(
+                        (f["name"] for f in dim.get("factors", []) if f["id"] == fs["factor_id"]),
+                        fs["factor_id"]
+                    )
+                follow_up_actions.append({
+                    "dimension": dim_id,
+                    "dimension_name": dim["name"] if dim else dim_id,
+                    "factor": fs["factor_id"],
+                    "factor_name": factor_name,
+                    "action_required": "Portfolio Review Required - Insufficient inventory data",
+                    "recommendation": (
+                        "Conduct a portfolio-level AI/ML estate inventory review to assess "
+                        "systemic concentration risk, then resubmit this factor for scoring."
+                    ),
+                    "sentinel": PORTFOLIO_REVIEW_REQUIRED
+                })
+
     # Step 4: Calculate overall risk
     overall = calculate_overall_risk(dimension_scores)
 
@@ -800,6 +911,7 @@ def process_extraction_response(
             "factors": validated.get("not_stated_factors", []),
             "note": "These factors were not found in the project description and defaulted to Medium risk"
         },
+        "follow_up_actions": follow_up_actions,
         "validation_issues": issues,
         "metadata": {
             "extraction_metadata": validated.get("extraction_metadata", {}),

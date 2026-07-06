@@ -9,11 +9,11 @@ Everything needed to get this running on a new machine.
 A Model Context Protocol (MCP) server that plugs into Claude Desktop and provides structured regulatory assessment tools for:
 
 - **AIA** — Canada's Algorithmic Impact Assessment (Treasury Board Secretariat, 104 questions, 4-tier risk)
-- **OSFI E-23** — Model Risk Management for federally regulated financial institutions (6 Risk Dimensions, 31 factors)
+- **OSFI E-23** — Model Risk Management for federally regulated financial institutions (8 Risk Dimensions, 47 factors)
 
 The server runs locally over stdio; Claude Desktop calls its tools the same way it calls any other MCP tool. No cloud dependency for the server itself.
 
-Current version: **3.3.1**
+Current version: **3.4.0**
 
 ---
 
@@ -155,8 +155,8 @@ Or use whichever Python path you configured in the Claude Desktop config.
 |---|---|
 | `server.py` | Thin MCP orchestration layer; routes tool calls to modules |
 | `aia_processor.py` | AIA question extraction and scoring |
-| `osfi_e23_processor.py` | OSFI E-23 risk methodology |
-| `osfi_e23_risk_dimensions.py` | 6 Risk Dimensions, 31 factors definition |
+| `osfi_e23_processor.py` | Governance requirement / compliance recommendation generation |
+| `osfi_e23_risk_dimensions.py` | 8 Risk Dimensions, 47 factors definition |
 | `risk_dimension_extraction.py` | AI-assisted extraction + deterministic scoring |
 | `workflow_engine.py` | Session state, auto-sequencing, dependency validation |
 | `config/extraction_prompts.yaml` | Tunable prompt templates (edit to adjust extraction behavior) |
@@ -170,7 +170,7 @@ Or use whichever Python path you configured in the Claude Desktop config.
 
 ### OSFI E-23 (3 steps)
 1. `validate_project_description` — gates entry, checks 6 content areas
-2. `assess_model_risk` — two-phase: MCP returns extraction prompt → Claude extracts 31 factors → calls back with values → deterministic scoring
+2. `assess_model_risk` — two-phase: MCP returns extraction prompt → Claude extracts 47 factors → calls back with values → deterministic scoring
 3. `export_e23_report` — Word doc; retrieves data from server-side session automatically (no need to pass results)
 
 ### AIA (5 steps)

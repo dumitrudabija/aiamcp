@@ -185,21 +185,25 @@ def __init__(self):
 
 ### OSFI E-23 Modules (v3.0)
 
-#### osfi_e23_risk_dimensions.py (NEW in v3.0)
-**Responsibility**: 6 Risk Dimensions framework with 31 factors
+#### osfi_e23_risk_dimensions.py (NEW in v3.0, expanded v3.4)
+**Responsibility**: 8 Risk Dimensions framework with 47 factors
 
 **Contains**:
 - `RISK_DIMENSIONS`: Complete dimension definitions with factors and thresholds
 - `DIMENSION_ORDER`: Ordered list of dimension IDs
 - Helper functions: `get_dimension()`, `get_all_dimensions()`, `get_dimension_factors()`
 
-**6 Dimensions**:
-1. Misuse & Unintended Harm (4 factors)
-2. Output Reliability & Integrity (5 factors)
-3. Fairness & Customer Impact (6 factors)
-4. Operational & Security Risk (6 factors)
-5. Model Complexity & Opacity (5 factors)
-6. Governance & Oversight (5 factors)
+**8 Dimensions**:
+1. Misuse & Unintended Harm (5 factors)
+2. Output Reliability & Integrity (6 factors)
+3. Fairness & Customer Impact (7 factors)
+4. Operational & Security Risk (7 factors)
+5. Model Complexity & Opacity (8 factors)
+6. Governance & Oversight (7 factors)
+7. Data Provenance & Supply Chain Risk (4 factors)
+8. Systemic & Concentration Risk (3 factors)
+
+**NOT_APPLICABLE / PORTFOLIO_REVIEW_REQUIRED (v3.4)**: Factors that opt into `allow_na` (e.g. synthetic data quality, GenAI-conditional factors) accept a NOT_APPLICABLE value scored as Low. The portfolio-level AI estate concentration factor opts into `allow_review_required`, which excludes it from its dimension's average when institution-wide inventory data is unavailable, rather than defaulting to Medium.
 
 ---
 
@@ -211,7 +215,7 @@ def __init__(self):
 - **Phase 2**: Validate and score extracted JSON deterministically
 
 **Key Functions**:
-- `generate_extraction_prompt(description)`: Creates structured prompt for all 31 factors
+- `generate_extraction_prompt(description)`: Creates structured prompt for all 47 factors
 - `validate_extraction_response(response)`: Validates JSON against dimension schema
 - `score_factor()`: Deterministic threshold/level scoring per factor
 - `score_dimension()`: Aggregate factor scores to dimension risk
@@ -230,6 +234,10 @@ def __init__(self):
 - Missing values default to Medium risk (score = 2)
 - Tracked separately for reporting transparency
 - Report includes list of NOT_STATED factors with clarification recommendations
+
+**NOT_APPLICABLE / PORTFOLIO_REVIEW_REQUIRED Handling (v3.4)**:
+- Factors with `allow_na: True` accept a NOT_APPLICABLE value, scored as Low (distinct from NOT_STATED - a deliberate answer, not a gap)
+- The portfolio-level AI estate concentration factor (`allow_review_required: True`) is excluded from its dimension's average when unresolved, and surfaced in a `follow_up_actions` list instead of defaulting to Medium
 
 **Design Principles**:
 1. AI extracts facts, Python scores deterministically
@@ -256,10 +264,10 @@ def __init__(self):
 **Responsibility**: Stage-specific OSFI E-23 report generation
 
 **Features**:
-- 6 Risk Dimensions assessment table
+- 8 Risk Dimensions assessment table
 - Risk-scaled lifecycle requirements from `LIFECYCLE_REQUIREMENTS_BY_RISK`
 - 1-2 checklist items per requirement area
-- Compact ~4 page format
+- Compact ~8-12 page format
 
 ---
 
@@ -406,27 +414,27 @@ aia_report_generator._export_assessment_report()
 Word Document (.docx)
 ```
 
-### OSFI E-23 Assessment Flow (5-Step Workflow)
+### OSFI E-23 Assessment Flow (3-Step Workflow, v3.0+)
 
 ```
 User Request
     ↓
 server.py (MCP Handler)
     ↓
-STEP 1: description_validator.validate()
+STEP 1: description_validator.validate_description()
     ↓ (pass/fail + coverage %)
     ↓
-STEP 2: osfi_e23_processor.assess_model_risk()
-    ↓ (risk score, level, detailed breakdown)
+STEP 2: assess_model_risk - two-phase
+    ↓ Phase 1: risk_dimension_extraction.get_extraction_prompt_for_description()
+    ↓         (returns extraction prompt; Claude extracts 47 factor values)
+    ↓ Phase 2: risk_dimension_extraction.process_extraction_response()
+    ↓         (deterministic factor/dimension/overall scoring, incl. NOT_STATED/
+    ↓          NOT_APPLICABLE/PORTFOLIO_REVIEW_REQUIRED handling)
+    ↓ osfi_e23_processor._generate_governance_requirements() / _generate_compliance_recommendations()
+    ↓ (risk score, level, dimension/factor breakdown, governance, follow_up_actions)
     ↓
-STEP 3: osfi_e23_processor.evaluate_lifecycle_compliance()
-    ↓ (coverage %, stage detection, gaps)
-    ↓
-STEP 4: osfi_e23_processor.create_compliance_framework()
-    ↓ (governance, checklist, monitoring)
-    ↓
-STEP 5: osfi_e23_report_generators.generate_osfi_e23_report()
-    ↓ (aggregates data from Steps 2-4)
+STEP 3: osfi_e23_report_generators.generate_osfi_e23_report()
+    ↓ (assessment data retrieved from server-side session, not passed by caller)
     ↓
 Word Document (.docx)
 ```

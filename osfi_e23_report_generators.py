@@ -2,7 +2,7 @@
 OSFI E-23 Report Generation - v3.0 Risk Dimensions Framework
 
 Generates concise, professional OSFI E-23 compliance reports using:
-- 6 Risk Dimensions for assessment display
+- 8 Risk Dimensions for assessment display
 - LIFECYCLE_REQUIREMENTS_BY_RISK for governance checklists
 - Risk-scaled requirements based on assessed risk level
 """
@@ -42,9 +42,9 @@ def generate_osfi_e23_report(
 
     Report Structure:
     1. Executive Summary
-    2. Risk Assessment by Dimension (6 dimensions summary)
+    2. Risk Assessment by Dimension (8 dimensions summary)
     3. [STAGE] Lifecycle Requirements (with 1-2 checklist items each)
-    Annex A: Detailed Factor Assessment (6 tables, one per dimension)
+    Annex A: Detailed Factor Assessment (8 tables, one per dimension)
     Annex B: OSFI E-23 Principles
 
     Target: ~6-8 pages with professional formatting.
@@ -140,7 +140,7 @@ def _add_data_source_transparency(doc: Document):
     run = p.add_run('🔧 MCP SERVER OUTPUT: ')
     run.bold = True
     p.add_run(
-        'Risk scores calculated using 6 Risk Dimensions with deterministic factor assessment. '
+        'Risk scores calculated using 8 Risk Dimensions with deterministic factor assessment. '
         'Governance requirements derived from risk-level-based lookup tables. '
         'All scoring weights and thresholds are tunable parameters for institutional customization.'
     )
@@ -230,7 +230,7 @@ def _add_dimension_assessment(doc: Document, dimension_assessments: Dict[str, An
     p.paragraph_format.space_after = Pt(12)
 
     # Create dimension assessment table
-    table = doc.add_table(rows=7, cols=3)
+    table = doc.add_table(rows=len(DIMENSION_ORDER) + 1, cols=3)
     table.style = 'Light Grid Accent 1'
 
     # Header row
@@ -583,9 +583,15 @@ def _add_annex_factor_assessment(doc: Document, dimension_assessments: Dict[str,
                 # Note: factor_score_data uses "value" key (not "extracted_value")
                 extracted_value = factor_score_data.get("value")
                 is_not_stated = factor_score_data.get("is_not_stated", False)
+                is_review_required = factor_score_data.get("is_portfolio_review_required", False)
+                is_not_applicable = factor_score_data.get("is_not_applicable", False)
                 risk_level = factor_score_data.get("risk_level", "medium")
 
-                if is_not_stated or extracted_value is None:
+                if is_review_required:
+                    determined_value = "Portfolio Review Required\n(Insufficient inventory data)"
+                elif is_not_applicable:
+                    determined_value = f"N/A\n({risk_level.title()} - Not Applicable)"
+                elif is_not_stated or extracted_value is None:
                     determined_value = "NOT_STATED\n(Medium - default)"
                 else:
                     determined_value = f"{extracted_value}\n({risk_level.title()})"

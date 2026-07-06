@@ -244,7 +244,7 @@
 
 1. **Principle 2.3 Compliance**: Requirements scale with risk level. Higher risk models require more rigorous governance controls at each lifecycle stage.
 
-2. **Risk Level Determination**: Use the 6 Risk Dimensions assessment framework (see `osfi_e23_risk_dimensions.py`) to determine model risk level.
+2. **Risk Level Determination**: Use the 8 Risk Dimensions assessment framework (see `osfi_e23_risk_dimensions.py`) to determine model risk level.
 
 3. **Customization Required**: These requirements are exemplification based on OSFI E-23 guidance. Financial institutions must customize thresholds, approval authorities, and specific requirements to align with their institutional risk framework.
 

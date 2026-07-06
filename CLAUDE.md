@@ -16,7 +16,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 
 **Framework Processors**
 - **aia_processor.py**: Core AIA assessment logic and official framework compliance
-- **osfi_e23_processor.py**: OSFI E-23 model risk management assessment logic
+- **osfi_e23_processor.py**: Governance requirement and compliance recommendation generation for OSFI E-23 (risk scoring itself lives in risk_dimension_extraction.py)
 - **description_validator.py**: Project description validation for framework readiness
 
 **AIA Modules** (v2.0.0)
@@ -24,7 +24,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **aia_report_generator.py**: Professional Word document generation for AIA compliance
 
 **OSFI E-23 Modules**
-- **osfi_e23_risk_dimensions.py**: 6 Risk Dimensions framework with 31 factors (v3.0)
+- **osfi_e23_risk_dimensions.py**: 8 Risk Dimensions framework with 47 factors (v3.4)
 - **risk_dimension_extraction.py**: AI-assisted contextual extraction with deterministic scoring (v3.1)
 - **osfi_e23_structure.py**: Official OSFI Principles, lifecycle definitions, and dimension-to-lifecycle mapping
 - **osfi_e23_report_generators.py**: Stage-specific report generation
@@ -47,7 +47,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **Introduction Workflow Enforcement**: Mandatory get_server_introduction call before any assessment tools, ensuring users understand frameworks and data sources
 - **Explicit Workflow Sequences (v3.0)**: 3-step OSFI E-23 workflow (validate → assess → export) and 5-step AIA workflow in get_server_introduction response
 - **Behavioral Directives (v1.15.0)**: Strong instructions embedded in tool responses (via introduction_builder.py) to present introduction first, show all workflow steps, and wait for user choice before proceeding
-- **Streamlined Risk-Adaptive Reports**: OSFI E-23 exports generate ~6-8 page documents with standardized structure (Executive Summary, Risk by Dimension, Stage Requirements, Annex A Factor Details, Annex B Principles)
+- **Streamlined Risk-Adaptive Reports**: OSFI E-23 exports generate ~8-12 page documents with standardized structure (Executive Summary, Risk by Dimension, Stage Requirements, Annex A Factor Details, Annex B Principles)
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Enhanced Workflow Visibility**: Complete workflow roadmap with numbered steps, descriptions, and progress tracking
 - **Flexible Dependency Resolution**: Export tools can work with either preview or full assessments
@@ -184,11 +184,13 @@ pip install -r requirements.txt
 ### OSFI E-23 Framework Requirements
 - **Complete 3-Step Workflow (v3.0)**: (1) validate_project_description, (2) assess_model_risk (user confirms lifecycle stage), (3) export_e23_report
 - **Two-Phase Extraction Workflow (v3.3)**: assess_model_risk uses AI-assisted extraction:
-  - **Phase 1**: MCP returns extraction prompt → Claude analyzes and extracts 31 factor values
+  - **Phase 1**: MCP returns extraction prompt → Claude analyzes and extracts 47 factor values
   - **Phase 2**: Claude immediately calls assess_model_risk with `extracted_factors` → MCP validates and scores deterministically
   - **No user confirmation step** - transparency achieved through Annex A in final report
-- **6 Risk Dimensions (v3.0)**: Risk assessment uses 6 dimensions with 31 factors (15 quantitative, 16 qualitative)
+- **8 Risk Dimensions (v3.4)**: Risk assessment uses 8 dimensions with 47 factors (15 quantitative, 32 qualitative) - adds Data Provenance & Supply Chain Risk (4 factors) and Systemic & Concentration Risk (3 factors) to the original 6 dimensions, plus 9 new factors (GenAI confabulation risk, GenAI output benchmarking, pre-deployment fairness testing, adversarial/prompt-injection testing, AI system classification, GenAI scope constraint, automation bias, AI incident response, kill switch) folded into the original 6
 - **NOT_STATED Handling**: Missing factors default to Medium risk (score=2), tracked for transparency in Annex A
+- **NOT_APPLICABLE Handling (v3.4)**: Factors that opt in via `allow_na` (e.g. synthetic data quality, GenAI-conditional factors) score as Low when explicitly marked not applicable, distinct from NOT_STATED
+- **PORTFOLIO_REVIEW_REQUIRED Handling (v3.4)**: The portfolio-level AI estate concentration factor is excluded from its dimension's average when institution-wide inventory data is unavailable (rather than defaulting to Medium), and is tracked in a `follow_up_actions` list
 - **Lifecycle Management**: 5-stage model lifecycle (Design, Review, Deployment, Monitoring, Decommission)
 - **Governance Framework**: Risk-based approval authorities and oversight requirements
 - **Professional Compliance**: Built-in warnings about regulatory validation requirements
@@ -206,7 +208,7 @@ pip install -r requirements.txt
 
 **Framework Processors (Official Logic - Modify with Extreme Caution)**
 - **aia_processor.py**: Official AIA question extraction and scoring - regulatory compliance required
-- **osfi_e23_processor.py**: OSFI E-23 risk methodology - changes must align with regulatory requirements
+- **osfi_e23_processor.py**: Governance requirement and compliance recommendation generation (risk scoring lives in osfi_e23_risk_dimensions.py / risk_dimension_extraction.py) - changes must align with regulatory requirements
 - **osfi_e23_structure.py**: Official OSFI Principles (1.1-3.6) and lifecycle definitions - verify against OSFI E-23 guideline
 
 **AIA Modules (v2.0.0)**
@@ -214,7 +216,7 @@ pip install -r requirements.txt
 - **aia_report_generator.py**: AIA document generation - changes affect compliance report format
 
 **OSFI E-23 Modules**
-- **osfi_e23_risk_dimensions.py**: 6 Risk Dimensions with 31 factors - core risk framework definition
+- **osfi_e23_risk_dimensions.py**: 8 Risk Dimensions with 47 factors - core risk framework definition
 - **risk_dimension_extraction.py**: AI-assisted extraction module - generates prompts and scores deterministically
 - **osfi_e23_report_generators.py**: Stage-specific report generation - changes affect regulatory document output
 
@@ -261,7 +263,7 @@ pip install -r requirements.txt
 - **Workflow Management**: create_workflow, execute_workflow_step, get_workflow_status, auto_execute_workflow
 - **Validation Tools**: validate_project_description
 - **AIA Tools**: analyze_project_description, get_questions, assess_project, functional_preview, export_assessment_report
-- **OSFI E-23 Tools**: assess_model_risk (6 Risk Dimensions + lifecycle stage), export_e23_report (stage-specific requirements + checklists; assessment data retrieved automatically from server-side session — do NOT pass assessment_results)
+- **OSFI E-23 Tools**: assess_model_risk (8 Risk Dimensions + lifecycle stage), export_e23_report (stage-specific requirements + checklists; assessment data retrieved automatically from server-side session — do NOT pass assessment_results)
 
 ## Key Architectural Decisions
 
@@ -279,15 +281,15 @@ pip install -r requirements.txt
 - **Session-Based Data Retrieval**: `export_e23_report` does NOT accept `assessment_results` as a parameter — the server retrieves assessment data automatically from server-side session state populated by `assess_model_risk`. Do not pass assessment data in the tool call.
 - **Streamlined Format**: Executive Summary, Risk Assessment by Dimension, Stage Requirements, Annex A (Factor Details), Annex B (OSFI Principles)
 - **Section 1: Executive Summary**: Risk level, governance requirements, key risk drivers from dimension assessment
-- **Section 2: Risk Assessment by Dimension**: Summary table showing 6 dimensions with risk level (Low/Medium/High/Critical) and core question
+- **Section 2: Risk Assessment by Dimension**: Summary table showing 8 dimensions with risk level (Low/Medium/High/Critical) and core question
 - **Section 3: [STAGE] Stage Requirements**: Lifecycle-specific checklist items scaled to risk level per OSFI Principle 2.3
-- **Annex A: Detailed Factor Assessment** (v3.3.0 NEW): Full transparency with 6 tables (one per dimension) showing:
+- **Annex A: Detailed Factor Assessment** (v3.3.0 NEW): Full transparency with 8 tables (one per dimension) showing:
   - Factor name
   - Scoring Matrix (Low/Medium/High/Critical thresholds)
-  - Determined Value with risk level (e.g., "500000 (Low)" or "NOT_STATED (Medium - default)")
+  - Determined Value with risk level (e.g., "500000 (Low)", "NOT_STATED (Medium - default)", "N/A (Low - Not Applicable)" for `allow_na` factors, or "Portfolio Review Required (Insufficient inventory data)" for the portfolio-concentration factor)
   - Evidence quote from project description (empty for NOT_STATED)
 - **Annex B: OSFI E-23 Principles**: All Principles 1.1-3.6 organized by Outcome
-- **Target Length**: Approximately 6-8 pages with professional formatting
+- **Target Length**: Approximately 8-12 pages with professional formatting
 - **Customizable Weights**: Explicit note that scoring weights are exemplification - can be tuned to institutional specifications
 
 ### Error Handling

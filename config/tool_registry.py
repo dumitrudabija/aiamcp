@@ -291,7 +291,7 @@ class ToolRegistry:
             {
                 "name": "assess_model_risk",
                 "description": (
-                    "Run an OSFI E-23 model risk assessment using 6 Risk Dimensions and 31 factors. "
+                    "Run an OSFI E-23 model risk assessment using 8 Risk Dimensions and 47 factors. "
                     "Two-phase workflow: the first call (without extracted_factors) returns an "
                     "extraction prompt; the second call (with extracted_factors) performs "
                     "deterministic scoring and returns the risk rating. "

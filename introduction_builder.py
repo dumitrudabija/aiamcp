@@ -87,7 +87,7 @@ class IntroductionBuilder:
                 "title": "🧠 AI-Assisted Contextual Extraction with Deterministic Scoring",
                 "description": "Step 2 uses a two-phase approach that combines AI understanding with rule-based scoring",
                 "how_it_works": [
-                    "📝 Phase 1: I analyze your project description and extract values for 31 risk factors across 6 dimensions",
+                    "📝 Phase 1: I analyze your project description and extract values for 47 risk factors across 8 dimensions",
                     "✅ You confirm: I present the extracted values for your review and confirmation",
                     "🔢 Phase 2: The MCP server scores deterministically using fixed thresholds (no AI interpretation)",
                     "📊 Result: Transparent, reproducible risk scores with clear audit trail"
@@ -100,14 +100,16 @@ class IntroductionBuilder:
                 ]
             },
             "risk_dimensions": {
-                "title": "📊 6 Risk Dimensions (31 Factors)",
+                "title": "📊 8 Risk Dimensions (47 Factors)",
                 "dimensions": [
-                    {"name": "Misuse & Unintended Harm", "factors": 4, "example": "Financial exposure, decision volume, scope expansion"},
-                    {"name": "Output Reliability & Integrity", "factors": 5, "example": "Error rate, consistency, explainability"},
-                    {"name": "Fairness & Customer Impact", "factors": 6, "example": "Disparate impact, population affected, adverse action severity"},
-                    {"name": "Operational & Security Risk", "factors": 6, "example": "Uptime requirements, data sensitivity, attack surface"},
-                    {"name": "Model Complexity & Opacity", "factors": 5, "example": "Feature count, model type, autonomy level"},
-                    {"name": "Governance & Oversight", "factors": 5, "example": "Human review, regulatory scrutiny, model ownership"}
+                    {"name": "Misuse & Unintended Harm", "factors": 5, "example": "Financial exposure, decision volume, scope expansion, confabulation risk"},
+                    {"name": "Output Reliability & Integrity", "factors": 6, "example": "Error rate, consistency, explainability, GenAI output benchmark"},
+                    {"name": "Fairness & Customer Impact", "factors": 7, "example": "Disparate impact, population affected, adverse action severity, pre-deployment fairness testing"},
+                    {"name": "Operational & Security Risk", "factors": 7, "example": "Uptime requirements, data sensitivity, attack surface, adversarial robustness testing"},
+                    {"name": "Model Complexity & Opacity", "factors": 8, "example": "Feature count, model type, autonomy level, AI system classification, automation bias"},
+                    {"name": "Governance & Oversight", "factors": 7, "example": "Human review, regulatory scrutiny, model ownership, AI incident response, kill switch"},
+                    {"name": "Data Provenance & Supply Chain Risk", "factors": 4, "example": "Training data documentation, PII in training/context data, third-party/OSS component integrity, synthetic data quality"},
+                    {"name": "Systemic & Concentration Risk", "factors": 3, "example": "Infrastructure concentration, foundation-model/vendor concentration, portfolio-level AI estate concentration"}
                 ],
                 "scoring": "Each factor scored on 4-level scale: Low (1) | Medium (2) | High (3) | Critical (4)"
             },
@@ -143,9 +145,9 @@ class IntroductionBuilder:
                 {
                     "step": 2,
                     "tool": "assess_model_risk",
-                    "purpose": "Risk assessment using 6 Risk Dimensions with AI-assisted extraction",
+                    "purpose": "Risk assessment using 8 Risk Dimensions with AI-assisted extraction",
                     "how_it_works": {
-                        "phase_1": "Returns extraction prompt → I analyze description and extract 31 factor values → You confirm",
+                        "phase_1": "Returns extraction prompt → I analyze description and extract 47 factor values → You confirm",
                         "phase_2": "Extracted values submitted → MCP validates and scores deterministically → Risk rating produced"
                     },
                     "output": "Risk rating (Low/Medium/High/Critical) with dimension-level breakdown and NOT_STATED tracking"
@@ -216,22 +218,24 @@ class IntroductionBuilder:
                     "title": "🧠 AI-Assisted Contextual Extraction with Deterministic Scoring",
                     "description": "Step 2 uses a two-phase approach combining AI understanding with rule-based scoring",
                     "how_it_works": [
-                        "📝 Phase 1: Claude analyzes description and extracts 31 risk factor values",
+                        "📝 Phase 1: Claude analyzes description and extracts 47 risk factor values",
                         "✅ User confirms extracted values before scoring",
                         "🔢 Phase 2: MCP scores deterministically using fixed thresholds",
                         "📊 Transparent, reproducible risk scores with audit trail"
                     ]
                 },
                 "risk_dimensions": {
-                    "count": 6,
-                    "total_factors": 31,
+                    "count": 8,
+                    "total_factors": 47,
                     "dimensions": [
-                        "Misuse & Unintended Harm (4 factors)",
-                        "Output Reliability & Integrity (5 factors)",
-                        "Fairness & Customer Impact (6 factors)",
-                        "Operational & Security Risk (6 factors)",
-                        "Model Complexity & Opacity (5 factors)",
-                        "Governance & Oversight (5 factors)"
+                        "Misuse & Unintended Harm (5 factors)",
+                        "Output Reliability & Integrity (6 factors)",
+                        "Fairness & Customer Impact (7 factors)",
+                        "Operational & Security Risk (7 factors)",
+                        "Model Complexity & Opacity (8 factors)",
+                        "Governance & Oversight (7 factors)",
+                        "Data Provenance & Supply Chain Risk (4 factors)",
+                        "Systemic & Concentration Risk (3 factors)"
                     ],
                     "scoring": "4-level scale: Low (1) | Medium (2) | High (3) | Critical (4)"
                 },
@@ -254,9 +258,9 @@ class IntroductionBuilder:
                     {
                         "step": 2,
                         "tool": "assess_model_risk",
-                        "purpose": "Risk assessment using 6 Risk Dimensions with AI-assisted extraction",
+                        "purpose": "Risk assessment using 8 Risk Dimensions with AI-assisted extraction",
                         "how_it_works": {
-                            "phase_1": "Returns extraction prompt → Claude extracts 31 factor values → User confirms",
+                            "phase_1": "Returns extraction prompt → Claude extracts 47 factor values → User confirms",
                             "phase_2": "Extracted values submitted → MCP validates and scores deterministically"
                         },
                         "output": "Risk rating (Low/Medium/High/Critical) with dimension-level breakdown"

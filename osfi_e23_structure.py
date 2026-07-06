@@ -10,7 +10,7 @@ Effective Date: May 1, 2027
 URL: https://www.osfi-bsif.gc.ca/en/guidance/guidance-library/guideline-e-23-model-risk-management-2027
 
 Risk Assessment Framework (v3.0):
-- 6 Risk Dimensions for model risk rating (see osfi_e23_risk_dimensions.py)
+- 8 Risk Dimensions for model risk rating (see osfi_e23_risk_dimensions.py)
 - 5 Lifecycle Stages with stage-specific governance requirements
 - Risk-based intensity: governance requirements scale with risk level
 """
@@ -547,7 +547,7 @@ def is_ai_ml_model(project_description: str) -> bool:
 # as mandated by OSFI E-23 Principle 2.3: Risk Management Intensity
 #
 # NOTE: DIMENSION_LIFECYCLE_REQUIREMENTS was removed in v3.0.
-# The 6 Risk Dimensions are used purely for risk assessment.
+# The 8 Risk Dimensions are used purely for risk assessment.
 # Lifecycle governance requirements come from LIFECYCLE_REQUIREMENTS_BY_RISK.
 
 LIFECYCLE_REQUIREMENTS_BY_RISK = {
