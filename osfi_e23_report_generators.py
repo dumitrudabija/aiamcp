@@ -35,19 +35,27 @@ def generate_osfi_e23_report(
     project_description: str,
     assessment_results: Dict[str, Any],
     doc: Document,
-    current_stage: str = "design"
+    current_stage: str = "design",
+    include_methodology_explanation: bool = True
 ) -> Document:
     """
     Generate OSFI E-23 compliance report using v3.0 Risk Dimensions framework.
 
     Report Structure:
     1. Executive Summary
-    2. Risk Assessment by Dimension (8 dimensions summary)
-    3. [STAGE] Lifecycle Requirements (with 1-2 checklist items each)
+    2. How to Interpret This Assessment (fixed educational template, v3.4+)
+    3. Risk Assessment by Dimension (8 dimensions summary)
+    4. [STAGE] Lifecycle Requirements (with 1-2 checklist items each)
     Annex A: Detailed Factor Assessment (8 tables, one per dimension)
     Annex B: OSFI E-23 Principles
 
-    Target: ~6-8 pages with professional formatting.
+    Target: ~8-12 pages with professional formatting.
+
+    Args:
+        include_methodology_explanation: Whether to include the fixed "How to
+            Interpret This Assessment" educational section (default True).
+            The section is deterministic template text, not LLM-generated,
+            and appears once in the main body - never repeated in Annex A/B.
     """
     # Extract key data
     risk_level = assessment_results.get("risk_level", "Medium")
@@ -83,10 +91,17 @@ def generate_osfi_e23_report(
     # 1. Executive Summary
     _add_executive_summary(doc, project_name, risk_level, risk_score, stage_display, dimension_assessments)
 
-    # 2. Risk Assessment by Dimension
+    # 2. How to Interpret This Assessment (fixed educational template)
+    if include_methodology_explanation:
+        doc.add_page_break()
+        _add_methodology_explanation(doc)
+
+    doc.add_page_break()
+
+    # 3. Risk Assessment by Dimension
     _add_dimension_assessment(doc, dimension_assessments, risk_level, risk_score)
 
-    # 3. Lifecycle Requirements for Current Stage
+    # 4. Lifecycle Requirements for Current Stage
     _add_lifecycle_requirements(doc, current_stage, stage_display, risk_level)
 
     doc.add_page_break()
@@ -214,10 +229,230 @@ def _add_executive_summary(doc: Document, project_name: str, risk_level: str,
     doc.add_paragraph(" ".join(summary_parts))
 
 
+def _add_methodology_explanation(doc: Document):
+    """
+    Add the "How to Interpret This Assessment" educational section.
+
+    Fixed, deterministic template explaining how AI risk fits inside the
+    institution's existing Enterprise Risk Management framework, for an
+    executive audience. This text is static - it is not generated or
+    altered by an LLM at runtime, and does not affect scoring, factor
+    extraction, or governance matrix logic; it only references them.
+    """
+    doc.add_heading('2. How to Interpret This Assessment', level=1)
+
+    # --- AI Risk in the Enterprise Risk Framework ---
+    doc.add_heading('AI Risk in the Enterprise Risk Framework', level=2)
+    doc.add_paragraph(
+        "AI should be understood as a new source of risk within the institution's "
+        "existing Enterprise Risk Management framework, not as a separate risk universe."
+    )
+    doc.add_paragraph(
+        "The same risk management concepts still apply: risk appetite, risk tolerance, "
+        "materiality, likelihood, impact, controls, residual risk, ownership, monitoring, "
+        "and escalation. What changes with AI is the need for more specific questions. "
+        "Traditional risk frameworks often do not ask whether a model can drift, "
+        "hallucinate a customer-facing answer, embed sensitive data in training data, "
+        "amplify bias, be manipulated through prompts, or create concentration risk "
+        "through shared foundation models and vendors."
+    )
+    doc.add_paragraph(
+        "This assessment is therefore an AI-specific risk discovery and triage layer "
+        "that supports the existing ERM, model risk, operational risk, technology risk, "
+        "third-party risk, privacy, compliance, and conduct risk frameworks."
+    )
+
+    # --- Executive Framing ---
+    doc.add_heading('Executive Framing', level=2)
+    p = doc.add_paragraph()
+    run = p.add_run(
+        "AI does not require a separate risk-management universe. It requires "
+        "better questions inside the existing one."
+    )
+    run.bold = True
+    run.italic = True
+
+    doc.add_paragraph(
+        "The purpose of this assessment is to help the institution answer four "
+        "executive-level questions:"
+    )
+    executive_questions = [
+        "What could go wrong with this AI/model use case?",
+        "Is the risk within the institution's appetite and tolerance?",
+        "What controls are required before deployment or continued use?",
+        "Who must approve, monitor, and be accountable for the residual risk?"
+    ]
+    for i, question in enumerate(executive_questions, 1):
+        p = doc.add_paragraph(f"{i}. {question}")
+        p.paragraph_format.left_indent = Inches(0.25)
+
+    # --- Methodology Used ---
+    doc.add_heading('Methodology Used', level=2)
+    doc.add_paragraph("This assessment follows a standard risk management sequence:")
+
+    methodology_steps = [
+        ("1. Business context", "What business objective does the model support?", "Use case and materiality"),
+        ("2. Risk boundaries", "What risk appetite, tolerance, legal, regulatory, and policy limits apply?", "Assessment criteria"),
+        ("3. Risk identification", "What could go wrong?", "AI risk dimension findings"),
+        ("4. Inherent risk", "How severe is the risk before controls?", "Initial risk exposure"),
+        ("5. Control assessment", "What controls exist, and are they effective?", "Control strength and gaps"),
+        ("6. Residual risk", "What risk remains after controls and mitigations?", "Final risk level"),
+        ("7. Risk treatment", "What should the institution do?", "Accept, mitigate, avoid, transfer, or escalate"),
+        ("8. Monitoring", "What needs to be tracked over time?", "Ongoing review and triggers"),
+    ]
+    _add_two_col_or_three_col_table(doc, ['Step', 'Question', 'Output'], methodology_steps)
+    doc.add_paragraph()
+
+    # --- Role of the AI Risk Dimensions ---
+    doc.add_heading('Role of the AI Risk Dimensions', level=2)
+    doc.add_paragraph(
+        "The AI risk dimensions are a taxonomy for identifying AI-specific risks. "
+        "They do not replace the institution's existing risk framework. Instead, "
+        "they translate AI-specific failure modes into categories that can be "
+        "governed through existing risk processes."
+    )
+
+    dimension_links = [
+        ("Misuse & Harm", "Conduct risk, compliance risk, operational risk"),
+        ("Output Reliability & Integrity", "Model risk, validation risk, performance risk"),
+        ("Fairness & Customer Impact", "Conduct risk, legal risk, compliance risk, reputational risk"),
+        ("Operational & Security Risk", "Operational risk, technology risk, cyber risk, resilience risk"),
+        ("Complexity & Opacity", "Model risk, governance risk, validation risk"),
+        ("Governance & Oversight", "Enterprise risk, model governance, accountability"),
+        ("Data Provenance & Supply Chain Risk", "Data risk, privacy risk, third-party risk, technology risk"),
+        ("Systemic & Concentration Risk", "Strategic risk, third-party concentration risk, resilience risk"),
+    ]
+    _add_two_col_or_three_col_table(doc, ['AI Risk Dimension', 'Existing Risk Framework Link'], dimension_links)
+    doc.add_paragraph()
+
+    # --- Risk Boundaries ---
+    doc.add_heading('Risk Boundaries', level=2)
+    doc.add_paragraph(
+        "Risk appetite and risk tolerance define the institution's boundaries for "
+        "AI use. However, they are not the only boundaries. The assessment should "
+        "also consider:"
+    )
+    risk_boundaries = [
+        ("Materiality", "whether the model has enough business, customer, financial, operational, or regulatory impact to require formal governance."),
+        ("Risk capacity", "the maximum loss, disruption, regulatory exposure, or reputational damage the institution can absorb."),
+        ("Legal and regulatory constraints", "areas where the institution may have little or no discretion, such as unlawful discrimination, privacy breaches, or misleading customer disclosures."),
+        ("Control effectiveness", "whether controls are not only designed but operating effectively."),
+        ("Risk velocity", "how quickly harm could occur if the model fails."),
+        ("Risk aggregation and concentration", "whether individually acceptable risks become unacceptable when viewed across the AI/model portfolio."),
+        ("Ownership and accountability", "who owns the risk and who has authority to approve, remediate, or stop the model."),
+        ("Monitoring triggers", "what events require reassessment, escalation, or model suspension."),
+    ]
+    for label, text in risk_boundaries:
+        p = doc.add_paragraph()
+        p.add_run(f'• {label}: ').bold = True
+        p.add_run(text)
+        p.paragraph_format.left_indent = Inches(0.25)
+
+    doc.add_paragraph()
+
+    # --- Risk Treatment Outcomes ---
+    doc.add_heading('Risk Treatment Outcomes', level=2)
+    doc.add_paragraph("Each material risk should result in a treatment decision:")
+
+    treatments = [
+        ("Accept", "The residual risk is within appetite and tolerance and can be monitored."),
+        ("Mitigate / Reduce", "Additional controls, testing, monitoring, fallback, human review, or scope limits are required."),
+        ("Avoid", "The use case should not proceed, or the model should be removed from use."),
+        ("Transfer", "Some exposure is shifted through contracts, insurance, indemnities, vendor obligations, or service-level commitments."),
+        ("Escalate", "The risk requires approval by a higher authority, such as senior risk committee, executive management, board committee, or regulator-facing governance."),
+    ]
+    _add_two_col_or_three_col_table(doc, ['Treatment', 'Meaning'], treatments)
+
+    doc.add_paragraph()
+    doc.add_paragraph(
+        "Escalation is included because high or critical AI/model risks should not "
+        "be accepted at the project level. They require risk-proportionate approval "
+        "and oversight."
+    )
+
+    # --- Residual Risk ---
+    doc.add_heading('Residual Risk', level=2)
+    doc.add_paragraph(
+        "Residual risk is the risk that remains after existing controls, planned "
+        "mitigations, transfer mechanisms, and governance actions are considered."
+    )
+    doc.add_paragraph(
+        "A low residual risk does not mean the model has no risk. It means the "
+        "remaining risk appears to be within the institution's defined appetite "
+        "and tolerance, subject to monitoring."
+    )
+    doc.add_paragraph("A high or critical residual risk means one or more of the following is true:")
+    residual_risk_conditions = [
+        "The inherent risk is too high.",
+        "Controls are weak, incomplete, untested, or undocumented.",
+        "The model creates customer, regulatory, operational, privacy, security, or concentration risks outside tolerance.",
+        "The documentation does not provide enough evidence to support a lower rating.",
+        "The risk requires escalation before deployment or continued use."
+    ]
+    for item in residual_risk_conditions:
+        p = doc.add_paragraph(f'• {item}')
+        p.paragraph_format.left_indent = Inches(0.25)
+
+    doc.add_paragraph()
+
+    # --- Documentation Gaps ---
+    doc.add_heading('Documentation Gaps', level=2)
+    doc.add_paragraph(
+        "When information is missing, the assessment should flag a documentation "
+        "gap rather than assume the risk is low."
+    )
+    doc.add_paragraph(
+        "For AI and model risk, absence of evidence is itself important. If "
+        "documentation does not show that a control exists, has been tested, or "
+        "is owned, the institution may not be able to demonstrate effective "
+        "governance."
+    )
+    doc.add_paragraph(
+        "Documentation gaps should be treated as remediation items and should be "
+        "routed through the governance matrix according to the model's risk level."
+    )
+
+    # --- Governance Interpretation ---
+    doc.add_heading('Governance Interpretation', level=2)
+    doc.add_paragraph(
+        "The assessment output should be used to determine the proportionate "
+        "governance pathway for the model."
+    )
+    doc.add_paragraph(
+        "Higher-risk models require stronger evidence, more independent review, "
+        "more frequent monitoring, clearer escalation paths, and stronger approval "
+        "authority. This is consistent with the principle that the scope, scale, "
+        "and intensity of model risk management should be proportionate to the "
+        "risk introduced by the model."
+    )
+    doc.add_paragraph(
+        "The governance matrix should therefore be read as the bridge between the "
+        "risk score and the required action."
+    )
+
+
+def _add_two_col_or_three_col_table(doc: Document, headers: List[str], rows: List[tuple]):
+    """Add a simple bold-header table for the methodology explanation section."""
+    table = doc.add_table(rows=len(rows) + 1, cols=len(headers))
+    table.style = 'Light Grid Accent 1'
+
+    header_cells = table.rows[0].cells
+    for col_idx, header_text in enumerate(headers):
+        header_cells[col_idx].text = header_text
+        for paragraph in header_cells[col_idx].paragraphs:
+            for run in paragraph.runs:
+                run.bold = True
+
+    for row_idx, row_values in enumerate(rows, 1):
+        row_cells = table.rows[row_idx].cells
+        for col_idx, value in enumerate(row_values):
+            row_cells[col_idx].text = value
+
+
 def _add_dimension_assessment(doc: Document, dimension_assessments: Dict[str, Any],
                               risk_level: str, risk_score: int):
     """Add risk assessment by dimension section."""
-    doc.add_heading('2. RISK ASSESSMENT BY DIMENSION', level=1)
+    doc.add_heading('3. RISK ASSESSMENT BY DIMENSION', level=1)
 
     # Important note about tunable parameters
     p = doc.add_paragraph()
@@ -275,7 +510,7 @@ def _add_dimension_assessment(doc: Document, dimension_assessments: Dict[str, An
 def _add_lifecycle_requirements(doc: Document, current_stage: str,
                                 stage_display: str, risk_level: str):
     """Add lifecycle requirements with checklist items for current stage."""
-    doc.add_heading(f'3. {stage_display.upper()} STAGE REQUIREMENTS', level=1)
+    doc.add_heading(f'4. {stage_display.upper()} STAGE REQUIREMENTS', level=1)
 
     # Get requirements for this stage and risk level
     stage_requirements = get_lifecycle_requirements_for_risk_level(current_stage, risk_level)
@@ -673,7 +908,8 @@ def generate_design_stage_report(
     project_name: str,
     project_description: str,
     assessment_results: Dict[str, Any],
-    doc: Document
+    doc: Document,
+    include_methodology_explanation: bool = True
 ) -> Document:
     """Backwards compatibility wrapper - defaults to Design stage."""
     return generate_osfi_e23_report(
@@ -681,5 +917,6 @@ def generate_design_stage_report(
         project_description=project_description,
         assessment_results=assessment_results,
         doc=doc,
-        current_stage="design"
+        current_stage="design",
+        include_methodology_explanation=include_methodology_explanation
     )

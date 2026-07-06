@@ -348,6 +348,10 @@ class ToolRegistry:
                         "custom_filename": {
                             "type": "string",
                             "description": "Optional custom filename without extension."
+                        },
+                        "include_methodology_explanation": {
+                            "type": "boolean",
+                            "description": "Include the fixed 'How to Interpret This Assessment' educational section explaining how AI risk fits into existing ERM (default true)."
                         }
                     },
                     "required": ["project_name", "project_description"]

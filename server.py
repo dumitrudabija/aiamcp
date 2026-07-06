@@ -1461,6 +1461,7 @@ class MCPServer:
         assessment_results = arguments.get("assessment_results", {})
         custom_filename = arguments.get("custom_filename")
         provided_stage = arguments.get("current_stage") or arguments.get("lifecycle_stage")  # Support both names
+        include_methodology_explanation = arguments.get("include_methodology_explanation", True)
 
         logger.info(f"Exporting OSFI E-23 report for project: {project_name}")
 
@@ -1539,7 +1540,8 @@ class MCPServer:
                 project_description=project_description,
                 assessment_results=assessment_results,
                 doc=doc,
-                current_stage=current_stage
+                current_stage=current_stage,
+                include_methodology_explanation=include_methodology_explanation
             )
 
             # Save document
