@@ -26,8 +26,11 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 **OSFI E-23 Modules**
 - **osfi_e23_risk_dimensions.py**: 8 Risk Dimensions framework with 47 factors (v3.4)
 - **risk_dimension_extraction.py**: AI-assisted contextual extraction with deterministic scoring (v3.1)
-- **osfi_e23_structure.py**: Official OSFI Principles, lifecycle definitions, and dimension-to-lifecycle mapping
-- **osfi_e23_report_generators.py**: Stage-specific report generation
+- **osfi_e23_structure.py**: Official OSFI Principles, lifecycle definitions, dimension-to-lifecycle mapping, and the configurable governance matrix
+- **model_type_classification.py** (v3.5): Deterministic Level 1-5 model type + delivery model classification from capability evidence - orthogonal to and never affecting the 47-question base risk score
+- **conditional_modules.py** (v3.5): 4 Capability Evidence Packs (Knowledge Access, Action Execution, Autonomy, Vendor/Platform) - evidence gaps and required actions mapped to the 8 risk dimensions, never a separate score
+- **osfi_e23_workflow.py** (v3.5): 5-step OSFI E-23 assessment orchestration (model type classification → Capability Evidence Pack triggers → 47-question scoring → risk level → required governance actions)
+- **osfi_e23_report_generators.py**: OSFI E-23 report generation (v4.2 executive 3-section + 5-annex structure) - presentation layer only
 
 **Shared Modules** (v2.0.0)
 - **utils/data_extractors.py**: Unified data extraction for AIA and OSFI assessments
@@ -67,55 +70,59 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 ## Development Commands
 
 ### Testing
-```bash
-# Validate MCP server installation
-python scripts/validate_mcp.py
 
+**Known-working** (verified passing as of v3.5/v4.2):
+```bash
 # Run comprehensive integration test suite
-python tests/integration/test_mcp_comprehensive.py
+python3 tests/integration/test_mcp_comprehensive.py
 
 # Test specific components
-python tests/functional/test_functional_preview.py
-python tests/unit/test_design_phase_filtering.py
+python3 tests/functional/test_functional_preview.py
+python3 tests/unit/test_design_phase_filtering.py
 
 # Test description validation
-python tests/unit/test_description_validation.py
+python3 tests/unit/test_description_validation.py
 
 # Test workflow enhancements
-python tests/functional/test_workflow_enhancements.py
+python3 tests/functional/test_workflow_enhancements.py
 
 # Test transparency features
-python tests/functional/test_transparency_features.py
+python3 tests/functional/test_transparency_features.py
 
 # Test validation enforcement
-python test_validation_enforcement.py
-
-# Test export validation
-python test_export_validation.py
-
-# Test introduction workflow enforcement
-python test_introduction_enforcement.py
-
-# Test workflow guidance
-python test_workflow_guidance.py
+python3 test_validation_enforcement.py
 
 # Test extraction integration (v3.1.0)
-python test_extraction_integration.py
+python3 test_extraction_integration.py
+
+# Test model type classification, capability evidence packs, and the 5-step workflow (v3.5)
+python3 -m pytest tests/unit/test_model_type_classification.py tests/unit/test_conditional_modules.py tests/unit/test_osfi_e23_workflow.py tests/functional/test_model_type_scenarios.py
+
+# Test scoring edge cases (NOT_APPLICABLE/weights)
+python3 -m pytest tests/unit/test_scoring_weights_and_na_fix.py
+```
+
+**Known pre-existing failures** (confirmed failing since before v3.4.0 - not caused by any recent work; not yet triaged, unlike the `tests/` suite above):
+```bash
+python3 scripts/validate_mcp.py          # fails during server validation
+python3 test_export_validation.py        # 5/5 sub-tests fail
+python3 test_introduction_enforcement.py # tool-blocking assertion fails
+python3 test_workflow_guidance.py        # NoneType attribute error
 ```
 
 ### Running the Server
 ```bash
 # Start MCP server (typically called by Claude Desktop)
-python server.py
+python3 server.py
 
 # Debug mode
 export DEBUG=1
-python server.py
+python3 server.py
 ```
 
 ### Dependencies
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ## Transparency and Data Source Distinction
@@ -219,7 +226,10 @@ pip install -r requirements.txt
 **OSFI E-23 Modules**
 - **osfi_e23_risk_dimensions.py**: 8 Risk Dimensions with 47 factors - core risk framework definition
 - **risk_dimension_extraction.py**: AI-assisted extraction module - generates prompts and scores deterministically
-- **osfi_e23_report_generators.py**: Stage-specific report generation - changes affect regulatory document output
+- **model_type_classification.py**: Deterministic capability-evidence classification logic (Level 1-5 + delivery model) - keep classification based on objective evidence, never marketing labels
+- **conditional_modules.py**: Capability Evidence Pack trigger/finding logic - packs must never produce an independent risk score
+- **osfi_e23_workflow.py**: 5-step assessment orchestration and step-ordering enforcement - changes affect the assess_model_risk pipeline
+- **osfi_e23_report_generators.py**: OSFI E-23 report generation (presentation layer only) - changes affect regulatory document output; must not surface final_status/blocker/condition/readiness as first-class report concepts (see "OSFI E-23 Report Structure (v4.2)")
 
 **Configurable Prompt Templates (v3.2.0)**
 - **config/extraction_prompts.yaml**: Tunable extraction prompt templates for OSFI E-23 risk factor extraction
@@ -245,8 +255,8 @@ pip install -r requirements.txt
 - **config/extraction_prompts.yaml**: Tunable prompt templates - safe to modify for institutional customization (v3.2.0)
 
 ### Testing Requirements (v2.0.0 Updated)
-- **Always run validate_functionality.py** after any module modifications - comprehensive 8/8 validation suite
-- **Run scripts/validate_mcp.py** to verify MCP server installation and configuration
+- **Always run validate_functionality.py** after any module modifications - comprehensive 8-check validation suite (currently 7/8 passing - `validate_framework_detection` has a known pre-existing `'NoneType' object has no attribute 'detect'` failure, confirmed present since before v3.4.0 and unrelated to recent work)
+- **scripts/validate_mcp.py** is also a known pre-existing failure (see Testing above) - do not rely on it to verify server installation currently
 - **Test scoring accuracy** with `tests/unit/test_design_phase_filtering.py` for AIA changes
 - **Verify MCP protocol compliance** with `tests/integration/test_mcp_comprehensive.py`
 - **Module-specific tests**: Changes to individual modules should maintain all validation tests passing
