@@ -47,7 +47,7 @@ This is a Model Context Protocol (MCP) server for Canada's regulatory frameworks
 - **Introduction Workflow Enforcement**: Mandatory get_server_introduction call before any assessment tools, ensuring users understand frameworks and data sources
 - **Explicit Workflow Sequences (v3.0)**: 3-step OSFI E-23 workflow (validate → assess → export) and 5-step AIA workflow in get_server_introduction response
 - **Behavioral Directives (v1.15.0)**: Strong instructions embedded in tool responses (via introduction_builder.py) to present introduction first, show all workflow steps, and wait for user choice before proceeding
-- **Streamlined Risk-Adaptive Reports**: OSFI E-23 exports generate ~8-12 page documents with standardized structure (Executive Summary, Risk by Dimension, Stage Requirements, Annex A Factor Details, Annex B Principles)
+- **Streamlined Risk-Adaptive Reports**: OSFI E-23 exports generate executive-friendly documents with a standardized 3-section + 5-annex structure (Context/Methodology/Governance Review + Annex A Official OSFI E-23 Reference, Annex B ERM Fit, Annex C Question-by-Question Evidence, Annex D Configurable Governance Matrix, Annex E Model Type Classification Evidence) - see "OSFI E-23 Report Structure (v4.2)" below
 - **Intelligent Workflow Management**: Auto-sequencing, state persistence, dependency validation, and smart routing
 - **Enhanced Workflow Visibility**: Complete workflow roadmap with numbered steps, descriptions, and progress tracking
 - **Flexible Dependency Resolution**: Export tools can work with either preview or full assessments
@@ -75,7 +75,6 @@ python scripts/validate_mcp.py
 python tests/integration/test_mcp_comprehensive.py
 
 # Test specific components
-python tests/integration/test_mcp_server.py
 python tests/functional/test_functional_preview.py
 python tests/unit/test_design_phase_filtering.py
 
@@ -186,15 +185,17 @@ pip install -r requirements.txt
 - **Two-Phase Extraction Workflow (v3.3)**: assess_model_risk uses AI-assisted extraction:
   - **Phase 1**: MCP returns extraction prompt → Claude analyzes and extracts 47 factor values
   - **Phase 2**: Claude immediately calls assess_model_risk with `extracted_factors` → MCP validates and scores deterministically
-  - **No user confirmation step** - transparency achieved through Annex A in final report
+  - **No user confirmation step** - transparency achieved through Annex C (Detailed Question-by-Question Evidence) in the final report
 - **8 Risk Dimensions (v3.4)**: Risk assessment uses 8 dimensions with 47 factors (15 quantitative, 32 qualitative) - adds Data Provenance & Supply Chain Risk (4 factors) and Systemic & Concentration Risk (3 factors) to the original 6 dimensions, plus 9 new factors (GenAI confabulation risk, GenAI output benchmarking, pre-deployment fairness testing, adversarial/prompt-injection testing, AI system classification, GenAI scope constraint, automation bias, AI incident response, kill switch) folded into the original 6
-- **NOT_STATED Handling**: Missing factors default to Medium risk (score=2), tracked for transparency in Annex A
+- **NOT_STATED Handling**: Missing factors default to Medium risk (score=2), tracked for transparency in Annex C
 - **NOT_APPLICABLE Handling (v3.4)**: Factors that opt in via `allow_na` (e.g. synthetic data quality, GenAI-conditional factors) score as Low when explicitly marked not applicable, distinct from NOT_STATED
 - **PORTFOLIO_REVIEW_REQUIRED Handling (v3.4)**: The portfolio-level AI estate concentration factor is excluded from its dimension's average when institution-wide inventory data is unavailable (rather than defaulting to Medium), and is tracked in a `follow_up_actions` list
+- **Model Type Classification (v3.5)**: Deterministic capability-evidence classification (`model_type_classification.py`) assigns a Level 1-5 model type (Traditional/GenAI/Knowledge-grounded GenAI/Agentic/Autonomous) and a delivery model (internal_build/vendor_platform/embedded_saas_ai), orthogonal to and never affecting the 47-question base risk score. Triggers 4 Capability Evidence Packs (`conditional_modules.py`: Knowledge Access, Action Execution, Autonomy, Vendor/Platform) that add evidence gaps and required actions mapped back to the 8 dimensions - never a separate risk score.
 - **Lifecycle Management**: 5-stage model lifecycle (Design, Review, Deployment, Monitoring, Decommission)
 - **Governance Framework**: Risk-based approval authorities and oversight requirements
 - **Professional Compliance**: Built-in warnings about regulatory validation requirements
-- **Report Structure (v3.3)**: Sections 1-3 + Annex A (Factor Details) + Annex B (OSFI Principles)
+- **Report Structure (v4.2)**: Sections 1-3 + Annex A-E - see "OSFI E-23 Report Structure (v4.2)" below
+- **Report Terminology Discipline (v4.2)**: The report never presents `final_status`/blocker/condition/readiness as first-class concepts (those are internal `osfi_e23_workflow.py`/`conditional_modules.py` fields) - only "evidence gaps", "required actions", and "required validation" are rendered. The report does not infer lifecycle-stage approval, production readiness, or blocking decisions; only the institution's governance process determines those.
 
 ## Critical Compliance Notes
 
@@ -247,7 +248,7 @@ pip install -r requirements.txt
 - **Always run validate_functionality.py** after any module modifications - comprehensive 8/8 validation suite
 - **Run scripts/validate_mcp.py** to verify MCP server installation and configuration
 - **Test scoring accuracy** with `tests/unit/test_design_phase_filtering.py` for AIA changes
-- **Verify MCP protocol compliance** with `tests/integration/test_mcp_server.py`
+- **Verify MCP protocol compliance** with `tests/integration/test_mcp_comprehensive.py`
 - **Module-specific tests**: Changes to individual modules should maintain all validation tests passing
 
 ## MCP Integration
@@ -277,19 +278,20 @@ pip install -r requirements.txt
 - **Transparent Methodology**: All scoring calculations are deterministic and auditable
 - **No AI Risk Interpretation**: Server provides structure, Claude Desktop provides reasoning
 
-### OSFI E-23 Report Structure (v3.3.0)
+### OSFI E-23 Report Structure (v4.2)
 - **Session-Based Data Retrieval**: `export_e23_report` does NOT accept `assessment_results` as a parameter — the server retrieves assessment data automatically from server-side session state populated by `assess_model_risk`. Do not pass assessment data in the tool call.
-- **Streamlined Format**: Executive Summary, Risk Assessment by Dimension, Stage Requirements, Annex A (Factor Details), Annex B (OSFI Principles)
-- **Section 1: Executive Summary**: Risk level, governance requirements, key risk drivers from dimension assessment
-- **Section 2: Risk Assessment by Dimension**: Summary table showing 8 dimensions with risk level (Low/Medium/High/Critical) and core question
-- **Section 3: [STAGE] Stage Requirements**: Lifecycle-specific checklist items scaled to risk level per OSFI Principle 2.3
-- **Annex A: Detailed Factor Assessment** (v3.3.0 NEW): Full transparency with 8 tables (one per dimension) showing:
-  - Factor name
-  - Scoring Matrix (Low/Medium/High/Critical thresholds)
-  - Determined Value with risk level (e.g., "500000 (Low)", "NOT_STATED (Medium - default)", "N/A (Low - Not Applicable)" for `allow_na` factors, or "Portfolio Review Required (Insufficient inventory data)" for the portfolio-concentration factor)
-  - Evidence quote from project description (empty for NOT_STATED)
-- **Annex B: OSFI E-23 Principles**: All Principles 1.1-3.6 organized by Outcome
-- **Target Length**: Approximately 8-12 pages with professional formatting
+- **Generator**: `osfi_e23_report_generators.py` (`generate_osfi_e23_report()`) - a presentation/structure layer only; it does not compute risk scores or decide Capability Evidence Pack triggers, it only reads and renders data computed elsewhere.
+- **Front matter**: Title page → compact metadata table (model name, assessment date, lifecycle stage, base risk score/rating, model type level/label, delivery model, triggered Capability Evidence Packs, evidence gaps count, required actions count, required validations count) → professional validation disclaimer (kept near the front).
+- **Section 1: Context and Assessment Summary**: 1.1 Functional Description, 1.2 Model Classification Summary (model type is an interpretation lens, not a separate risk score, and does not determine lifecycle-stage approval), 1.3 Risk Rating Summary, 1.4 Required Validation.
+- **Section 2: Risk Rating Methodology and Results**: 2.1 Methodology Overview, 2.2 Model Type Classification Reference (the Level 1-5 taxonomy - methodology-specific, explicitly not official OSFI E-23 categories, with 10 deterministic level-assignment rules), 2.3 Risk Dimensions, 2.4 Scoring Logic, 2.5 Capability Evidence Pack Results (findings/evidence gaps/required actions/required validation per pack - never a blocker, condition, or separate risk score), 2.6 Risk Result Interpretation.
+- **Section 3: Required Actions for Governance Review**: opens with a disclaimer that these are automated assessment outputs, not approval/lifecycle-promotion decisions. 3.1 Current Lifecycle Stage and Base Risk Rating, 3.2 Stage-Specific Required Actions, 3.3 Required Actions (merged base-risk/model-inventory/Capability-Pack/evidence-gap actions, one table grouped by Source column), 3.4 Required Validations (cross-references 1.4).
+- **Annex A: Official OSFI E-23 Reference**: Outcomes, Principles (organized by Outcome), model lifecycle definition/components, and Appendix 1 model inventory tracking expectations - official guideline text only, no methodology-specific or institution-configurable content.
+- **Annex B: Fit With Enterprise Risk Management**: Executive framing questions, risk-dimension-to-ERM-category mapping, risk treatment outcomes (Accept/Mitigate/Avoid/Transfer/Escalate), documentation gaps.
+- **Annex C: Detailed Question-by-Question Evidence**: Full audit trail, all 47 factors grouped by the 8 dimensions - scoring criteria, determined value, evidence status, evidence summary, missing evidence, resulting action per factor.
+- **Annex D: Configurable Governance Matrix**: The full 5-stage x 4-risk-level lifecycle governance matrix, explicitly labeled as methodology-generated implementation guidance (not verbatim OSFI E-23 text, does not determine approval/readiness/blocking status).
+- **Annex E: Detailed Model Type Classification Evidence**: Per-check capability evidence (traditional/statistical model evidence, GenAI generation, runtime retrieval for GenAI grounding, tool/action execution, autonomous operation, vendor/platform delivery) - status, evidence, missing evidence, classification implication per check; explicitly not OSFI E-23 lifecycle promotion gates.
+- **Source-type labeling**: Every section/annex carries a small "Source: ..." line tagging it as official OSFI E-23 text, methodology interpretation, institution-configurable guidance, model-specific evidence, and/or automated assessment output, so readers can tell which parts are regulatory text vs. implementation choices.
+- **Column widths**: Report tables use content-proportional column widths (`_size_columns_to_content()`) rather than Word's equal-width default, so short fields (ID, status, level) stay narrow and long free-text fields (rationale, evidence) get the room they need.
 - **Customizable Weights**: Explicit note that scoring weights are exemplification - can be tuned to institutional specifications
 
 ### Error Handling

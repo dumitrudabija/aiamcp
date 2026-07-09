@@ -85,6 +85,10 @@ RISK_DIMENSIONS = {
                 "id": "scope_expansion",
                 "name": "Can outputs be used beyond original scope?",
                 "type": FactorType.QUALITATIVE.value,
+                "weight": 1.0,
+                "model_type_interpretation": {
+                    "2-5": "GenAI/agentic systems are more prone to scope creep than traditional ML - consider whether guardrails actually constrain use to the intended purpose."
+                },
                 "levels": {
                     "low": "No, tightly constrained",
                     "medium": "Limited secondary uses",
@@ -107,7 +111,12 @@ RISK_DIMENSIONS = {
                 "id": "confabulation_false_authority",
                 "name": "Confabulation / false-authority risk (GenAI)",
                 "type": FactorType.QUALITATIVE.value,
+                "weight": 1.0,
                 "allow_na": True,
+                "model_type_interpretation": {
+                    "1": "Not applicable for traditional, non-generative models - mark N/A.",
+                    "2-5": "Applies directly to GenAI/RAG/agentic systems; check whether outputs are grounded in retrieved or verified sources."
+                },
                 "levels": {
                     "low": "Outputs are grounded/cited or model is non-generative; confabulation rare",
                     "medium": "Occasional unsupported claims; users advised to verify",
@@ -190,7 +199,12 @@ RISK_DIMENSIONS = {
                 "id": "genai_output_quality_benchmark",
                 "name": "GenAI output quality benchmark",
                 "type": FactorType.QUALITATIVE.value,
+                "weight": 1.0,
                 "allow_na": True,
+                "model_type_interpretation": {
+                    "1": "Not applicable for non-generative models - mark N/A.",
+                    "3-5": "For RAG/agentic systems, benchmarking should also cover retrieval relevance and tool-call correctness, not just generated text quality."
+                },
                 "levels": {
                     "low": "Benchmarked against validation set/human evaluation with documented results, or non-generative",
                     "medium": "Some benchmarking performed but not comprehensive or independently reviewed",
@@ -422,9 +436,10 @@ RISK_DIMENSIONS = {
                 "invert_scale": False
             },
             {
-                "id": "model_type",
-                "name": "Model type",
+                "id": "model_architecture_type",
+                "name": "Model architecture type",
                 "type": FactorType.QUALITATIVE.value,
+                "weight": 1.0,
                 "levels": {
                     "low": "Linear/rules-based",
                     "medium": "Ensemble/boosted",
@@ -455,37 +470,48 @@ RISK_DIMENSIONS = {
                 }
             },
             {
-                "id": "ai_system_classification",
-                "name": "AI system classification (routing gate)",
+                "id": "decision_path_traceability",
+                "name": "Decision path traceability",
                 "type": FactorType.QUALITATIVE.value,
+                "weight": 1.0,
+                "model_type_interpretation": {
+                    "3-5": "For RAG/agentic systems, confirm traceability covers retrieved sources and any tool/action steps, not just the final generated text."
+                },
                 "levels": {
-                    "low": "Traditional ML / rules-based / statistical model, non-generative",
-                    "medium": "Narrow-purpose generative AI with constrained outputs",
-                    "high": "General-purpose generative AI with broad output range",
-                    "critical": "Autonomous/agentic AI system operating with minimal human oversight"
+                    "low": "Every output can be traced back to the specific inputs, rules, retrieved sources, or model steps that produced it (full lineage/audit trail available).",
+                    "medium": "Most outputs can be traced to their contributing inputs or sources with reasonable effort; minor gaps in lineage exist.",
+                    "high": "Tracing a specific output back to its inputs/sources is difficult, requires specialized tooling or expertise, or lineage is materially incomplete.",
+                    "critical": "Outputs cannot be traced back to the specific inputs, rules, or sources that produced them (fully opaque decision path)."
                 }
             },
             {
-                "id": "genai_scope_constraint",
-                "name": "GenAI scope constraint",
+                "id": "pipeline_component_count",
+                "name": "Pipeline component count",
                 "type": FactorType.QUALITATIVE.value,
-                "allow_na": True,
+                "weight": 1.0,
+                "model_type_interpretation": {
+                    "4-5": "Agentic workflows typically chain several tools/services by design - expect this factor to score higher unless the pipeline is unusually simple and well-documented."
+                },
                 "levels": {
-                    "low": "Outputs tightly scope-constrained (system prompts, grounding, output filters), or non-generative",
-                    "medium": "Some scope constraints in place but with known gaps",
-                    "high": "Limited scope constraints; outputs are largely open-ended",
-                    "critical": "No scope constraints; fully open-ended generative outputs"
+                    "low": "A single, self-contained component (e.g., one model or service) produces the output with no chained calls to other systems.",
+                    "medium": "A small number of components are chained (e.g., 2-3 systems, services, tools, or retrieval steps) with clear, documented handoffs.",
+                    "high": "Multiple components are chained (e.g., 4-6 systems, services, tools, or retrieval/agent steps) with some undocumented or complex handoffs.",
+                    "critical": "Many components are chained (7+ systems, services, tools, or agents), or the end-to-end pipeline is not fully documented or understood."
                 }
             },
             {
-                "id": "automation_bias_dependency",
-                "name": "Automation bias / cognitive dependency",
+                "id": "model_update_velocity",
+                "name": "Model / configuration update velocity",
                 "type": FactorType.QUALITATIVE.value,
+                "weight": 1.0,
+                "model_type_interpretation": {
+                    "2-5": "For GenAI/vendor-hosted systems, consider whether the underlying foundation model can be updated by the vendor outside the institution's own change control."
+                },
                 "levels": {
-                    "low": "Users critically evaluate outputs; low reliance on model recommendations",
-                    "medium": "Some reliance on model outputs; periodic independent judgment applied",
-                    "high": "Significant reliance on model outputs with limited independent verification",
-                    "critical": "Users routinely defer to model outputs without independent verification"
+                    "low": "Model or configuration changes are infrequent and scheduled (e.g., annually or less), each going through full change control and testing before release.",
+                    "medium": "Model or configuration is updated periodically (e.g., quarterly) through a controlled, documented release process.",
+                    "high": "Model or configuration is updated frequently (e.g., monthly or more), or updates sometimes occur outside a fully controlled release process.",
+                    "critical": "Model or configuration changes continuously or automatically in production (e.g., online learning, continuous fine-tuning, silent vendor-pushed updates) without a discrete, reviewable release process."
                 }
             }
         ]
@@ -529,6 +555,10 @@ RISK_DIMENSIONS = {
                 "id": "human_review",
                 "name": "Human review requirement",
                 "type": FactorType.QUALITATIVE.value,
+                "weight": 1.0,
+                "model_type_interpretation": {
+                    "4-5": "For agentic/autonomous systems, confirm review requirements cover the actions taken (e.g. tool calls, writes), not only the final recommendation text."
+                },
                 "levels": {
                     "low": "All decisions reviewed",
                     "medium": "Sample review",
@@ -570,14 +600,18 @@ RISK_DIMENSIONS = {
                 }
             },
             {
-                "id": "kill_switch_circuit_breaker",
-                "name": "Kill switch / circuit breaker",
+                "id": "production_monitoring_alerting",
+                "name": "Production monitoring & alerting coverage",
                 "type": FactorType.QUALITATIVE.value,
+                "weight": 1.0,
+                "model_type_interpretation": {
+                    "4-5": "For agentic/autonomous systems, confirm monitoring covers action-taking behavior (e.g. tool calls, writes) and not just output content."
+                },
                 "levels": {
-                    "low": "Tested kill-switch/circuit-breaker capability to halt or roll back the model exists",
-                    "medium": "Kill-switch capability exists but is untested or only partial",
-                    "high": "Limited ability to halt or roll back the model quickly",
-                    "critical": "No capability to halt, disable, or roll back the model if needed"
+                    "low": "Automated monitoring and alerting actively covers model behavior, drift, errors, and anomalies in production, with defined thresholds and a documented on-call/response process.",
+                    "medium": "Automated monitoring exists for key metrics, but alerting coverage or thresholds have some gaps (e.g., partial coverage of behavior, drift, or error signals).",
+                    "high": "Monitoring is largely manual or ad hoc, and alerting is limited or inconsistent, so issues may go undetected for extended periods.",
+                    "critical": "No automated monitoring or alerting exists for model behavior, drift, errors, or anomalies in production."
                 }
             }
         ]
@@ -682,6 +716,20 @@ RISK_DIMENSIONS = {
         ]
     }
 }
+
+
+# =============================================================================
+# FACTOR WEIGHT DEFAULTS
+# =============================================================================
+# Every factor gets an explicit "weight" (default 1.0 = equal weighting).
+# Scoring itself remains a simple unweighted average by default (see
+# risk_dimension_extraction.py's `use_weights` config flag) - this default
+# just guarantees the field exists on every factor for future use, without
+# requiring every factor literal above to redundantly set it by hand.
+for _dim in RISK_DIMENSIONS.values():
+    for _factor in _dim["factors"]:
+        _factor.setdefault("weight", 1.0)
+del _dim, _factor
 
 
 # =============================================================================

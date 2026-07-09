@@ -21,6 +21,16 @@
 version: "1.0.0"
 
 # -----------------------------------------------------------------------------
+# SCORING BEHAVIOR
+# -----------------------------------------------------------------------------
+# use_weights: when true, dimension/overall scoring averages factors using
+# their per-factor "weight" value (osfi_e23_risk_dimensions.py) instead of a
+# simple average. Defaults to false - flip this on to opt into weighted
+# scoring without any code changes.
+scoring:
+  use_weights: false
+
+# -----------------------------------------------------------------------------
 # MAIN EXTRACTION PROMPT
 # -----------------------------------------------------------------------------
 # This is the primary prompt sent to Claude to extract risk factor values.

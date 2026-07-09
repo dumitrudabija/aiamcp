@@ -23,7 +23,12 @@ def test_workflow_with_exports():
             [sys.executable, "server.py"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            # Discard rather than pipe: this test does many interactive round
+            # trips via readline() without draining stderr concurrently. Some
+            # tool calls (e.g. OSFI assess_model_risk) log enough to fill the
+            # OS pipe buffer, which blocks the server on the stderr write and
+            # deadlocks the whole exchange even though stdout would be fine.
+            stderr=subprocess.DEVNULL,
             text=True,
             cwd=str(Path.cwd())
         )
@@ -47,6 +52,20 @@ def test_workflow_with_exports():
         server_process.stdin.flush()
         response = server_process.stdout.readline()
         print(f"✅ Server initialized")
+
+        # Workflow tools require get_server_introduction to have been called
+        # first in this session (introduction workflow enforcement gate).
+        intro_request = {
+            "jsonrpc": "2.0",
+            "id": 100,
+            "method": "tools/call",
+            "params": {"name": "get_server_introduction", "arguments": {}}
+        }
+        server_process.stdin.write(json.dumps(intro_request) + "\n")
+        server_process.stdin.flush()
+        server_process.stdout.readline()
+
+        all_passed = True
 
         # Test 1: Create AIA Preview Workflow
         print(f"\n📋 Test 1: Creating AIA Preview Workflow")
@@ -94,8 +113,13 @@ def test_workflow_with_exports():
 
                 if "workflow_created" in result:
                     session_id = result["workflow_created"]["session_id"]
+                    detailed_steps = result.get("workflow_visualization", {}).get("detailed_steps", [])
+                    workflow_sequence = [step["tool_name"] for step in detailed_steps]
                     print(f"   ✅ AIA Preview workflow created: {session_id}")
-                    print(f"   Sequence: {', '.join(result['workflow_created']['workflow_sequence'])}")
+                    print(f"   Sequence: {', '.join(workflow_sequence)}")
+                else:
+                    print(f"   ❌ Workflow creation failed: {result}")
+                    all_passed = False
 
         # Test 2: Auto-Execute Full Workflow
         print(f"\n⚡ Test 2: Auto-Executing Complete Workflow")
@@ -156,8 +180,10 @@ def test_workflow_with_exports():
                 print(f"   ✅ Export files successfully generated")
             else:
                 print(f"   ❌ No export files found")
+                all_passed = False
         else:
             print(f"   ❌ AIA_Assessments directory not found")
+            all_passed = False
 
         # Test 4: Verify Workflow Completion
         print(f"\n📊 Test 4: Final Workflow Status")
@@ -198,6 +224,7 @@ def test_workflow_with_exports():
                     print(f"   ✅ Export tool completed successfully")
                 else:
                     print(f"   ❌ Export tool not completed")
+                    all_passed = False
 
         # Test 5: Test OSFI E-23 Workflow with Export
         print(f"\n🏦 Test 5: Testing OSFI E-23 Workflow with Export")
@@ -290,14 +317,23 @@ def test_workflow_with_exports():
         print(f"   ✅ File Generation: Document export functionality tested")
         print(f"   ✅ State Management: Complete workflow state tracking")
 
+        return all_passed
+
     except Exception as e:
         print(f"❌ Test failed with error: {str(e)}")
+        return False
 
     finally:
-        # Clean up
+        # Clean up generated report files - this test writes into the repo's
+        # ./AIA_Assessments/ dir, since export_assessment_report has no way to
+        # redirect its output elsewhere.
+        import shutil
+        shutil.rmtree("AIA_Assessments", ignore_errors=True)
+
         if 'server_process' in locals():
             server_process.terminate()
             server_process.wait()
 
 if __name__ == "__main__":
-    test_workflow_with_exports()
+    passed = test_workflow_with_exports()
+    sys.exit(0 if passed else 1)

@@ -38,7 +38,7 @@ class AIAReportGenerator:
 
     def _get_design_phase_questions(self) -> List[Dict[str, Any]]:
         """Get design phase questions - delegates to data extractor's processor."""
-        return self.aia_data_extractor.aia_processor.get_design_phase_questions()
+        return self.aia_data_extractor.aia_processor.scorable_questions
 
     def _get_assessment_results_for_export(self, session: Dict[str, Any], framework_type: str) -> Optional[Dict[str, Any]]:
         """Extract assessment results from session for export tools."""
@@ -151,9 +151,19 @@ class AIAReportGenerator:
                 "critical_warning": "⚠️ COMPLIANCE RISK: Exporting without assessment data would create misleading documents with incomplete or default values"
             }
 
-        # Check for minimum required assessment fields (score or impact_level)
-        has_score = "score" in assessment_results or "functional_risk_score" in assessment_results
-        has_impact_level = "impact_level" in assessment_results
+        # Check for minimum required assessment fields (score or impact_level).
+        # functional_preview responses nest these under "mcp_official_data" (see
+        # CLAUDE.md "Transparency and Data Source Distinction"), so check there too.
+        mcp_official_data = assessment_results.get("mcp_official_data", {})
+        has_score = (
+            "score" in assessment_results
+            or "functional_risk_score" in assessment_results
+            or "functional_risk_score" in mcp_official_data
+        )
+        has_impact_level = (
+            "impact_level" in assessment_results
+            or "likely_impact_level" in mcp_official_data
+        )
 
         if not has_score and not has_impact_level:
             return {
@@ -199,8 +209,8 @@ class AIAReportGenerator:
             doc.add_paragraph(f'Date: {datetime.now().strftime("%B %d, %Y")}')
             
             # Extract assessment data
-            score = self._extract_score(assessment_results)
-            impact_level = self._extract_impact_level(assessment_results)
+            score = self.aia_data_extractor.extract_score(assessment_results)
+            impact_level = self.aia_data_extractor.extract_impact_level(assessment_results)
             design_phase_questions = self._get_design_phase_questions()
             max_score = sum(q['max_score'] for q in design_phase_questions)
             
@@ -214,14 +224,14 @@ class AIAReportGenerator:
 
             # Add key findings
             doc.add_heading('Key Findings', level=1)
-            findings = self._extract_key_findings(assessment_results, project_description)
+            findings = self.aia_data_extractor.extract_key_findings(assessment_results, project_description)
             for finding in findings:
                 p = doc.add_paragraph(self._strip_markdown_formatting(finding))
                 p.style = 'List Bullet'
 
             # Add recommendations
             doc.add_heading('Recommendations', level=1)
-            recommendations = self._extract_recommendations(assessment_results, score, impact_level)
+            recommendations = self.aia_data_extractor.extract_recommendations(assessment_results, score, impact_level)
             for recommendation in recommendations:
                 p = doc.add_paragraph(self._strip_markdown_formatting(recommendation))
                 p.style = 'List Bullet'

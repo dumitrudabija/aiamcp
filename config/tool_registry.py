@@ -352,6 +352,18 @@ class ToolRegistry:
                         "include_methodology_explanation": {
                             "type": "boolean",
                             "description": "Include the fixed 'How to Interpret This Assessment' educational section explaining how AI risk fits into existing ERM (default true)."
+                        },
+                        "include_model_type_section": {
+                            "type": "boolean",
+                            "description": "Include Annex E (Detailed Model Type Classification Evidence) - the per-check capability evidence detail behind the Section 1.2 model type summary. Model type is an interpretation lens, not a separate risk score, and is not an OSFI E-23 lifecycle promotion gate (default true)."
+                        },
+                        "include_conditional_modules_section": {
+                            "type": "boolean",
+                            "description": "Include the Conditional Evidence Modules section (RAG, Tool/API Action, Agentic Autonomy, Vendor/Embedded AI, Client/Regulated Impact findings mapped to the existing risk dimensions) (default true)."
+                        },
+                        "include_governance_matrix": {
+                            "type": "boolean",
+                            "description": "Include Annex D (Configurable Governance Matrix) - the full Requirement x Risk Level x Lifecycle-Stage matrix. This is methodology-generated implementation guidance, not official OSFI E-23 text (default true)."
                         }
                     },
                     "required": ["project_name", "project_description"]

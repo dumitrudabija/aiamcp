@@ -113,3 +113,6 @@ AIA_Assessments/
 OSFI_E23_Assessments/
 backup*/
 tests/archive*/
+
+# Client-specific reference material (not for version control)
+Desjardins Dec 2025/

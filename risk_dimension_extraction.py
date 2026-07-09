@@ -101,6 +101,21 @@ def get_prompt_config() -> Dict[str, Any]:
     return _PROMPT_CONFIG
 
 
+def get_use_weights() -> bool:
+    """
+    Whether dimension/overall scoring should use per-factor `weight` values.
+
+    Defaults to False (today's simple unweighted average). Institutions can
+    opt into weighted scoring later via config/extraction_prompts.yaml:
+
+        scoring:
+          use_weights: true
+
+    without any code changes.
+    """
+    return bool(_PROMPT_CONFIG.get("scoring", {}).get("use_weights", False))
+
+
 # =============================================================================
 # CONSTANTS
 # =============================================================================
@@ -569,6 +584,7 @@ def score_factor(
         "is_not_stated": is_not_stated,
         "risk_level": "medium",  # Default
         "numeric_score": 2,  # Medium = 2
+        "weight": factor_def.get("weight", 1.0),
         "scoring_notes": "",
         "is_not_applicable": False,
         "is_portfolio_review_required": False,
@@ -577,6 +593,18 @@ def score_factor(
 
     if is_not_stated:
         result["scoring_notes"] = "Defaulted to Medium - information not stated in description"
+        return result
+
+    # NOT_APPLICABLE is valid for any factor type that opts in via "allow_na" -
+    # handled centrally here so quantitative factors (e.g. override_rate) get
+    # the same short-circuit that qualitative factors already had, instead of
+    # falling through to numeric threshold comparison on a non-numeric value.
+    if value == NOT_APPLICABLE and factor_def.get("allow_na"):
+        na_level = factor_def.get("na_risk_level", "low")
+        result["is_not_applicable"] = True
+        result["risk_level"] = na_level
+        result["numeric_score"] = RISK_LEVEL_SCORES.get(na_level, 1)
+        result["scoring_notes"] = f"Not Applicable - scored as {na_level.title()} per factor definition"
         return result
 
     if factor_type == FactorType.QUANTITATIVE.value:
@@ -675,21 +703,28 @@ def _score_qualitative(
 
 def score_dimension(
     dim_id: str,
-    factor_scores: List[Dict[str, Any]]
+    factor_scores: List[Dict[str, Any]],
+    use_weights: Optional[bool] = None
 ) -> Dict[str, Any]:
     """
     Calculate aggregate risk score for a dimension from its factor scores.
 
-    Current implementation: Simple average of factor scores.
-    Note: Weighting logic can be added here when specifications are provided.
+    Default implementation: simple (unweighted) average of factor scores.
+    Pass use_weights=True (or set scoring.use_weights in
+    config/extraction_prompts.yaml) to average using each factor's `weight`
+    instead - the default (False) reproduces today's exact behavior.
 
     Args:
         dim_id: The dimension identifier
         factor_scores: List of scored factors for this dimension
+        use_weights: Override for whether to use per-factor weights.
+            Defaults to get_use_weights() (config-driven) when None.
 
     Returns:
         Dict with dimension risk_level, numeric_score, and breakdown
     """
+    if use_weights is None:
+        use_weights = get_use_weights()
     if not factor_scores:
         return {
             "dimension_id": dim_id,
@@ -720,9 +755,17 @@ def score_dimension(
             "scoring_method": "none"
         }
 
-    total_score = sum(f["numeric_score"] for f in usable)
     not_stated_count = sum(1 for f in usable if f["is_not_stated"])
-    avg_score = total_score / len(usable)
+
+    if use_weights:
+        total_weight = sum(f.get("weight", 1.0) for f in usable)
+        total_score = sum(f["numeric_score"] * f.get("weight", 1.0) for f in usable)
+        avg_score = total_score / total_weight if total_weight else 0
+        scoring_method = "weighted_average"
+    else:
+        total_score = sum(f["numeric_score"] for f in usable)
+        avg_score = total_score / len(usable)
+        scoring_method = "simple_average"
 
     # Map average to risk level
     if avg_score < 1.5:
@@ -742,7 +785,7 @@ def score_dimension(
         "not_stated_count": not_stated_count,
         "excluded_factor_count": len(excluded),
         "excluded_factor_ids": [f["factor_id"] for f in excluded],
-        "scoring_method": "simple_average",
+        "scoring_method": scoring_method,
         "scoring_note": "Weighting can be customized per institutional requirements"
     }
 
@@ -752,20 +795,28 @@ def score_dimension(
 # =============================================================================
 
 def calculate_overall_risk(
-    dimension_scores: Dict[str, Dict[str, Any]]
+    dimension_scores: Dict[str, Dict[str, Any]],
+    use_weights: Optional[bool] = None
 ) -> Dict[str, Any]:
     """
     Calculate overall model risk from dimension scores.
 
-    Current implementation: Simple average of dimension scores.
-    Note: Weighting and amplification logic can be added per institutional specs.
+    Current implementation: simple (unweighted) average of dimension scores.
+    No dimension-level `weight` concept exists yet, so use_weights currently
+    has no effect here (it's threaded through for API symmetry with
+    score_dimension() and to make room for a future dimension-weight scheme
+    without another signature change).
 
     Args:
         dimension_scores: Dict of dimension_id -> dimension score data
+        use_weights: Accepted for API symmetry with score_dimension(); has no
+            effect until a dimension-level weight concept is defined.
 
     Returns:
         Dict with overall risk_level, numeric_score, and dimension breakdown
     """
+    if use_weights is None:
+        use_weights = get_use_weights()
     if not dimension_scores:
         return {
             "overall_risk_level": "not_assessed",

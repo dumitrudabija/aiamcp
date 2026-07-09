@@ -50,7 +50,7 @@ class MCPServer:
 
         self.server_info = {
             "name": "aia-assessment-server",
-            "version": "3.4.0"
+            "version": "3.5.0"
         }
         self.introduction_shown = False
 
@@ -79,7 +79,7 @@ class MCPServer:
         self.framework_detector = FrameworkDetector(self.workflow_engine)
         self.aia_data_extractor = AIADataExtractor(self.aia_processor)
         self.osfi_data_extractor = OSFIE23DataExtractor(self.osfi_e23_processor)
-        self.aia_analyzer = AIAAnalyzer(self.aia_processor)
+        self.aia_analyzer = AIAAnalyzer(self.aia_processor, self.description_validator)
         self.introduction_builder = IntroductionBuilder(self.framework_detector)
         self.aia_report_generator = AIAReportGenerator(self.aia_data_extractor)
         self._processors_loaded = True
@@ -927,11 +927,16 @@ class MCPServer:
                 "message": f"✅ Assessment completed using {len(responses)} actual question responses.",
                 "note": "This score is based on actual responses and is valid for AIA compliance purposes."
             }
-        
+
+        return result
+
     # AIA Analysis Methods (delegate to AIAAnalyzer)
 
     def _analyze_project_description(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze project description - delegates to AIAAnalyzer."""
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
         return self.aia_analyzer._analyze_project_description(arguments)
 
     def _intelligent_project_analysis(self, project_description: str) -> List[Dict[str, Any]]:
@@ -944,6 +949,9 @@ class MCPServer:
 
     def _functional_preview(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Functional preview - delegates to AIAAnalyzer."""
+        intro_check = self._check_introduction_requirement()
+        if intro_check:
+            return intro_check
         return self.aia_analyzer._functional_preview(arguments)
 
     def _functional_risk_analysis(self, project_description: str) -> List[Dict[str, Any]]:
@@ -976,25 +984,6 @@ class MCPServer:
         """Get questions - delegates to AIAAnalyzer."""
         return self.aia_analyzer._get_questions(arguments)
 
-    def _get_questions_summary(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Get questions summary - delegates to AIAAnalyzer."""
-        return self.aia_analyzer._get_questions_summary(arguments)
-
-    def _get_questions_by_category(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Get questions by category - delegates to AIAAnalyzer."""
-        return self.aia_analyzer._get_questions_by_category(arguments)
-
-    def _calculate_assessment_score(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Calculate assessment score - delegates to AIAAnalyzer."""
-        return self.aia_analyzer._calculate_assessment_score(arguments)
-
-    def _calculate_score_sensitivity(self, base_score: int, gap_analysis: Dict[str, List[str]]) -> Dict[str, str]:
-        """Calculate score sensitivity - delegates to AIAAnalyzer."""
-        return self.aia_analyzer._calculate_score_sensitivity(base_score, gap_analysis)
-
-    def _estimate_impact_level_range(self, base_score: int, gap_analysis: Dict[str, List[str]]) -> Dict[str, int]:
-        """Estimate impact level range - delegates to AIAAnalyzer."""
-        return self.aia_analyzer._estimate_impact_level_range(base_score, gap_analysis)
 
         def extract_questions_from_page(page):
             page_name = page.get('name', '')
@@ -1272,11 +1261,23 @@ class MCPServer:
             get_dimension_names,
             get_total_factor_count
         )
+        from model_type_classification import generate_model_type_evidence_prompt
 
         logger.info(f"Phase 1: Generating extraction prompt for: {project_name}")
 
         # Get the structured extraction prompt
         extraction_data = get_extraction_prompt_for_description(project_description)
+
+        # Append the model type / delivery model evidence checklist as a second
+        # part of the SAME prompt (one combined JSON response, no extra round
+        # trip). This asks Claude for factual evidence only - classification
+        # itself happens deterministically server-side in Phase 2, mirroring
+        # the "AI extracts facts, Python scores" principle used for the 47 factors.
+        combined_prompt = (
+            extraction_data["extraction_prompt"]
+            + "\n\n---\n\n"
+            + generate_model_type_evidence_prompt()
+        )
 
         result = {
             "phase": "extraction",
@@ -1292,7 +1293,7 @@ class MCPServer:
                     "Claude: Analyze the project description and extract values for each risk factor. "
                     "Then immediately call assess_model_risk again with the extracted_factors parameter."
                 ),
-                "extraction_prompt": extraction_data["extraction_prompt"],
+                "extraction_prompt": combined_prompt,
                 "output_format": "JSON as specified in the prompt",
                 "handling_missing": "Use 'NOT_STATED' for any values not found in the description"
             },
@@ -1329,39 +1330,82 @@ class MCPServer:
         extracted_factors: Dict[str, Any], validation_result: Dict[str, Any], osfi_ready: bool
     ) -> Dict[str, Any]:
         """
-        Phase 2: Validate extracted factors and score deterministically.
+        Phase 2: run the mandatory five-step Capability Evidence Workflow and
+        assemble the assessment result.
 
-        Uses rule-based scoring after Claude has extracted factual values
-        from the project description.
+        Order is enforced by osfi_e23_workflow.py (not optional/reorderable
+        here): (1) model type identification, (2) Capability Evidence Pack
+        triggers - BEFORE the 47-question assessment runs, (3) the existing
+        47-question assessment (unchanged questions/dimensions/scoring), (4)
+        risk level + conditions, (5) required governance actions. The LLM
+        (Claude) only ever supplies factual evidence (model_type_evidence +
+        the 47-factor extraction) - every step here is deterministic
+        server-side logic.
         """
-        from risk_dimension_extraction import (
-            process_extraction_response,
-            format_not_stated_for_report
+        from risk_dimension_extraction import format_not_stated_for_report
+        from model_type_classification import validate_model_type_evidence
+        from osfi_e23_risk_dimensions import get_dimension, get_total_factor_count
+        import osfi_e23_workflow as workflow
+
+        logger.info(f"Phase 2: Running five-step Capability Evidence Workflow for: {project_name}")
+
+        model_type_evidence = validate_model_type_evidence(
+            extracted_factors.get("model_type_evidence")
         )
 
-        logger.info(f"Phase 2: Processing extracted factors for: {project_name}")
+        # Steps 1-5, in the mandatory order - each step's own guard raises
+        # WorkflowOrderError if attempted out of order (see osfi_e23_workflow.py).
+        context = workflow.run_five_step_workflow(model_type_evidence, extracted_factors)
 
-        # Process the extraction through validation and scoring
-        assessment_result = process_extraction_response(extracted_factors)
+        model_type_classification = context.data["model_type_classification"]
+        delivery_model = context.data["delivery_model"]
+        capability_evidence_packs = context.data["capability_evidence_packs"]
+        assessment_result = context.data["assessment_result"]
+        final_result = context.data["final_result"]
+        required_governance_actions = context.data["required_governance_actions"]
+        base_risk_score = context.data["base_risk_score"]
+        base_risk_level = context.data["base_risk_level"]
 
-        # Extract key results
         overall = assessment_result["overall_assessment"]
         dimension_scores = assessment_result["dimension_scores"]
         not_stated = assessment_result["not_stated_summary"]
+        triggered_packs = capability_evidence_packs["triggered"]
 
-        # Map numeric risk level to string for compatibility
-        risk_level = overall["overall_risk_level"].title()  # low -> Low
-        risk_score = int(overall["overall_numeric_score"] * 25)  # 1-4 scale to 0-100
-
-        # Generate governance requirements based on risk level
+        # Legacy governance text (kept for the existing report sections that
+        # aren't part of this workflow rewrite, e.g. stage requirements).
         governance = self.osfi_e23_processor._generate_governance_requirements(
-            risk_level, {"quantitative_indicators": {}, "qualitative_indicators": {}}
+            base_risk_level, {"quantitative_indicators": {}, "qualitative_indicators": {}}
+        )
+        recommendations = self.osfi_e23_processor._generate_compliance_recommendations(
+            base_risk_level, {"quantitative_indicators": {}, "qualitative_indicators": {}}
         )
 
-        # Generate recommendations
-        recommendations = self.osfi_e23_processor._generate_compliance_recommendations(
-            risk_level, {"quantitative_indicators": {}, "qualitative_indicators": {}}
-        )
+        # Deterministic, template-based report text (not free LLM text -
+        # built entirely from the workflow outputs above).
+        report_summary = {
+            "executive_summary": (
+                f"This system is classified as {model_type_classification['final_label']} "
+                f"(Level {model_type_classification['final_level']}) with a base risk rating of "
+                f"{base_risk_level} ({base_risk_score}/100). Delivery model: "
+                f"{delivery_model['label'].replace('_', ' ')}."
+            ),
+            "model_type_explanation": (
+                "Model type is determined by verified capabilities, not product labels. "
+                "Capability Evidence Packs identify additional evidence needs; they do not create "
+                "separate risk scores. The 47-question assessment remains the common scoring core. "
+                "Evidence Pack findings are mapped back to the existing risk dimensions. "
+                "Final governance actions are generated from the base risk level, conditions, "
+                "blockers, and evidence gaps."
+            ),
+            "dimension_findings": [
+                f"{get_dimension(dim_id)['name']}: {scores.get('risk_level', 'not_assessed').title()}"
+                for dim_id, scores in dimension_scores.items()
+            ],
+            "conditional_findings": [
+                finding for pack in triggered_packs for finding in pack["findings"]
+            ],
+            "governance_actions": [action["action"] for action in required_governance_actions],
+        }
 
         result = {
             "phase": "assessment_complete",
@@ -1370,27 +1414,19 @@ class MCPServer:
             "assessment_date": datetime.now().isoformat(),
             "framework": "OSFI Guideline E-23 Model Risk Management",
 
-            # Overall risk assessment
-            "risk_score": risk_score,
-            "risk_level": risk_level,
-            "risk_description": self._get_risk_description(risk_level),
-
-            # Dimension-level breakdown (used by report generator)
+            # --- Legacy flat keys (kept exactly as before): consumed directly
+            # by Annex A/Section 3 of the report and by export_e23_report's
+            # validation gate. Values mirror core_assessment/final_result below.
+            "risk_score": base_risk_score,
+            "risk_level": final_result["final_risk_level"],
+            "risk_description": self._get_risk_description(final_result["final_risk_level"]),
             "dimension_assessments": dimension_scores,
-
-            # Dimension metadata
             "dimension_metadata": {
                 "aggregation_method": overall.get("scoring_method", "dimension_average"),
                 "dimensions_assessed": overall.get("dimensions_assessed", 0)
             },
-
-            # Factor-level details (used by Annex A in report)
             "factor_scores": assessment_result["factor_scores"],
-
-            # Validated extraction with evidence (used by Annex A in report)
             "validated_extraction": assessment_result.get("validated_extraction", {}),
-
-            # NOT_STATED handling
             "not_stated_factors": {
                 "count": not_stated["count"],
                 "factors": not_stated["factors"],
@@ -1398,13 +1434,28 @@ class MCPServer:
                 "recommendation": "Consider clarifying these in project documentation",
                 "report_section": format_not_stated_for_report(not_stated)
             },
-
-            # Factors flagged for follow-up (e.g. portfolio-level review) rather than scored
             "follow_up_actions": assessment_result.get("follow_up_actions", []),
-
-            # Governance requirements
             "governance_requirements": governance,
             "recommendations": recommendations,
+
+            # --- Five-step Capability Evidence Workflow (required schema) ---
+            "workflow_version": workflow.WORKFLOW_VERSION,
+            "workflow_steps_completed": list(context.steps_completed),
+            "scope_assumption": "E-23 model scope assumed",
+            "model_type_classification": model_type_classification,
+            "delivery_model": delivery_model,
+            "capability_evidence_packs": capability_evidence_packs,
+            "triggered_modules": triggered_packs,  # backward-compat alias
+            "core_assessment": {
+                "question_count": get_total_factor_count(),
+                "base_risk_score": base_risk_score,
+                "base_risk_level": base_risk_level,
+                "dimension_scores": dimension_scores,
+                "dimension_findings": report_summary["dimension_findings"],
+            },
+            "final_result": final_result,
+            "required_governance_actions": required_governance_actions,
+            "report": report_summary,
 
             # Validation issues from extraction
             "extraction_validation": {
@@ -1462,6 +1513,9 @@ class MCPServer:
         custom_filename = arguments.get("custom_filename")
         provided_stage = arguments.get("current_stage") or arguments.get("lifecycle_stage")  # Support both names
         include_methodology_explanation = arguments.get("include_methodology_explanation", True)
+        include_model_type_section = arguments.get("include_model_type_section", True)
+        include_conditional_modules_section = arguments.get("include_conditional_modules_section", True)
+        include_governance_matrix = arguments.get("include_governance_matrix", True)
 
         logger.info(f"Exporting OSFI E-23 report for project: {project_name}")
 
@@ -1541,7 +1595,10 @@ class MCPServer:
                 assessment_results=assessment_results,
                 doc=doc,
                 current_stage=current_stage,
-                include_methodology_explanation=include_methodology_explanation
+                include_methodology_explanation=include_methodology_explanation,
+                include_model_type_section=include_model_type_section,
+                include_conditional_modules_section=include_conditional_modules_section,
+                include_governance_matrix=include_governance_matrix
             )
 
             # Save document

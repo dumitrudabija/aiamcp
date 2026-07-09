@@ -4,8 +4,12 @@ Test script for AIAProcessor core functionality
 Demonstrates the data processing methods
 """
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from aia_processor import AIAProcessor
-import json
 
 def test_processor_methods():
     """Test all the core AIAProcessor methods."""

@@ -29,10 +29,11 @@ def test_validation_scenarios():
             categorize and respond to customer inquiries. The system processes customer data from our
             CRM database including inquiry history, customer demographics, and product information.
             The business purpose is to improve response times and reduce manual workload for our
-            customer service team. The system impacts customer satisfaction and operational efficiency.
+            customer service team. The system impacts customer satisfaction and operational efficiency
+            for all customers who contact support through phone, email, or chat channels.
             Decisions are made through automated classification with human review for complex cases.
             The technical architecture uses natural language processing deployed on cloud infrastructure
-            with API integration to our existing customer management systems.
+            with API integration to our existing customer relationship management systems and support ticketing platform.
             """,
             "expected_valid": True
         },
@@ -91,6 +92,20 @@ def test_validation_scenarios():
         response = server_process.stdout.readline()
         print(f"✅ Server initialized")
 
+        # Assessment tools (assess_project, etc.) require get_server_introduction
+        # to have been called first in this session - satisfy that gate up front.
+        intro_request = {
+            "jsonrpc": "2.0",
+            "id": 1000,
+            "method": "tools/call",
+            "params": {"name": "get_server_introduction", "arguments": {}}
+        }
+        server_process.stdin.write(json.dumps(intro_request) + "\n")
+        server_process.stdin.flush()
+        server_process.stdout.readline()
+
+        all_passed = True
+
         # Test each validation scenario
         for i, test_case in enumerate(test_cases, 2):
             print(f"\n📋 Testing: {test_case['name']}")
@@ -133,6 +148,7 @@ def test_validation_scenarios():
                             print(f"   ✅ Test passed")
                         else:
                             print(f"   ❌ Test failed - expected {test_case['expected_valid']}, got {is_valid}")
+                            all_passed = False
 
                         # Show missing areas if invalid
                         if not is_valid:
@@ -141,11 +157,14 @@ def test_validation_scenarios():
 
                     else:
                         print(f"   ❌ Error in response: {response.get('error', 'Unknown error')}")
+                        all_passed = False
 
                 except json.JSONDecodeError:
                     print(f"   ❌ Invalid JSON response: {response_line}")
+                    all_passed = False
             else:
                 print(f"   ❌ No response received")
+                all_passed = False
 
         # Test integration with assessment tools
         print(f"\n🔗 Testing Integration with Assessment Tools")
@@ -179,13 +198,20 @@ def test_validation_scenarios():
                     print("   ✅ Assessment correctly rejected insufficient description")
                 else:
                     print("   ❌ Assessment should have rejected insufficient description")
+                    all_passed = False
             else:
                 print(f"   ❌ Error in assessment response: {response.get('error')}")
+                all_passed = False
+        else:
+            print("   ❌ No response received")
+            all_passed = False
 
         print(f"\n🎉 Validation testing complete!")
+        return all_passed
 
     except Exception as e:
         print(f"❌ Test failed with error: {str(e)}")
+        return False
 
     finally:
         # Clean up
@@ -194,4 +220,5 @@ def test_validation_scenarios():
             server_process.wait()
 
 if __name__ == "__main__":
-    test_validation_scenarios()
+    passed = test_validation_scenarios()
+    sys.exit(0 if passed else 1)

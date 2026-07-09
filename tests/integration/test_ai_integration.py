@@ -5,6 +5,10 @@ Tests the new AI integration features with a sample project
 """
 
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from aia_processor import AIAProcessor
 
 def test_ai_integration():

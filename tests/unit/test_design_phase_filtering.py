@@ -8,8 +8,8 @@ import json
 import sys
 import os
 
-# Add the current directory to Python path to import our modules
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add the project root to Python path to import our modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from server import MCPServer
 
@@ -22,7 +22,8 @@ def test_design_phase_filtering():
     
     # Initialize the MCP server (which contains the methods we need to test)
     server = MCPServer()
-    
+    server._load_processors()  # Processors are normally lazy-loaded on first tool call
+
     # Test project description that should trigger many questions
     test_project = {
         "projectName": "Test Design Phase Filtering",
@@ -117,7 +118,8 @@ def test_design_phase_question_method():
     print("=" * 60)
     
     server = MCPServer()
-    
+    server._load_processors()  # Processors are normally lazy-loaded on first tool call
+
     try:
         # Test the new method
         design_questions = server._get_design_phase_questions()

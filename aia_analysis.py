@@ -14,21 +14,15 @@ logger = logging.getLogger(__name__)
 class AIAAnalyzer:
     """Intelligent analyzer for AIA assessments."""
 
-    def __init__(self, aia_processor):
-        """Initialize with AIAProcessor instance."""
+    def __init__(self, aia_processor, description_validator):
+        """Initialize with AIAProcessor and ProjectDescriptionValidator instances."""
         self.aia_processor = aia_processor
-
-    def _get_design_phase_questions(self) -> List[Dict[str, Any]]:
-        """Get questions visible in Design phase."""
-        return self.aia_processor.get_design_phase_questions()
+        self.description_validator = description_validator
 
     def _analyze_project_description(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle project description analysis requests with intelligent automatic scoring."""
-        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
-        intro_check = self._check_introduction_requirement()
-        if intro_check:
-            return intro_check
-
+        # WORKFLOW ENFORCEMENT (introduction gate) is checked by the caller (server.py)
+        # before this method is invoked - AIAAnalyzer has no session state of its own.
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
 
@@ -429,11 +423,8 @@ class AIAAnalyzer:
 
     def _functional_preview(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Handle functional preview requests - early risk assessment focused on technical characteristics."""
-        # WORKFLOW ENFORCEMENT: Check if introduction has been shown
-        intro_check = self._check_introduction_requirement()
-        if intro_check:
-            return intro_check
-
+        # WORKFLOW ENFORCEMENT (introduction gate) is checked by the caller (server.py)
+        # before this method is invoked - AIAAnalyzer has no session state of its own.
         project_name = arguments.get("projectName", "")
         project_description = arguments.get("projectDescription", "")
 
@@ -891,93 +882,6 @@ class AIAAnalyzer:
             }
         }
     
-
-    def _get_questions_summary(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle questions summary requests."""
-        logger.info("Retrieving questions summary")
-        
-        # Use Design phase questions for summary calculation
-        design_phase_questions = self._get_design_phase_questions()
-        
-        # Calculate summary based on Design phase questions only
-        total_questions = len(design_phase_questions)
-        max_possible_score = sum(q['max_score'] for q in design_phase_questions)
-        
-        # Count questions by type
-        risk_questions = len([q for q in design_phase_questions if q.get('max_score', 0) > 0])
-        mitigation_questions = total_questions - risk_questions
-        
-        summary = {
-            "total_questions": total_questions,
-            "risk_questions": risk_questions,
-            "mitigation_questions": mitigation_questions,
-            "max_possible_score": max_possible_score,
-            "framework": "Canada's Algorithmic Impact Assessment (Design Phase)"
-        }
-        
-        return {
-            "success": True,
-            "summary": summary
-        }
-    
-
-    def _get_questions_by_category(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle requests for questions by category."""
-        category = arguments.get("category", "")
-        limit = arguments.get("limit")
-        
-        logger.info(f"Retrieving {category} questions")
-        
-        # Get questions from the specified category
-        category_questions = self.aia_processor.question_categories.get(category, [])
-        
-        if limit:
-            category_questions = category_questions[:limit]
-        
-        # Get full question details (Design phase only)
-        design_phase_questions = self._get_design_phase_questions()
-        questions_by_name = {q['name']: q for q in design_phase_questions}
-        detailed_questions = []
-        
-        for question_name in category_questions:
-            if question_name in questions_by_name:
-                detailed_questions.append(questions_by_name[question_name])
-        
-        return {
-            "success": True,
-            "category": category,
-            "total_in_category": len(self.aia_processor.question_categories.get(category, [])),
-            "returned_count": len(detailed_questions),
-            "questions": detailed_questions
-        }
-    
-
-    def _calculate_assessment_score(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle score calculation requests."""
-        responses = arguments.get("responses", [])
-        
-        logger.info(f"Calculating score for {len(responses)} responses")
-        
-        # Use the existing AIAProcessor logic
-        total_score = self.aia_processor.calculate_score(responses)
-        level, level_name, level_description = self.aia_processor.determine_impact_level(total_score)
-        
-        # Use Design phase questions for max score calculation
-        design_phase_questions = self._get_design_phase_questions()
-        max_possible_score = sum(q['max_score'] for q in design_phase_questions)
-        
-        return {
-            "success": True,
-            "calculation": {
-                "total_score": total_score,
-                "responses_processed": len(responses),
-                "max_possible_score": max_possible_score,
-                "impact_level": level,
-                "level_name": level_name,
-                "level_description": level_description
-            }
-        }
-
 
     def _calculate_score_sensitivity(self, base_score: int, gap_analysis: Dict[str, List[str]]) -> Dict[str, str]:
         """Calculate how the score might change based on critical gaps."""

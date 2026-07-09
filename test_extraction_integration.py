@@ -26,6 +26,7 @@ def test_phase1_extraction_prompt():
     print("=" * 80)
 
     server = MCPServer()
+    server._load_processors()  # Processors are normally lazy-loaded on first tool call
     # Mark introduction as shown to bypass workflow check
     server.introduction_shown = True
 
@@ -66,6 +67,7 @@ def test_phase2_with_extracted_factors():
     print("=" * 80)
 
     server = MCPServer()
+    server._load_processors()  # Processors are normally lazy-loaded on first tool call
     server.introduction_shown = True
 
     # Simulate Claude's extraction response
@@ -106,7 +108,7 @@ def test_phase2_with_extracted_factors():
             "complexity_opacity": {
                 "feature_count": {"value": 200, "evidence": "200 features"},
                 "training_data_volume": {"value": 2000000, "evidence": "2 million historical records"},
-                "model_type": {"value": "medium", "evidence": "gradient boosting ensemble"},
+                "model_architecture_type": {"value": "medium", "evidence": "gradient boosting ensemble"},
                 "autonomy_level": {"value": "medium", "evidence": "influences but human review"},
                 "self_learning": {"value": "NOT_STATED", "evidence": None}
             },
@@ -224,6 +226,7 @@ def test_full_integration():
     print("=" * 80)
 
     server = MCPServer()
+    server._load_processors()  # Processors are normally lazy-loaded on first tool call
     server.introduction_shown = True
 
     # Phase 1: Get extraction prompt

@@ -48,6 +48,20 @@ def test_workflow_features():
         response = server_process.stdout.readline()
         print(f"✅ Server initialized")
 
+        # Workflow tools require get_server_introduction to have been called
+        # first in this session (introduction workflow enforcement gate).
+        intro_request = {
+            "jsonrpc": "2.0",
+            "id": 100,
+            "method": "tools/call",
+            "params": {"name": "get_server_introduction", "arguments": {}}
+        }
+        server_process.stdin.write(json.dumps(intro_request) + "\n")
+        server_process.stdin.flush()
+        server_process.stdout.readline()
+
+        all_passed = True
+
         # Test 1: Create Workflow
         print(f"\n📋 Test 1: Creating Workflow Session")
 
@@ -91,19 +105,20 @@ def test_workflow_features():
                 if "workflow_created" in result:
                     session_id = result["workflow_created"]["session_id"]
                     assessment_type = result["workflow_created"]["assessment_type"]
-                    workflow_sequence = result["workflow_created"]["workflow_sequence"]
+                    detailed_steps = result.get("workflow_visualization", {}).get("detailed_steps", [])
+                    workflow_sequence = [step["tool_name"] for step in detailed_steps]
 
                     print(f"   ✅ Workflow created successfully")
                     print(f"   Session ID: {session_id}")
                     print(f"   Assessment Type: {assessment_type}")
-                    print(f"   Workflow Steps: {len(workflow_sequence)}")
+                    print(f"   Workflow Steps: {result['workflow_created'].get('total_steps', len(workflow_sequence))}")
                     print(f"   Sequence: {', '.join(workflow_sequence)}")
                 else:
                     print(f"   ❌ Workflow creation failed: {result}")
-                    return
+                    return False
             else:
                 print(f"   ❌ Error creating workflow: {response.get('error')}")
-                return
+                return False
 
         # Test 2: Get Workflow Status
         print(f"\n📊 Test 2: Getting Workflow Status")
@@ -280,7 +295,34 @@ def test_workflow_features():
         # Test 6: Dependency Validation Test
         print(f"\n🔗 Test 6: Testing Dependency Validation")
 
-        # Try to execute assess_project without proper prerequisites
+        # This must run in a *fresh* session: the `session_id` session already
+        # completed export_assessment_report in Test 4's auto-execution, so its
+        # prerequisites are already satisfied there and this would trivially
+        # "succeed" without ever exercising the dependency-validation failure path.
+        new_session_request = {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+                "name": "create_workflow",
+                "arguments": {
+                    "projectName": "Dependency Validation Test Project",
+                    "projectDescription": create_workflow_request["params"]["arguments"]["projectDescription"],
+                    "assessmentType": "aia_preview"
+                }
+            }
+        }
+        server_process.stdin.write(json.dumps(new_session_request) + "\n")
+        server_process.stdin.flush()
+        new_session_response_line = server_process.stdout.readline()
+        dependency_test_session_id = session_id
+        if new_session_response_line:
+            new_session_response = json.loads(new_session_response_line.strip())
+            if "result" in new_session_response:
+                new_session_content = json.loads(new_session_response["result"]["content"][0]["text"])
+                dependency_test_session_id = new_session_content["workflow_created"]["session_id"]
+
+        # Try to execute export_assessment_report without proper prerequisites
         invalid_step_request = {
             "jsonrpc": "2.0",
             "id": 7,
@@ -288,7 +330,7 @@ def test_workflow_features():
             "params": {
                 "name": "execute_workflow_step",
                 "arguments": {
-                    "sessionId": session_id,
+                    "sessionId": dependency_test_session_id,
                     "toolName": "export_assessment_report",
                     "toolArguments": {
                         "project_name": "Test Project",
@@ -317,8 +359,10 @@ def test_workflow_features():
                         print(f"   Missing Dependencies: {workflow_mgmt.get('missing_dependencies', [])}")
                     else:
                         print(f"   ❌ Dependency validation should have failed")
+                        all_passed = False
                 else:
                     print(f"   ❌ No workflow management info in response")
+                    all_passed = False
 
         print(f"\n🎉 Workflow Enhancement Testing Complete!")
 
@@ -330,8 +374,11 @@ def test_workflow_features():
         print(f"   ✅ Smart Routing: Next step recommendations and auto-execution")
         print(f"   ✅ Auto-Execution: Intelligent multi-step automation")
 
+        return all_passed
+
     except Exception as e:
         print(f"❌ Test failed with error: {str(e)}")
+        return False
 
     finally:
         # Clean up
@@ -340,4 +387,5 @@ def test_workflow_features():
             server_process.wait()
 
 if __name__ == "__main__":
-    test_workflow_features()
+    passed = test_workflow_features()
+    sys.exit(0 if passed else 1)

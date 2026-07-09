@@ -36,6 +36,11 @@ class AIADataExtractor:
 
     def extract_score(self, assessment_results: Dict[str, Any]) -> int:
         """Extract score from assessment results."""
+        # functional_preview nests its score under "mcp_official_data" (see
+        # CLAUDE.md "Transparency and Data Source Distinction").
+        mcp_official_data = assessment_results.get('mcp_official_data', {})
+        if 'functional_risk_score' in mcp_official_data:
+            return mcp_official_data['functional_risk_score']
         # Try different possible score field names
         if 'functional_risk_score' in assessment_results:
             return assessment_results['functional_risk_score']
@@ -50,6 +55,11 @@ class AIADataExtractor:
 
     def extract_impact_level(self, assessment_results: Dict[str, Any]) -> str:
         """Extract impact level from assessment results."""
+        # functional_preview nests its impact level under "mcp_official_data" (see
+        # CLAUDE.md "Transparency and Data Source Distinction").
+        mcp_official_data = assessment_results.get('mcp_official_data', {})
+        if 'likely_impact_level' in mcp_official_data:
+            return mcp_official_data['likely_impact_level']
         # Try different possible impact level field names
         if 'likely_impact_level' in assessment_results:
             return assessment_results['likely_impact_level']
@@ -88,14 +98,18 @@ class AIADataExtractor:
         if any(term in description_lower for term in ['thousands', 'daily', 'real-time', 'high volume']):
             findings.append("High-volume processing requires robust monitoring systems")
 
-        # Add findings from assessment results
-        if 'planning_guidance' in assessment_results:
-            guidance = assessment_results['planning_guidance']
+        # Add findings from assessment results. functional_preview nests these
+        # under "ai_generated_analysis" (see CLAUDE.md "Transparency and Data
+        # Source Distinction"); fall back to top-level for other tool shapes.
+        ai_generated_analysis = assessment_results.get('ai_generated_analysis', assessment_results)
+
+        if 'planning_guidance' in ai_generated_analysis:
+            guidance = ai_generated_analysis['planning_guidance']
             if isinstance(guidance, list) and len(guidance) > 0:
                 findings.append("Specific compliance planning requirements identified")
 
-        if 'critical_gaps' in assessment_results:
-            gaps = assessment_results['critical_gaps']
+        if 'critical_gaps' in ai_generated_analysis:
+            gaps = ai_generated_analysis['critical_gaps']
             if isinstance(gaps, list) and len(gaps) > 0:
                 findings.append("Critical information gaps require stakeholder input")
 

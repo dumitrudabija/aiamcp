@@ -13,7 +13,7 @@ A Model Context Protocol (MCP) server that plugs into Claude Desktop and provide
 
 The server runs locally over stdio; Claude Desktop calls its tools the same way it calls any other MCP tool. No cloud dependency for the server itself.
 
-Current version: **3.4.0**
+Current version: **3.5.0**
 
 ---
 
@@ -158,6 +158,11 @@ Or use whichever Python path you configured in the Claude Desktop config.
 | `osfi_e23_processor.py` | Governance requirement / compliance recommendation generation |
 | `osfi_e23_risk_dimensions.py` | 8 Risk Dimensions, 47 factors definition |
 | `risk_dimension_extraction.py` | AI-assisted extraction + deterministic scoring |
+| `model_type_classification.py` | Model type (Level 1-5) + delivery model classification via deterministic capability-evidence checks |
+| `conditional_modules.py` | 4 Capability Evidence Packs (Knowledge Access, Action Execution, Autonomy, Vendor/Platform) |
+| `osfi_e23_workflow.py` | 5-step OSFI E-23 assessment orchestration (classification → packs → 47-question scoring → risk level → required actions) |
+| `osfi_e23_report_generators.py` | OSFI E-23 report generation (3 sections + Annex A-E) - presentation layer only |
+| `osfi_e23_structure.py` | Official OSFI Principles/Outcomes/lifecycle definitions + the configurable governance matrix |
 | `workflow_engine.py` | Session state, auto-sequencing, dependency validation |
 | `config/extraction_prompts.yaml` | Tunable prompt templates (edit to adjust extraction behavior) |
 | `data/survey-enfr.json` | Official AIA questionnaire — do not modify |

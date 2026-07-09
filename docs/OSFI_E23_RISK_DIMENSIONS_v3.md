@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the risk assessment framework for OSFI E-23 Model Risk Management: 8 Risk Dimensions containing 47 factors, introduced as 6 dimensions/31 factors in v3.0 and expanded to 8 dimensions/47 factors in v3.4 (Data Provenance & Supply Chain Risk, Systemic & Concentration Risk, and 9 new factors folded into the original six).
+This document describes the risk assessment framework for OSFI E-23 Model Risk Management: 8 Risk Dimensions containing 47 factors, introduced as 6 dimensions/31 factors in v3.0 and expanded to 8 dimensions/47 factors in v3.4 (Data Provenance & Supply Chain Risk, Systemic & Concentration Risk, and 9 new factors folded into the original six). In v3.5, a separate non-scored **Model Type & Delivery Model Classification** layer was added (see below) - 4 factors that overlapped with it (`ai_system_classification`, `genai_scope_constraint`, `automation_bias_dependency`, `kill_switch_circuit_breaker`) were retired and replaced with 4 factors that measure something distinct, keeping the total at 47. The `Model type` factor in Complexity & Opacity was renamed to `Model architecture type` to avoid confusion with the new top-level model type classification.
 
 **Key characteristics:**
 - Each dimension contains multiple factors with 4-level scales (Low/Medium/High/Critical)
@@ -68,27 +68,29 @@ This document describes the risk assessment framework for OSFI E-23 Model Risk M
 |------|--------|-----|--------|------|----------|
 | Quantitative | Features/parameters | <50 | 50-500 | 500-10K | >10K |
 | Quantitative | Training data volume | <100K | 100K-1M | 1M-100M | >100M |
-| Qualitative | Model type | Linear/rules | Ensemble | Neural network | Deep learning/LLM |
+| Qualitative | Model architecture type | Linear/rules | Ensemble | Neural network | Deep learning/LLM |
 | Qualitative | Autonomy level | None | Recommends | Auto w/override | Fully autonomous |
 | Qualitative | Self-learning | Static | Periodic retrain | Continuous | Autonomous adaptation |
-| Qualitative | AI system classification (routing gate) | Traditional ML, non-generative | Narrow-purpose GenAI | Broad-purpose GenAI | Autonomous/agentic AI |
-| Qualitative | GenAI scope constraint *(supports N/A)* | Tightly constrained, or non-generative | Some constraints, gaps | Limited constraints | No constraints (open-ended) |
-| Qualitative | Automation bias / cognitive dependency | Low reliance, critical evaluation | Some reliance | Significant reliance | Routine deference, no verification |
+| Qualitative | Decision path traceability | Full lineage/audit trail | Traceable w/effort | Difficult to trace | Fully opaque |
+| Qualitative | Pipeline component count | Single component | 2-3 chained | 4-6 chained | 7+ chained/undocumented |
+| Qualitative | Model / configuration update velocity | Infrequent, scheduled, controlled | Periodic, controlled | Frequent or partly uncontrolled | Continuous/automatic, no release process |
 
-The **AI system classification** factor is a "routing gate": its value gives context for whether the GenAI-conditional factors above (confabulation risk, GenAI output benchmark, adversarial robustness testing, GenAI scope constraint) are applicable to a given model. There is no automatic code-side gating - the LLM extraction step uses this classification as context to decide whether to answer those factors normally or mark them `NOT_APPLICABLE`; the deterministic scorer just needs to accept that sentinel on factors that declare `allow_na: True`.
+*(v3.5, see below)* Model capability (traditional ML vs GenAI vs agentic) and delivery model (internal/vendor/embedded) are now captured as a separate, non-scored classification layer (`model_type_classification.py`) rather than as scored factors here - see "Model Type & Delivery Model Classification (v3.5)" below. The former `AI system classification (routing gate)`, `GenAI scope constraint`, and `Automation bias / cognitive dependency` factors were retired from this dimension's scored factors and replaced by the three traceability/complexity factors above, which measure something the new classification layer doesn't.
 
 ### 6. Governance & Oversight
 **Core Question:** How robust are the controls and accountability structures?
 
 | Type | Factor | Low | Medium | High | Critical |
 |------|--------|-----|--------|------|----------|
-| Quantitative | Override rate | N/A | <5% | 5-20% | >20% |
+| Quantitative | Override rate *(supports N/A)* | N/A | <5% | 5-20% | >20% |
 | Quantitative | Time since validation | <6 mo | 6-12 mo | 12-24 mo | >24 mo |
 | Qualitative | Human review | All reviewed | Sample | Exception-based | None |
 | Qualitative | Regulatory scrutiny | None | Low | Moderate | High (SR 11-7) |
 | Qualitative | Model ownership | Clear single | Shared | Unclear | None assigned |
 | Qualitative | AI-specific incident response | Documented, tested, current | Exists, not AI-specific/tested | Informal/incomplete | None |
-| Qualitative | Kill switch / circuit breaker | Tested capability exists | Exists, untested/partial | Limited ability | None |
+| Qualitative | Production monitoring & alerting coverage | Active monitoring/alerting, defined thresholds | Monitoring exists, alerting gaps | Largely manual/ad hoc | None |
+
+The former `Kill switch / circuit breaker` factor was retired from this dimension's scored factors (v3.5) - it's now covered by the Agentic Autonomy conditional module's governance conditions instead, alongside the new model type classification.
 
 ### 7. Data Provenance & Supply Chain Risk *(new in v3.4)*
 **Core Question:** Are the model's data, training inputs, fine-tuning data, validation data, RAG grounding sources, third-party components, and synthetic data understood, approved, traceable, and controlled?
@@ -111,6 +113,37 @@ The **AI system classification** factor is a "routing gate": its value gives con
 
 `portfolio_level_ai_estate_concentration` requires institution-wide model inventory data that a single project description cannot provide. When that data is unavailable, the factor is **not** defaulted to Medium and does **not** count toward Dimension 8's average - it is excluded from scoring and surfaced in a `follow_up_actions` list (see "Sentinel Values" below), so the rest of the model-level assessment isn't blocked.
 
+## Model Type Classification & Delivery Model (v3.5-v3.8)
+
+A second, orthogonal, **non-scored** layer sits alongside the 8 dimensions above (`model_type_classification.py`, `conditional_modules.py`), orchestrated by a **mandatory five-step workflow** (`osfi_e23_workflow.py`, v3.6) that runs in this exact order and cannot be bypassed:
+
+1. **Model type identification** - classify capability level + delivery model.
+2. **Capability Evidence Pack triggers** - evaluated **before** the 47-question assessment runs (not a post-report add-on).
+3. **Existing 47-question assessment** - unchanged questions/dimensions/scoring; produces the base risk score/level.
+4. **Risk level + conditions** - Capability Evidence Pack findings qualify the base result with conditions/blockers/evidence gaps (never an independent score - `final_risk_level` always equals `base_risk_level`).
+5. **Required governance actions** - categorized action list (Documentation, Validation, Security/access controls, Vendor assurance, Monitoring, Human oversight, Approval, Issue remediation, Model inventory update, Workflow/ticket creation) derived from steps 1-4.
+
+Each step guards that all of its prerequisites completed (`AssessmentWorkflowContext.require_all_prior_completed`), raising `WorkflowOrderError` naming the earliest missing step if attempted out of order - e.g. running step 3 with nothing done yet reports `model_type_identification`, not step 2. Rendered in the report per `osfi_e23_report_generators.py`'s current structure (v4.2): model type classification in Section 1.2 / 2.2 / Annex E, Capability Evidence Pack results in Section 2.5, and required governance actions in Section 3.3 - see "OSFI E-23 Report Structure (v4.2)" in `CLAUDE.md` for the full section/annex map.
+
+**Core rule**: classification is based on objective, verifiable **capability gates**, not marketing labels. Product names/labels ("agent", "copilot", "assistant", "autonomous", "workflow", "Agentforce", "ServiceNow") are candidate signals only - Claude extracts factual yes/no/short-text evidence in the same extraction pass as the 47 factors, but deterministic server-side logic (not Claude) decides gate `verified` status and the final level.
+
+**Critical distinction (v3.7, hardened)**: automated execution (a predefined workflow/batch job/rule/schedule/trigger executing a predetermined action) is NOT the same as autonomous agentic decision-making (the AI deciding WHETHER to act, WHAT action to take, and/or WHAT SEQUENCE of actions to pursue toward a goal). A system is never promoted to Level 5 solely because it runs on a schedule, is event-triggered, processes records in batch, auto-approves a predefined decision, applies a threshold rule, executes a fixed workflow, has no human review per transaction, or changes a system of record via predefined logic - those are Action Execution Pack / governance territory, not proof of autonomy.
+
+- **4 promotion gates**, each with `verified` (bool), `evidence` (list of cited fields), `missing_evidence` (list), and `rationale`:
+  1. `genai_generation` = `uses_llm_or_generative_ai == yes`.
+  2. `runtime_retrieval` = `genai_generation.verified AND uses_runtime_retrieval_for_genai_grounding == yes`. Traditional-ML feature retrieval, DB lookups, or batch ETL (`retrieves_data_for_features_or_batch_processing`) never count, even without GenAI.
+  3. `tool_or_action_execution` = `model_output_changes_system_state == yes OR ai_selects_tool_or_action == yes OR predefined_workflow_triggered_by_model_output == yes`. This can verify for a pure traditional-ML model with no GenAI at all (e.g. a credit-line auto-update rule), promoting it straight to Level 4.
+  4. `autonomous_operation` = `tool_or_action_execution.verified AND ai_decides_to_act_or_continue == yes AND at least one of` {`ai_selects_tool_or_action`, `ai_selects_next_step`, `has_dynamic_multi_step_planning`, `has_goal_pursuit`, `has_looping_or_retry_based_on_outcomes`, `has_memory_or_state_driven_continuation`, `has_delegation_to_other_agents`, `has_adaptive_plan_revision`} `== yes`. The `ai_decides_to_act_or_continue` conjunct is the key differentiator - `runs_on_schedule_or_event_trigger` and `requires_human_approval_per_action == no` are explicitly insufficient on their own to satisfy it, and the classifier records that reasoning verbatim in the gate's rationale when they're the only signals present.
+- **Sequential promotion**: Level 1 (default) -> 2 if `genai_generation` verified -> 3 if `runtime_retrieval` verified -> 4 if `tool_or_action_execution` verified -> **5 only if `autonomous_operation` is verified** (which itself already requires `tool_or_action_execution.verified` as one of its three conjuncts - there is no way to reach Level 5 without verified action execution). A model can jump levels (e.g. GenAI + AI-selected tool execution with no retrieval = Level 4 directly).
+- **Confidence** (`high`/`medium`/`low`) is computed per gate and overall: `high` requires the deciding evidence to be both explicit and backed by a concrete/named detail (e.g. a specific vendor product); `low` covers incomplete, ambiguous, or label-only evidence (e.g. a system merely described as an "AI agent" with no capability confirmation never promotes above Level 1, and confidence is `low`).
+- **Rationale requirements**: every classification states the final level/label, verified gates, evidence used, missing evidence, and an explicit reason Level 5 was or wasn't reached. Level 5 rationale additionally covers the goal/task pursued, how the AI decides to act/continue, what actions/tools it chooses among, and its sequencing/revision/retry/delegation/escalation capability and guardrails. Non-Level-5 systems with automation get rationale stating what's automated, whether it's predefined, whether the AI has discretion over the next action/continuation, and why the system isn't autonomous.
+- **Delivery model** (`internal_build` / `vendor_platform` / `embedded_saas_ai` / `unknown`) is classified independently of capability level - the same vendor product (e.g. Agentforce, ServiceNow) can be Level 2 through 5 depending on what's actually enabled, while delivery model only reflects who hosts/controls the underlying model.
+- **Exactly 4 Capability Evidence Packs** (Knowledge Access, Action Execution, Autonomy, Vendor / Platform - **Client/Regulated Impact is intentionally not a 5th pack**; client impact stays within the 47 questions and governance escalation logic) trigger deterministically off the promotion gates' `verified` flags and delivery model, surfacing evidence gaps, blockers, `governance_conditions`, `governance_actions` (with `priority`), and findings mapped to exactly **5 of the 8** dimensions each (a `risk_dimension_mapping_notes` string explains why). They never produce an independent score. Blockers arise from missing supplementary evidence (e.g. Action Execution Pack + no confirmed audit logging = production blocker).
+  - **Trigger conditions (v3.8)**: Knowledge Access = `runtime_retrieval.verified`. Action Execution = `tool_or_action_execution.verified` (widened to OR in `system_of_record_write_permission`, `model_output_initiates_external_communication`, `model_output_triggers_transaction_or_approval` alongside the original 3 signals). Autonomy = `autonomous_operation.verified` (can never trigger without Action Execution, per the gate formula). Vendor/Platform = `delivery_model.label in (vendor_platform, embedded_saas_ai)` **OR** any of `vendor_controls_model_runtime`, `vendor_controls_model_updates`, `vendor_hosts_customer_or_sensitive_data`, `vendor_provides_foundation_model_or_agent_platform` == yes (widening the pack's own trigger predicate, not the 4-value delivery-model taxonomy itself).
+  - **`key_questions` (v3.8, 12 per pack, 48 total)**: a static reference/follow-up checklist (question, expected evidence/control, condition-if-missing, a stated default `blocker_if_missing`, and full blocker guidance text) rendered under each *triggered* pack. These are **not extracted from the project description or verified by this tool** - external/operational control evidence (vendor contracts, tested kill switches, audit rights, etc.) would never appear in a project description. `evidence_status` is uniformly `not_verified` with a note to confirm with the accountable control owner internally.
+  - **Governance action schema (v3.8)**: `{category, action, source_pack, priority (blocker/high/medium/low), owner: "TBD", due_stage}`. Priority is set at the pack level (blocker-linked conditions get `"blocker"`, other pack conditions get `"high"`) and for baseline workflow actions (Approval/Model inventory update/Documentation get `"medium"`; Issue remediation for blockers gets `"blocker"`).
+- Rendered in the report (v4.2) as: Section 1.2 Model Classification Summary + Annex E Detailed Model Type Classification Evidence (model type/delivery model - never called "promotion gates" in report text, since that reads as OSFI E-23 lifecycle-stage approval, which this is not), Section 2.5 Capability Evidence Pack Results (incl. the key_questions reference table per triggered pack, rendered as a "Required Action" column rather than exposing the internal blocker/condition fields), and Section 3.3 Required Actions (merged base-risk/pack/evidence-gap actions, sorted by priority - the internal `"blocker"` priority value displays as "Critical", never as "Blocker") - all optional via `include_model_type_section`/`include_conditional_modules_section`, default on. The report never surfaces `final_status`/blocker/condition/readiness as first-class concepts; only evidence gaps, required actions, and required validation (see `osfi_e23_report_generators.py`).
+
 ## Sentinel Values
 
 Beyond the four risk levels, the extraction/scoring pipeline recognizes:
@@ -118,7 +151,7 @@ Beyond the four risk levels, the extraction/scoring pipeline recognizes:
 | Sentinel | Meaning | Scoring effect | Applies to |
 |---|---|---|---|
 | `NOT_STATED` | Information not found in the project description | Defaults to Medium risk (score=2); counted in the dimension average; tracked in `not_stated_summary` | Any factor |
-| `NOT_APPLICABLE` | The factor genuinely does not apply to this system | Scores as Low (or a factor-specific `na_risk_level`); counted in the dimension average; tracked via `is_not_applicable` | Factors with `allow_na: True` (currently: `synthetic_data_quality`, `confabulation_false_authority`, `genai_output_quality_benchmark`, `adversarial_robustness_testing`, `genai_scope_constraint`) |
+| `NOT_APPLICABLE` | The factor genuinely does not apply to this system | Scores as Low (or a factor-specific `na_risk_level`); counted in the dimension average; tracked via `is_not_applicable` | Factors with `allow_na: True` (currently: `confabulation_false_authority`, `genai_output_quality_benchmark`, `adversarial_robustness_testing`, `override_rate`, `synthetic_data_quality`). Note: prior to v3.5, `override_rate` (the only *quantitative* factor with `allow_na`) crashed on `NOT_APPLICABLE` since only the qualitative scorer checked for the sentinel - fixed in `score_factor()` to check centrally for both factor types. |
 | `PORTFOLIO_REVIEW_REQUIRED` | Institution-wide inventory data needed to answer is unavailable | Excluded entirely from the dimension average; tracked in `follow_up_actions` | Only `portfolio_level_ai_estate_concentration` (`allow_review_required: True`) |
 
 ## Dimension × Lifecycle Matrix

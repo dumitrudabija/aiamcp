@@ -241,7 +241,11 @@ The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extract
 - ✅ **Contextual Understanding** - AI analyzes description (not crude keyword matching)
 - ✅ **Streamlined Flow** - No mid-workflow interruption; transparency in final report
 - ✅ **Deterministic Scoring** - Same values always produce same risk score
-- ✅ **Transparent Defaults** - Missing info defaults to Medium and shown in Annex A
+- ✅ **Transparent Defaults** - Missing info defaults to Medium and shown in Annex C
+
+**Model Type Classification & Capability Evidence Packs (v3.5):**
+- Deterministic capability-evidence classification assigns a Level 1-5 model type (Traditional / GenAI / Knowledge-grounded GenAI / Agentic / Autonomous) and a delivery model (internal build / vendor platform / embedded SaaS AI) - an interpretation lens, orthogonal to and never affecting the 47-question base risk score
+- Triggers up to 4 Capability Evidence Packs (Knowledge Access, Action Execution, Autonomy, Vendor/Platform), each producing findings, evidence gaps, and required actions mapped back to the 8 risk dimensions - never a separate risk score
 
 **8 Risk Dimensions (47 Factors):**
 | Dimension | Factors | Core Question |
@@ -275,14 +279,16 @@ The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extract
 #### 13. `export_e23_report`
 🏦 **OSFI E-23 STEP 3 OF 3 - REPORT GENERATION**: Generates stage-specific OSFI E-23 compliance report as a Microsoft Word document with risk-scaled lifecycle requirements and checklists.
 
-**v3.3 Features:**
+**v4.2 Features:**
 - ✅ 8 Risk Dimensions summary table with actual risk levels
 - ✅ Lifecycle requirements scaled by risk level per OSFI Principle 2.3
-- ✅ 1-2 checklist items per requirement area
-- ✅ **Annex A: Detailed Factor Assessment** - Full transparency with 47 factors, scoring matrices, and evidence
-- ✅ Stage-specific (shows only current stage requirements)
+- ✅ Model type classification (Level 1-5) and delivery model, kept separate from the base risk rating
+- ✅ Capability Evidence Pack results (findings, evidence gaps, required actions, required validation)
+- ✅ **Annex C: Detailed Question-by-Question Evidence** - Full transparency with 47 factors, scoring matrices, and evidence
+- ✅ Stage-specific (Section 3 shows only current stage requirements)
+- ✅ Reports only tool-supported concepts - no first-class "final status", "blocker", "condition", or "readiness" language; only evidence gaps, required actions, and required validation, clearly separated from the base risk rating
 
-⚠️ **COMPLIANCE WARNING**: Requires professional validation.
+⚠️ **COMPLIANCE WARNING**: Requires professional validation. The report does not determine lifecycle-stage approval, production readiness, or blocking decisions - only the institution's governance process does.
 
 **Parameters:**
 - `project_name`: Name of the model being assessed
@@ -291,15 +297,18 @@ The OSFI E-23 workflow uses a 3-step process with AI-assisted contextual extract
 - `current_stage`: Current lifecycle stage (from Step 2)
 - `custom_filename` (optional): Custom filename (without extension)
 
-**Report Structure (v3.3):**
-1. **Executive Summary** - Risk level, governance intensity, key risk drivers
-2. **Risk Assessment by Dimension** - 8 dimensions with assessed levels (Low/Medium/High/Critical)
-3. **[STAGE] Stage Requirements** - Lifecycle requirements with checklists
-4. **Annex A: Detailed Factor Assessment** - 8 tables showing all 47 factors with:
+**Report Structure (v4.2):**
+1. **Context and Assessment Summary** - Functional description, model classification summary, risk rating summary, required validation
+2. **Risk Rating Methodology and Results** - Methodology overview, model type classification reference (Level 1-5 taxonomy), 8 risk dimensions, scoring logic, Capability Evidence Pack results, risk result interpretation
+3. **Required Actions for Governance Review** - Current lifecycle stage and base risk rating, stage-specific required actions, required actions (base risk / Capability Pack / evidence-gap sourced), required validations - explicitly automated assessment output, not an approval or lifecycle-promotion decision
+4. **Annex A: Official OSFI E-23 Reference** - Outcomes, Principles by Outcome, model lifecycle definition/components, Appendix 1 model inventory tracking - official guideline text only
+5. **Annex B: Fit With Enterprise Risk Management** - Executive framing, risk-dimension-to-ERM mapping, risk treatment outcomes, documentation gaps
+6. **Annex C: Detailed Question-by-Question Evidence** - 8 tables showing all 47 factors with:
    - Scoring Matrix (Low/Medium/High/Critical thresholds)
    - Determined Value with risk level (or N/A / Portfolio Review Required for factors using those sentinels)
    - Evidence from project description (empty for NOT_STATED)
-5. **Annex B: OSFI E-23 Principles** - All Principles 1.1-3.6 by Outcome
+7. **Annex D: Configurable Governance Matrix** - Full 5-stage x 4-risk-level lifecycle governance matrix, explicitly labeled as methodology-generated implementation guidance (not verbatim OSFI E-23 text)
+8. **Annex E: Detailed Model Type Classification Evidence** - Per-check capability evidence (GenAI generation, runtime retrieval, tool/action execution, autonomous operation, etc.) - explicitly not OSFI E-23 lifecycle promotion gates
 
 ## Risk Assessment Frameworks
 
@@ -710,11 +719,6 @@ aiamcp/
 ### Validate Installation
 ```bash
 python validate_mcp.py
-```
-
-### Test Scenarios
-```bash
-python test_mcp_server.py
 ```
 
 ### Comprehensive Testing
