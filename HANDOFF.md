@@ -98,6 +98,70 @@ python scripts/validate_mcp.py
 
 ---
 
+## Claude Code in VS Code (New Laptop)
+
+This project is normally worked on via Claude Code, not just Claude Desktop. To get the same setup running:
+
+### 1. Install VS Code
+Download from https://code.visualstudio.com if not already installed.
+
+### 2. Install the Claude Code CLI
+Native installer (macOS/Linux):
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+This installs the `claude` binary (self-updating, no npm/Node required). Verify with:
+
+```bash
+claude doctor
+```
+
+### 3. Log in
+```bash
+claude
+```
+On first run it walks you through browser-based login (Claude.ai / Anthropic account). This is a one-time step per machine.
+
+### 4. Connect it to VS Code
+- Open the project folder in VS Code: `code ~/Projects/aia-assessment-mcp` (or File → Open Folder).
+- Open the integrated terminal (`` Ctrl+` ``) and run `claude` from the project root.
+- The first time you run `claude` inside a VS Code integrated terminal, it detects the IDE and offers to install the companion **Claude Code** VS Code extension — accept it. This adds inline diff viewing, file-change tracking, and lets you jump between the chat and the editor.
+- If it doesn't prompt, install the "Claude Code" extension manually from the VS Code Marketplace (publisher: Anthropic) and reopen the integrated terminal.
+
+### 5. Confirm it works
+Inside the project directory, `claude` should start with the project's `CLAUDE.md` picked up automatically (you'll see it referenced in context). Try a trivial read-only ask (e.g. "what does this repo do?") to confirm it's reading the right files.
+
+---
+
+## Project Structure on a New Laptop (GitHub as Source of Truth)
+
+Don't copy the `Projects/` folder over from the old machine — clone fresh from GitHub instead. The working tree accumulates local-only cruft (caches, generated reports, local permission grants) that shouldn't travel between machines, and a stale copy can silently diverge from what's actually pushed.
+
+### Recommended layout
+Keep the same convention already in use: one folder per repo directly under `~/Projects/`, e.g.:
+```
+~/Projects/
+  aia-assessment-mcp/   ← this repo
+  <other-repo>/
+```
+
+### Per-project setup on the new machine
+1. `git clone https://github.com/dumitrudabija/aiamcp.git ~/Projects/aia-assessment-mcp`
+2. Authenticate to GitHub when prompted on first push/pull — this repo uses an HTTPS remote (not SSH), so you'll need either a Personal Access Token (used as the password when Git/macOS Keychain prompts) or `gh auth login` if the GitHub CLI is installed. Do this once; the OS credential manager remembers it after.
+3. `pip install -r requirements.txt`
+4. Follow the "Setup" section above to register the MCP server with Claude Desktop, and the "Claude Code in VS Code" section above for the CLI/editor.
+
+### What does NOT come over automatically (by design)
+- **`.claude/settings.local.json`** (per-project tool permission grants) — excluded from git by a **global** gitignore rule (`~/.config/git/ignore` → `**/.claude/settings.local.json`), not the repo's own `.gitignore`. On the new laptop you need to recreate that global ignore rule yourself (or Claude Code will offer to add permissions again as you use it — either way, expect to re-approve tool permissions from scratch).
+- **Claude Code's cross-session memory** (`~/.claude/projects/.../memory/`) — local to the machine, rebuilds over time as you work; see the "Not in git (local only)" note further down this doc.
+- Generated output folders (`AIA_Assessments/`, `OSFI_E23_Assessments/`), `backup_v2/`, `__pycache__/`, etc. — all gitignored, regenerated as needed.
+
+Net effect: GitHub has everything required to reproduce a working repo; machine-local state (permissions, memory, caches) is expected to be empty on day one and rebuild naturally.
+
+---
+
 ## What Is and Isn't in Git
 
 **In git (everything you need):**
